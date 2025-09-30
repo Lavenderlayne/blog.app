@@ -16,7 +16,7 @@ from django.contrib.auth.models import User
 class PostListView(ListView):
     """Список всіх опублікованих постів"""
     model = Post
-    template_name = 'blog/post_list.html'
+    template_name = 'core/post_list.html'
     context_object_name = 'posts'
     paginate_by = 10
     
@@ -64,7 +64,7 @@ class PostListView(ListView):
 class PostDetailView(DetailView):
     """Детальний перегляд посту"""
     model = Post
-    template_name = 'blog/post_detail.html'
+    template_name = 'core/post_detail.html'
     context_object_name = 'post'
     
     def get_queryset(self):
@@ -103,7 +103,7 @@ class PostCreateView(LoginRequiredMixin, CreateView):
     """Створення нового посту"""
     model = Post
     form_class = PostForm
-    template_name = 'blog/post_form.html'
+    template_name = 'core/post_form.html'
     
     def form_valid(self, form):
         form.instance.author = self.request.user
@@ -118,7 +118,7 @@ class PostUpdateView(LoginRequiredMixin, UserPassesTestMixin, UpdateView):
     """Редагування посту"""
     model = Post
     form_class = PostForm
-    template_name = 'blog/post_form.html'
+    template_name = 'core/post_form.html'
     
     def form_valid(self, form):
         messages.success(self.request, 'Пост успішно оновлено!')
@@ -135,7 +135,7 @@ class PostUpdateView(LoginRequiredMixin, UserPassesTestMixin, UpdateView):
 class PostDeleteView(LoginRequiredMixin, UserPassesTestMixin, DeleteView):
     """Видалення посту"""
     model = Post
-    template_name = 'blog/post_confirm_delete.html'
+    template_name = 'core/post_confirm_delete.html'
     success_url = reverse_lazy('post_list')
     
     def test_func(self):
@@ -150,7 +150,7 @@ class PostDeleteView(LoginRequiredMixin, UserPassesTestMixin, DeleteView):
 class UserPostListView(ListView):
     """Список постів конкретного автора"""
     model = Post
-    template_name = 'blog/user_posts.html'
+    template_name = 'core/user_posts.html'
     context_object_name = 'posts'
     paginate_by = 10
     
@@ -248,7 +248,7 @@ def subscribe(request):
     else:
         form = SubscriptionForm()
     
-    return render(request, 'blog/subscribe.html', {'form': form})
+    return render(request, 'core/subscribe.html', {'form': form})
 
 
 def unsubscribe(request, email):
@@ -280,13 +280,13 @@ def home(request):
         'categories': categories,
     }
     
-    return render(request, 'blog/home.html', context)
+    return render(request, 'core/home.html', context)
 
 
 class CategoryListView(ListView):
     """Список всіх категорій"""
     model = Category
-    template_name = 'blog/category_list.html'
+    template_name = 'core/category_list.html'
     context_object_name = 'categories'
     
     def get_queryset(self):
@@ -298,7 +298,7 @@ class CategoryListView(ListView):
 class CategoryDetailView(DetailView):
     """Детальний перегляд категорії з постами"""
     model = Category
-    template_name = 'blog/category_detail.html'
+    template_name = 'core/category_detail.html'
     context_object_name = 'category'
     
     def get_context_data(self, **kwargs):
@@ -319,7 +319,7 @@ class CategoryDetailView(DetailView):
 class TagListView(ListView):
     """Список всіх тегів"""
     model = Tag
-    template_name = 'blog/tag_list.html'
+    template_name = 'core/tag_list.html'
     context_object_name = 'tags'
     
     def get_queryset(self):
@@ -331,7 +331,7 @@ class TagListView(ListView):
 class TagDetailView(DetailView):
     """Детальний перегляд тегу з постами"""
     model = Tag
-    template_name = 'blog/tag_detail.html'
+    template_name = 'core/tag_detail.html'
     context_object_name = 'tag'
     
     def get_context_data(self, **kwargs):
@@ -395,4 +395,4 @@ def search(request):
         'results_count': len(posts),
     }
     
-    return render(request, 'blog/search.html', context)
+    return render(request, 'core/search.html', context)

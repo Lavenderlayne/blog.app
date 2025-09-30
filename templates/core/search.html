@@ -1,0 +1,156 @@
+{% extends 'base.html' %}
+
+{% block title %}Пошук - Мій Блог{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-12">
+        <div class="card">
+            <div class="card-header">
+                <h4 class="mb-0"><i class="bi bi-search"></i> Пошук по блогу</h4>
+            </div>
+            <div class="card-body">
+                <!-- Форма пошуку -->
+                <form method="get" class="mb-4">
+                    <div class="input-group input-group-lg">
+                        <input type="text" name="q" class="form-control" placeholder="Введіть запит для пошуку..." value="{{ query }}" autofocus>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="bi bi-search"></i> Шукати
+                        </button>
+                    </div>
+                    <div class="form-text mt-2">
+                        Пошук здійснюється за заголовками, текстом постів, короткими описами та тегами
+                    </div>
+                </form>
+
+                <!-- Результати пошуку -->
+                {% if query %}
+                    <div class="d-flex justify-content-between align-items-center mb-4">
+                        <h5>Результати пошуку для "{{ query }}"</h5>
+                        <span class="badge bg-primary">{{ results_count }} результатів</span>
+                    </div>
+
+                    {% if posts %}
+                        {% for post in posts %}
+                        <div class="card mb-3">
+                            <div class="card-body">
+                                <h5 class="card-title">
+                                    <a href="/posts/{{ post.slug }}/" class="text-decoration-none">{{ post.title }}</a>
+                                    {% if post.is_featured %}
+                                    <span class="badge bg-warning ms-2">Обраний</span>
+                                    {% endif %}
+                                </h5>
+                                
+                                <p class="card-text">{{ post.excerpt|default:post.content|truncatewords:30 }}</p>
+                                
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <small class="text-muted">
+                                            <i class="bi bi-person"></i> {{ post.author.username }} |
+                                            <i class="bi bi-folder"></i> {{ post.category.name }} |
+                                            <i class="bi bi-calendar"></i> {{ post.created_at|date:"d.m.Y" }} |
+                                            <i class="bi bi-eye"></i> {{ post.view_count }}
+                                        </small>
+                                    </div>
+                                    <a href="/posts/{{ post.slug }}/" class="btn btn-outline-primary btn-sm">Читати</a>
+                                </div>
+                                
+                                <!-- Теги -->
+                                {% if post.tags.all %}
+                                <div class="mt-2">
+                                    {% for tag in post.tags.all %}
+                                    <span class="badge bg-light text-dark">{{ tag.name }}</span>
+                                    {% endfor %}
+                                </div>
+                                {% endif %}
+                                
+                                <!-- Підсвітка результатів -->
+                                {% if query in post.title %}
+                                <div class="mt-2">
+                                    <small class="text-success">
+                                        <i class="bi bi-check-circle"></i> Знайдено в заголовку
+                                    </small>
+                                </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        {% endfor %}
+                    {% else %}
+                        <div class="alert alert-warning">
+                            <h5><i class="bi bi-exclamation-triangle"></i> Нічого не знайдено</h5>
+                            <p class="mb-0">Спробуйте змінити запит або використати інші ключові слова.</p>
+                        </div>
+                        
+                        <!-- Поради щодо пошуку -->
+                        <div class="card">
+                            <div class="card-header">
+                                <i class="bi bi-lightbulb"></i> Поради щодо пошуку
+                            </div>
+                            <div class="card-body">
+                                <ul class="mb-0">
+                                    <li>Переконайтеся, що всі слова написані правильно</li>
+                                    <li>Спробуйте інші ключові слова</li>
+                                    <li>Спробуйте більш загальні запити</li>
+                                    <li>Перегляньте <a href="/categories/">категорії</a> або <a href="/tags/">теги</a></li>
+                                </ul>
+                            </div>
+                        </div>
+                    {% endif %}
+                {% else %}
+                    <!-- Початковий стан пошуку -->
+                    <div class="text-center py-5">
+                        <i class="bi bi-search" style="font-size: 4rem; color: #6c757d;"></i>
+                        <h4 class="mt-3">Що шукаєте?</h4>
+                        <p class="text-muted">Введіть запит у поле вище, щоб знайти цікаві вам пости</p>
+                        
+                        <!-- Популярні теми -->
+                        <div class="row mt-4">
+                            <div class="col-md-6">
+                                <div class="card">
+                                    <div class="card-body">
+                                        <h6>Популярні теги</h6>
+                                        <div class="d-flex flex-wrap gap-1">
+                                            {% for tag in popular_tags %}
+                                            <a href="/tags/{{ tag.slug }}/" class="badge bg-primary text-decoration-none">{{ tag.name }}</a>
+                                            {% endfor %}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="card">
+                                    <div class="card-body">
+                                        <h6>Категорії</h6>
+                                        <div class="d-flex flex-column">
+                                            {% for category in categories %}
+                                            <a href="/categories/{{ category.slug }}/" class="text-decoration-none mb-1">{{ category.name }}</a>
+                                            {% endfor %}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Додаткові дії -->
+        {% if query and posts %}
+        <div class="card mt-4">
+            <div class="card-body text-center">
+                <p class="mb-3">Не знайшли те, що шукали?</p>
+                <div class="d-flex justify-content-center gap-2">
+                    <a href="/posts/create/" class="btn btn-outline-primary">
+                        <i class="bi bi-plus-circle"></i> Створити новий пост
+                    </a>
+                    <a href="/categories/" class="btn btn-outline-secondary">
+                        <i class="bi bi-folder"></i> Переглянути категорії
+                    </a>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

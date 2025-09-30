@@ -1,0 +1,91 @@
+{% extends 'base.html' %}
+
+{% block title %}Пошук користувачів{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-12">
+        <div class="card">
+            <div class="card-header">
+                <h4 class="mb-0"><i class="bi bi-search"></i> Пошук користувачів</h4>
+            </div>
+            <div class="card-body">
+                <form method="get" class="mb-4">
+                    <div class="input-group">
+                        <input type="text" name="q" class="form-control" placeholder="Введіть ім'я, email, прізвище..." value="{{ query }}">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="bi bi-search"></i> Пошук
+                        </button>
+                    </div>
+                </form>
+                
+                {% if query %}
+                    <h5>Результати пошуку для "{{ query }}":</h5>
+                    
+                    {% if users %}
+                        <div class="table-responsive">
+                            <table class="table table-striped">
+                                <thead>
+                                    <tr>
+                                        <th>Користувач</th>
+                                        <th>Email</th>
+                                        <th>Роль</th>
+                                        <th>Статус</th>
+                                        <th>Дії</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for user_obj in users %}
+                                    <tr>
+                                        <td>
+                                            <div class="d-flex align-items-center">
+                                                {% if user_obj.profile.avatar %}
+                                                    <img src="{{ user_obj.profile.avatar.url }}" alt="Аватар" class="rounded-circle me-2" width="32" height="32">
+                                                {% else %}
+                                                    <div class="bg-secondary rounded-circle d-flex align-items-center justify-content-center me-2" style="width: 32px; height: 32px;">
+                                                        <i class="bi bi-person text-light"></i>
+                                                    </div>
+                                                {% endif %}
+                                                <a href="{% url 'profile-detail' username=user_obj.username %}">
+                                                    {{ user_obj.username }}
+                                                </a>
+                                            </div>
+                                        </td>
+                                        <td>{{ user_obj.email }}</td>
+                                        <td>
+                                            <span class="badge bg-{% if user_obj.role == 'admin' %}danger{% elif user_obj.role == 'moderator' %}warning{% else %}primary{% endif %}">
+                                                {{ user_obj.get_role_display }}
+                                            </span>
+                                        </td>
+                                        <td>
+                                            {% if user_obj.is_active %}
+                                                <span class="badge bg-success">Активний</span>
+                                            {% else %}
+                                                <span class="badge bg-danger">Заблокований</span>
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            <a href="{% url 'profile-detail' username=user_obj.username %}" class="btn btn-sm btn-outline-primary">
+                                                <i class="bi bi-eye"></i> Переглянути
+                                            </a>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% else %}
+                        <div class="alert alert-info">
+                            <i class="bi bi-info-circle"></i> Користувачів за запитом "{{ query }}" не знайдено.
+                        </div>
+                    {% endif %}
+                {% else %}
+                    <div class="alert alert-info">
+                        <i class="bi bi-info-circle"></i> Введіть запит для пошуку користувачів.
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

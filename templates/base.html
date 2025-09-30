@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Мій Блог{% endblock %}</title>
+    
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+    
+    {% block extra_css %}{% endblock %}
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+        <div class="container">
+            <a class="navbar-brand" href="/">
+                <i class="bi bi-journal-text"></i> Мій Блог
+            </a>
+            
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav me-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="/">
+                            <i class="bi bi-house"></i> Головна
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/posts/">
+                            <i class="bi bi-newspaper"></i> Всі пости
+                        </a>
+                    </li>
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
+                            <i class="bi bi-tags"></i> Категорії
+                        </a>
+                        <ul class="dropdown-menu">
+                            {% for category in categories %}
+                            <li>
+                                <a class="dropdown-item" href="/categories/{{ category.slug }}/">
+                                    {{ category.name }}
+                                </a>
+                            </li>
+                            {% empty %}
+                            <li><a class="dropdown-item" href="#">Немає категорій</a></li>
+                            {% endfor %}
+                        </ul>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/search/">
+                            <i class="bi bi-search"></i> Пошук
+                        </a>
+                    </li>
+                </ul>
+                
+                <ul class="navbar-nav">
+                    {% if user.is_authenticated %}
+                        <li class="nav-item dropdown">
+                            <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
+                                <i class="bi bi-person-circle"></i> {{ user.username }}
+                            </a>
+                            <ul class="dropdown-menu">
+                                <li>
+                                    <a class="dropdown-item" href="/users/my-profile/">
+                                        <i class="bi bi-person"></i> Мій профіль
+                                    </a>
+                                </li>
+                                <li>
+                                    <a class="dropdown-item" href="/posts/create/">
+                                        <i class="bi bi-plus-circle"></i> Створити пост
+                                    </a>
+                                </li>
+                                <li><hr class="dropdown-divider"></li>
+                                {% if user.is_moderator or user.is_admin %}
+                                <li>
+                                    <a class="dropdown-item" href="/users/">
+                                        <i class="bi bi-people"></i> Користувачі
+                                    </a>
+                                </li>
+                                {% endif %}
+                                {% if user.is_admin %}
+                                <li>
+                                    <a class="dropdown-item" href="/users/statistics/">
+                                        <i class="bi bi-graph-up"></i> Статистика
+                                    </a>
+                                </li>
+                                {% endif %}
+                                <li><hr class="dropdown-divider"></li>
+                                <li>
+                                    <a class="dropdown-item" href="/logout/">
+                                        <i class="bi bi-box-arrow-right"></i> Вийти
+                                    </a>
+                                </li>
+                            </ul>
+                        </li>
+                    {% else %}
+                        <li class="nav-item">
+                            <a class="nav-link" href="/login/">
+                                <i class="bi bi-box-arrow-in-right"></i> Увійти
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="/register/">
+                                <i class="bi bi-person-plus"></i> Реєстрація
+                            </a>
+                        </li>
+                    {% endif %}
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container mt-3">
+        {% if messages %}
+            {% for message in messages %}
+                <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                    {{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+            {% endfor %}
+        {% endif %}
+    </div>
+
+    <main class="container my-4">
+        {% block content %}
+        {% endblock %}
+    </main>
+
+    <footer class="bg-dark text-light py-4 mt-5">
+        <div class="container">
+            <div class="row">
+                <div class="col-md-6">
+                    <h5>Мій Блог</h5>
+                    <p>Тут ви знайдете цікаві статті, новини та корисні матеріали.</p>
+                </div>
+                <div class="col-md-3">
+                    <h5>Навігація</h5>
+                    <ul class="list-unstyled">
+                        <li><a href="/" class="text-light">Головна</a></li>
+                        <li><a href="/posts/" class="text-light">Всі пости</a></li>
+                        <li><a href="/categories/" class="text-light">Категорії</a></li>
+                    </ul>
+                </div>
+                <div class="col-md-3">
+                    <h5>Користувач</h5>
+                    <ul class="list-unstyled">
+                        {% if user.is_authenticated %}
+                            <li><a href="/users/my-profile/" class="text-light">Мій профіль</a></li>
+                            <li><a href="/posts/create/" class="text-light">Створити пост</a></li>
+                        {% else %}
+                            <li><a href="/login/" class="text-light">Увійти</a></li>
+                            <li><a href="/register/" class="text-light">Реєстрація</a></li>
+                        {% endif %}
+                    </ul>
+                </div>
+            </div>
+            <hr class="bg-light">
+            <div class="text-center">
+                <p>&copy; 2024 Мій Блог. Всі права захищені.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    
+    {% block extra_js %}{% endblock %}
+</body>
+</html>

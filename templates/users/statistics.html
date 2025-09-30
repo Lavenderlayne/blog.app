@@ -1,0 +1,126 @@
+{% extends 'base.html' %}
+
+{% block title %}Статистика користувачів{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-12">
+        <h1 class="mb-4"><i class="bi bi-graph-up"></i> Статистика користувачів</h1>
+        
+        <div class="row mb-4">
+            <div class="col-md-3">
+                <div class="card bg-primary text-white">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between">
+                            <div>
+                                <h4>{{ total_users }}</h4>
+                                <p class="mb-0">Всього користувачів</p>
+                            </div>
+                            <div class="align-self-center">
+                                <i class="bi bi-people" style="font-size: 2rem;"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-md-3">
+                <div class="card bg-success text-white">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between">
+                            <div>
+                                <h4>{{ active_users }}</h4>
+                                <p class="mb-0">Активних</p>
+                            </div>
+                            <div class="align-self-center">
+                                <i class="bi bi-check-circle" style="font-size: 2rem;"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-md-3">
+                <div class="card bg-warning text-dark">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between">
+                            <div>
+                                <h4>{{ moderators_count }}</h4>
+                                <p class="mb-0">Модераторів</p>
+                            </div>
+                            <div class="align-self-center">
+                                <i class="bi bi-shield-check" style="font-size: 2rem;"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-md-3">
+                <div class="card bg-danger text-white">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between">
+                            <div>
+                                <h4>{{ admins_count }}</h4>
+                                <p class="mb-0">Адміністраторів</p>
+                            </div>
+                            <div class="align-self-center">
+                                <i class="bi bi-shield-lock" style="font-size: 2rem;"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="bi bi-clock-history"></i> Останні зареєстровані користувачі</h5>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-striped">
+                        <thead>
+                            <tr>
+                                <th>Користувач</th>
+                                <th>Email</th>
+                                <th>Роль</th>
+                                <th>Дата реєстрації</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for user_obj in recent_users %}
+                            <tr>
+                                <td>
+                                    <div class="d-flex align-items-center">
+                                        {% if user_obj.profile.avatar %}
+                                            <img src="{{ user_obj.profile.avatar.url }}" alt="Аватар" class="rounded-circle me-2" width="32" height="32">
+                                        {% else %}
+                                            <div class="bg-secondary rounded-circle d-flex align-items-center justify-content-center me-2" style="width: 32px; height: 32px;">
+                                                <i class="bi bi-person text-light"></i>
+                                            </div>
+                                        {% endif %}
+                                        {{ user_obj.username }}
+                                    </div>
+                                </td>
+                                <td>{{ user_obj.email }}</td>
+                                <td>
+                                    <span class="badge bg-{% if user_obj.role == 'admin' %}danger{% elif user_obj.role == 'moderator' %}warning{% else %}primary{% endif %}">
+                                        {{ user_obj.get_role_display }}
+                                    </span>
+                                </td>
+                                <td>{{ user_obj.date_joined|date:"d.m.Y H:i" }}</td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="4" class="text-center">Немає користувачів</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,50 @@
+{% extends 'base.html' %}
+
+{% block title %}Головна - Мій Блог{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-8">
+        <h2 class="mb-4">Останні пости</h2>
+        {% for post in latest_posts %}
+        <div class="card mb-3">
+            <div class="card-body">
+                <h5 class="card-title">{{ post.title }}</h5>
+                <p class="card-text">{{ post.excerpt|default:post.content|truncatewords:30 }}</p>
+                <div class="d-flex justify-content-between align-items-center">
+                    <small class="text-muted">
+                        {{ post.author.username }} | {{ post.created_at|date:"d.m.Y" }}
+                    </small>
+                    <a href="/posts/{{ post.slug }}/" class="btn btn-primary btn-sm">Читати</a>
+                </div>
+            </div>
+        </div>
+        {% empty %}
+        <p>Ще немає постів.</p>
+        {% endfor %}
+    </div>
+    
+    <div class="col-md-4">
+        <div class="card mb-4">
+            <div class="card-header">Популярні категорії</div>
+            <div class="card-body">
+                {% for category in categories %}
+                <a href="/categories/{{ category.slug }}/" class="d-block mb-2">
+                    {{ category.name }} ({{ category.post_count }})
+                </a>
+                {% empty %}
+                <p class="text-muted">Немає категорій</p>
+                {% endfor %}
+            </div>
+        </div>
+        
+        <div class="card">
+            <div class="card-header">Швидкі посилання</div>
+            <div class="card-body">
+                <a href="/posts/create/" class="btn btn-primary w-100 mb-2">Створити пост</a>
+                <a href="/search/" class="btn btn-outline-secondary w-100">Пошук</a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

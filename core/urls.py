@@ -1,6 +1,8 @@
 from django.urls import path
 from . import views
 
+app_name = 'core'
+
 urlpatterns = [
     path('', views.home, name='home'),
     path('posts/', views.PostListView.as_view(), name='post_list'),
@@ -16,4 +18,7 @@ urlpatterns = [
     path('subscribe/', views.subscribe, name='subscribe'),
     path('comment/<int:pk>/delete/', views.delete_comment, name='delete_comment'),
     path('like/<slug:slug>/', views.toggle_like, name='toggle_like'),
+    path('user/<str:username>/posts/', views.UserPostListView.as_view(), name='user_posts'),
+    path('api/posts/', views.api_posts, name='api_posts'),
+    path('api/posts/<slug:slug>/', views.api_post_detail, name='api_post_detail'),
 ]

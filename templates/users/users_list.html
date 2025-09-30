@@ -1,0 +1,120 @@
+{% extends 'base.html' %}
+
+{% block title %}Користувачі{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1><i class="bi bi-people"></i> Користувачі</h1>
+    <a href="{% url 'user-search' %}" class="btn btn-outline-primary">
+        <i class="bi bi-search"></i> Пошук користувачів
+    </a>
+</div>
+
+<div class="card">
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-striped">
+                <thead>
+                    <tr>
+                        <th>Користувач</th>
+                        <th>Email</th>
+                        <th>Роль</th>
+                        <th>Статус</th>
+                        <th>Дата реєстрації</th>
+                        <th>Дії</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for user_obj in users %}
+                    <tr>
+                        <td>
+                            <div class="d-flex align-items-center">
+                                {% if user_obj.profile.avatar %}
+                                    <img src="{{ user_obj.profile.avatar.url }}" alt="Аватар" class="rounded-circle me-2" width="32" height="32">
+                                {% else %}
+                                    <div class="bg-secondary rounded-circle d-flex align-items-center justify-content-center me-2" style="width: 32px; height: 32px;">
+                                        <i class="bi bi-person text-light"></i>
+                                    </div>
+                                {% endif %}
+                                <a href="{% url 'profile-detail' username=user_obj.username %}">
+                                    {{ user_obj.username }}
+                                </a>
+                            </div>
+                        </td>
+                        <td>{{ user_obj.email }}</td>
+                        <td>
+                            <span class="badge bg-{% if user_obj.role == 'admin' %}danger{% elif user_obj.role == 'moderator' %}warning{% else %}primary{% endif %}">
+                                {{ user_obj.get_role_display }}
+                            </span>
+                        </td>
+                        <td>
+                            {% if user_obj.is_active %}
+                                <span class="badge bg-success">Активний</span>
+                            {% else %}
+                                <span class="badge bg-danger">Заблокований</span>
+                            {% endif %}
+                        </td>
+                        <td>{{ user_obj.date_joined|date:"d.m.Y" }}</td>
+                        <td>
+                            <div class="btn-group btn-group-sm">
+                                {% if request.user.is_admin %}
+                                <form method="post" action="{% url 'change-user-role' user_obj.id %}" class="d-inline">
+                                    {% csrf_token %}
+                                    <select name="role" class="form-select form-select-sm" onchange="this.form.submit()">
+                                        <option value="user" {% if user_obj.role == 'user' %}selected{% endif %}>Користувач</option>
+                                        <option value="moderator" {% if user_obj.role == 'moderator' %}selected{% endif %}>Модератор</option>
+                                        <option value="admin" {% if user_obj.role == 'admin' %}selected{% endif %}>Адмін</option>
+                                    </select>
+                                </form>
+                                {% endif %}
+                                
+                                {% if request.user.is_moderator or request.user.is_admin %}
+                                <form method="post" action="{% url 'toggle-user-status' user_obj.id %}" class="d-inline">
+                                    {% csrf_token %}
+                                    <button type="submit" class="btn btn-{% if user_obj.is_active %}warning{% else %}success{% endif %} btn-sm">
+                                        {% if user_obj.is_active %}
+                                            <i class="bi bi-lock"></i>
+                                        {% else %}
+                                            <i class="bi bi-unlock"></i>
+                                        {% endif %}
+                                    </button>
+                                </form>
+                                {% endif %}
+                            </div>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="6" class="text-center">Користувачі не знайдені</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+{% if is_paginated %}
+<nav aria-label="Page navigation" class="mt-4">
+    <ul class="pagination justify-content-center">
+        {% if page_obj.has_previous %}
+            <li class="page-item">
+                <a class="page-link" href="?page={{ page_obj.previous_page_number }}">Попередня</a>
+            </li>
+        {% endif %}
+        
+        {% for num in page_obj.paginator.page_range %}
+            <li class="page-item {% if page_obj.number == num %}active{% endif %}">
+                <a class="page-link" href="?page={{ num }}">{{ num }}</a>
+            </li>
+        {% endfor %}
+        
+        {% if page_obj.has_next %}
+            <li class="page-item">
+                <a class="page-link" href="?page={{ page_obj.next_page_number }}">Наступна</a>
+            </li>
+        {% endif %}
+    </ul>
+</nav>
+{% endif %}
+{% endblock %}
