@@ -4,45 +4,195 @@
 
 {% block content %}
 <div class="row">
+    <!-- Основний контент -->
     <div class="col-md-8">
-        <h2 class="mb-4">Останні пости</h2>
-        {% for post in latest_posts %}
-        <div class="card mb-3">
+        <!-- Заголовок -->
+        <div class="card bg-black border-secondary mb-4">
             <div class="card-body">
-                <h5 class="card-title">{{ post.title }}</h5>
-                <p class="card-text">{{ post.excerpt|default:post.content|truncatewords:30 }}</p>
-                <div class="d-flex justify-content-between align-items-center">
-                    <small class="text-muted">
-                        {{ post.author.username }} | {{ post.created_at|date:"d.m.Y" }}
-                    </small>
-                    <a href="/posts/{{ post.slug }}/" class="btn btn-primary btn-sm">Читати</a>
+                <h2 class="text-light mb-0">
+                    <i class="bi bi-house-fill text-warning"></i> Останні пости
+                </h2>
+            </div>
+        </div>
+
+        <!-- Список постів -->
+        {% for post in latest_posts %}
+        <div class="card bg-black border-secondary mb-3">
+            <div class="card-body">
+                <div class="d-flex">
+                    <!-- Блок голосування -->
+                    <div class="d-flex flex-column align-items-center me-3">
+                        <button class="btn btn-sm btn-outline-success p-1 mb-1">
+                            <i class="bi bi-arrow-up"></i>
+                        </button>
+                        <span class="text-light fw-bold">{{ post.like_count|default:0 }}</span>
+                        <button class="btn btn-sm btn-outline-danger p-1 mt-1">
+                            <i class="bi bi-arrow-down"></i>
+                        </button>
+                    </div>
+                    
+                    <!-- Контент поста -->
+                    <div class="flex-grow-1">
+                        <div class="d-flex align-items-center mb-2">
+                            <small class="text-muted">
+                                Опубліковано в 
+                                <a href="/categories/{{ post.category.slug }}/" class="text-warning text-decoration-none">
+                                    /r/{{ post.category.name }}
+                                </a>
+                            </small>
+                            <span class="text-muted mx-1">•</span>
+                            <small class="text-muted">{{ post.created_at|date:"d.m.Y" }}</small>
+                            <span class="text-muted mx-1">•</span>
+                            <small class="text-muted">Автор: {{ post.author.username }}</small>
+                        </div>
+                        
+                        <h5 class="card-title text-light mb-2">
+                            <a href="/posts/{{ post.slug }}/" class="text-light text-decoration-none">
+                                {{ post.title }}
+                            </a>
+                            {% if post.is_featured %}
+                            <span class="badge bg-warning ms-2">Обраний</span>
+                            {% endif %}
+                        </h5>
+                        
+                        <p class="card-text text-light mb-3">
+                            {{ post.excerpt|default:post.content|truncatewords:30 }}
+                        </p>
+                        
+                        <!-- Статистика та дії -->
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div class="text-muted small">
+                                <i class="bi bi-eye"></i> {{ post.view_count }}
+                                <span class="mx-1">•</span>
+                                <i class="bi bi-chat"></i> {{ post.comment_count|default:0 }}
+                                <span class="mx-1">•</span>
+                                <i class="bi bi-clock"></i> {{ post.created_at|timesince }} тому
+                            </div>
+                            <div class="btn-group">
+                                <button class="btn btn-outline-light btn-sm me-1">
+                                    <i class="bi bi-chat"></i>
+                                </button>
+                                <button class="btn btn-outline-light btn-sm me-1">
+                                    <i class="bi bi-share"></i>
+                                </button>
+                                <button class="btn btn-outline-light btn-sm">
+                                    <i class="bi bi-bookmark"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
         {% empty %}
-        <p>Ще немає постів.</p>
+        <!-- Повідомлення про відсутність постів -->
+        <div class="card bg-black border-secondary">
+            <div class="card-body text-center py-5">
+                <i class="bi bi-inbox display-4 text-muted mb-3"></i>
+                <h4 class="text-light">Постів ще немає</h4>
+                <p class="text-muted mb-4">Будьте першим, хто опублікує пост!</p>
+                {% if user.is_authenticated %}
+                <a href="/posts/create/" class="btn btn-warning">
+                    <i class="bi bi-plus-circle"></i> Створити перший пост
+                </a>
+                {% else %}
+                <a href="/register/" class="btn btn-warning">Приєднатися до спільноти</a>
+                {% endif %}
+            </div>
+        </div>
         {% endfor %}
+
+        <!-- Кнопка для перегляду всіх постів -->
+        {% if latest_posts %}
+        <div class="text-center mt-4">
+            <a href="/posts/" class="btn btn-outline-light">
+                <i class="bi bi-card-text"></i> Переглянути всі пости
+            </a>
+        </div>
+        {% endif %}
     </div>
     
+    <!-- Бічна панель -->
     <div class="col-md-4">
-        <div class="card mb-4">
-            <div class="card-header">Популярні категорії</div>
+        <!-- Популярні спільноти -->
+        <div class="card bg-black border-secondary mb-4">
             <div class="card-body">
-                {% for category in categories %}
-                <a href="/categories/{{ category.slug }}/" class="d-block mb-2">
-                    {{ category.name }} ({{ category.post_count }})
-                </a>
-                {% empty %}
-                <p class="text-muted">Немає категорій</p>
-                {% endfor %}
+                <h5 class="text-light mb-3">
+                    <i class="bi bi-fire text-warning"></i> Популярні спільноти
+                </h5>
+                <div class="list-group list-group-flush bg-black">
+                    {% for category in categories %}
+                    <a href="/categories/{{ category.slug }}/" 
+                       class="list-group-item list-group-item-action bg-black border-secondary text-light d-flex justify-content-between align-items-center">
+                        <div class="d-flex align-items-center">
+                            <i class="bi bi-reddit text-warning me-2"></i>
+                            <span>/r/{{ category.name }}</span>
+                        </div>
+                        <span class="badge bg-secondary">{{ category.post_count }}</span>
+                    </a>
+                    {% empty %}
+                    <div class="list-group-item bg-black border-secondary text-muted">
+                        <i class="bi bi-info-circle me-2"></i>
+                        Немає спільнот
+                    </div>
+                    {% endfor %}
+                </div>
+                <div class="text-center mt-3">
+                    <a href="/categories/" class="btn btn-outline-light btn-sm">
+                        <i class="bi bi-eye"></i> Всі спільноти
+                    </a>
+                </div>
             </div>
         </div>
         
-        <div class="card">
-            <div class="card-header">Швидкі посилання</div>
+        <!-- Швидкі дії -->
+        <div class="card bg-black border-secondary mb-4">
             <div class="card-body">
-                <a href="/posts/create/" class="btn btn-primary w-100 mb-2">Створити пост</a>
-                <a href="/search/" class="btn btn-outline-secondary w-100">Пошук</a>
+                <h5 class="text-light mb-3">
+                    <i class="bi bi-lightning text-warning"></i> Швидкі дії
+                </h5>
+                <div class="d-grid gap-2">
+                    {% if user.is_authenticated %}
+                    <a href="/posts/create/" class="btn btn-warning">
+                        <i class="bi bi-plus-circle"></i> Створити пост
+                    </a>
+                    {% else %}
+                    <a href="/login/" class="btn btn-warning">
+                        <i class="bi bi-box-arrow-in-right"></i> Увійти
+                    </a>
+                    <a href="/register/" class="btn btn-outline-light">
+                        <i class="bi bi-person-plus"></i> Зареєструватися
+                    </a>
+                    {% endif %}
+                    <a href="/search/" class="btn btn-outline-light">
+                        <i class="bi bi-search"></i> Пошук
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Статистика -->
+        <div class="card bg-black border-secondary">
+            <div class="card-body">
+                <h5 class="text-light mb-3">
+                    <i class="bi bi-graph-up text-warning"></i> Статистика
+                </h5>
+                <div class="d-flex justify-content-between text-light small mb-2">
+                    <span>Всього постів:</span>
+                    <strong>{{ total_posts|default:"0" }}</strong>
+                </div>
+                <div class="d-flex justify-content-between text-light small mb-2">
+                    <span>Спільнот:</span>
+                    <strong>{{ total_categories|default:"0" }}</strong>
+                </div>
+                <div class="d-flex justify-content-between text-light small mb-2">
+                    <span>Користувачів:</span>
+                    <strong>{{ total_users|default:"0" }}</strong>
+                </div>
+                <div class="d-flex justify-content-between text-light small">
+                    <span>Активних:</span>
+                    <strong>{{ active_users|default:"0" }}</strong>
+                </div>
             </div>
         </div>
     </div>

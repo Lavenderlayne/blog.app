@@ -1,0 +1,199 @@
+{% extends 'base.html' %}
+
+{% block title %}Спільноти - Мій Блог{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-12">
+        <!-- Заголовок -->
+        <div class="card bg-black border-secondary mb-4">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h1 class="text-light mb-2">
+                            <i class="bi bi-reddit text-warning"></i> Всі спільноти
+                        </h1>
+                        <p class="text-muted mb-0">
+                            <i class="bi bi-people"></i> Знайдено {{ categories|length }} спільнот
+                        </p>
+                    </div>
+                    {% if user.is_authenticated and user.is_admin %}
+                    <a href="/admin/core/category/add/" class="btn btn-warning">
+                        <i class="bi bi-plus-circle"></i> Нова спільнота
+                    </a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Список спільнот -->
+        <div class="row">
+            {% for category in categories %}
+            <div class="col-md-6 col-lg-4 mb-4">
+                <div class="card bg-black border-secondary h-100">
+                    <div class="card-body">
+                        <div class="d-flex align-items-center mb-3">
+                            <div class="bg-warning rounded-circle p-2 me-3">
+                                <i class="bi bi-reddit text-dark"></i>
+                            </div>
+                            <div>
+                                <h5 class="card-title text-light mb-0">
+                                    <a href="/categories/{{ category.slug }}/" class="text-light text-decoration-none">
+                                        /r/{{ category.name }}
+                                    </a>
+                                </h5>
+                                <small class="text-muted">{{ category.post_count }} постів</small>
+                            </div>
+                        </div>
+                        
+                        {% if category.description %}
+                        <p class="card-text text-light small">{{ category.description|truncatewords:20 }}</p>
+                        {% else %}
+                        <p class="card-text text-muted small">Опис відсутній</p>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="card-footer bg-dark border-secondary">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <small class="text-muted">
+                                <i class="bi bi-calendar"></i> {{ category.created_at|date:"d.m.Y" }}
+                            </small>
+                            <div class="btn-group">
+                                <a href="/categories/{{ category.slug }}/" class="btn btn-outline-light btn-sm">
+                                    <i class="bi bi-eye"></i>
+                                </a>
+                                {% if user.is_authenticated %}
+                                <a href="/posts/create/?category={{ category.id }}" class="btn btn-outline-warning btn-sm">
+                                    <i class="bi bi-plus"></i>
+                                </a>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% empty %}
+            <!-- Повідомлення про відсутність спільнот -->
+            <div class="col-12">
+                <div class="card bg-black border-secondary">
+                    <div class="card-body text-center py-5">
+                        <i class="bi bi-inbox display-4 text-muted mb-3"></i>
+                        <h4 class="text-light">Спільноти відсутні</h4>
+                        <p class="text-muted mb-4">Ще не було створено жодної спільноти.</p>
+                        {% if user.is_authenticated and user.is_admin %}
+                        <a href="/admin/core/category/add/" class="btn btn-warning">
+                            <i class="bi bi-plus-circle"></i> Створити першу спільноту
+                        </a>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+
+        <!-- Статистика спільнот -->
+        {% if categories %}
+        <div class="card bg-black border-secondary mt-4">
+            <div class="card-body">
+                <h5 class="text-light mb-4">
+                    <i class="bi bi-graph-up text-warning"></i> Статистика спільнот
+                </h5>
+                <div class="row text-center">
+                    <div class="col-md-3 mb-3">
+                        <div class="bg-dark rounded p-3">
+                            <h3 class="text-warning mb-1">{{ categories|length }}</h3>
+                            <p class="text-muted small mb-0">Всього спільнот</p>
+                        </div>
+                    </div>
+                    <div class="col-md-3 mb-3">
+                        <div class="bg-dark rounded p-3">
+                            <h3 class="text-warning mb-1">{{ total_posts }}</h3>
+                            <p class="text-muted small mb-0">Всього постів</p>
+                        </div>
+                    </div>
+                    <div class="col-md-3 mb-3">
+                        <div class="bg-dark rounded p-3">
+                            <h3 class="text-warning mb-1">{{ avg_posts_per_category }}</h3>
+                            <p class="text-muted small mb-0">Постів в середньому</p>
+                        </div>
+                    </div>
+                    <div class="col-md-3 mb-3">
+                        <div class="bg-dark rounded p-3">
+                            <h3 class="text-warning mb-1">{{ most_popular_category.post_count }}</h3>
+                            <p class="text-muted small mb-0">Найпопулярніша</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Популярні спільноти -->
+        <div class="card bg-black border-secondary mt-4">
+            <div class="card-body">
+                <h5 class="text-light mb-3">
+                    <i class="bi bi-fire text-warning"></i> Популярні спільноти
+                </h5>
+                <div class="list-group list-group-flush bg-black">
+                    {% for category in popular_categories %}
+                    <a href="/categories/{{ category.slug }}/" 
+                       class="list-group-item list-group-item-action bg-black border-secondary text-light d-flex justify-content-between align-items-center">
+                        <div class="d-flex align-items-center">
+                            <i class="bi bi-reddit text-warning me-2"></i>
+                            <span>/r/{{ category.name }}</span>
+                        </div>
+                        <span class="badge bg-warning text-dark">{{ category.post_count }} постів</span>
+                    </a>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Додаткові дії -->
+<div class="row mt-4">
+    <div class="col-md-6 mb-4">
+        <div class="card bg-black border-secondary">
+            <div class="card-body">
+                <h5 class="text-light mb-3">
+                    <i class="bi bi-lightning text-warning"></i> Швидкі дії
+                </h5>
+                <div class="d-grid gap-2">
+                    <a href="/posts/" class="btn btn-outline-light">
+                        <i class="bi bi-card-text"></i> Всі пости
+                    </a>
+                    <a href="/search/" class="btn btn-outline-light">
+                        <i class="bi bi-search"></i> Пошук
+                    </a>
+                    {% if user.is_authenticated %}
+                    <a href="/posts/create/" class="btn btn-warning">
+                        <i class="bi bi-plus-circle"></i> Створити пост
+                    </a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-6 mb-4">
+        <div class="card bg-black border-secondary">
+            <div class="card-body">
+                <h5 class="text-light mb-3">
+                    <i class="bi bi-info-circle text-warning"></i> Про спільноти
+                </h5>
+                <p class="text-light small mb-3">
+                    Спільноти допомагають організувати пости за темами. 
+                    Кожен пост належить до однієї спільноти, що полегшує пошук та навігацію.
+                </p>
+                {% if not user.is_authenticated %}
+                <div class="alert alert-dark border-warning small mb-0">
+                    <i class="bi bi-exclamation-triangle text-warning"></i>
+                    Для створення нових постів необхідно увійти в систему.
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

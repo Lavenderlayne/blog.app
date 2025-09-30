@@ -4,71 +4,151 @@
 
 {% block content %}
 <div class="row">
+    <!-- Основний контент -->
     <div class="col-md-8">
-        <div class="d-flex justify-content-between align-items-center mb-4">
-            <h1>Всі пости</h1>
-            <div class="dropdown">
-                <button class="btn btn-outline-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown">
-                    Сортування
-                </button>
-                <ul class="dropdown-menu">
-                    <li><a class="dropdown-item" href="?sort=newest">Найновіші</a></li>
-                    <li><a class="dropdown-item" href="?sort=popular">Найпопулярніші</a></li>
-                    <li><a class="dropdown-item" href="?sort=featured">Обрані</a></li>
-                </ul>
+        <!-- Заголовок та сортування -->
+        <div class="card bg-black border-secondary mb-4">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                    <h1 class="text-light mb-0">
+                        <i class="bi bi-card-text text-warning"></i> Всі пости
+                    </h1>
+                    <div class="dropdown">
+                        <button class="btn btn-outline-light dropdown-toggle" type="button" data-bs-toggle="dropdown">
+                            <i class="bi bi-sort-down"></i> Сортування
+                        </button>
+                        <ul class="dropdown-menu bg-black border-secondary">
+                            <li>
+                                <a class="dropdown-item text-light bg-black" href="?sort=newest">
+                                    <i class="bi bi-arrow-up"></i> Найновіші
+                                </a>
+                            </li>
+                            <li>
+                                <a class="dropdown-item text-light bg-black" href="?sort=popular">
+                                    <i class="bi bi-fire"></i> Найпопулярніші
+                                </a>
+                            </li>
+                            <li>
+                                <a class="dropdown-item text-light bg-black" href="?sort=featured">
+                                    <i class="bi bi-star"></i> Обрані
+                                </a>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
             </div>
         </div>
 
         <!-- Пошук -->
-        <form method="get" class="mb-4">
-            <div class="input-group">
-                <input type="text" name="q" class="form-control" placeholder="Пошук постів..." value="{{ request.GET.q }}">
-                <button type="submit" class="btn btn-primary">
-                    <i class="bi bi-search"></i> Пошук
-                </button>
+        <div class="card bg-black border-secondary mb-4">
+            <div class="card-body">
+                <form method="get" class="mb-0">
+                    <div class="input-group">
+                        <input type="text" name="q" class="form-control bg-dark border-secondary text-light" 
+                               placeholder="Пошук постів..." value="{{ request.GET.q }}">
+                        <button type="submit" class="btn btn-warning">
+                            <i class="bi bi-search"></i> Пошук
+                        </button>
+                    </div>
+                </form>
             </div>
-        </form>
+        </div>
 
         <!-- Список постів -->
         {% for post in posts %}
-        <div class="card mb-4">
-            {% if post.featured_image %}
-            <img src="{{ post.featured_image.url }}" class="card-img-top" alt="{{ post.title }}" style="height: 300px; object-fit: cover;">
-            {% endif %}
+        <div class="card bg-black border-secondary mb-3">
             <div class="card-body">
-                <div class="d-flex justify-content-between align-items-start mb-2">
-                    <h5 class="card-title">{{ post.title }}</h5>
-                    {% if post.is_featured %}
-                    <span class="badge bg-warning">Обраний</span>
-                    {% endif %}
-                </div>
-                
-                <p class="card-text">{{ post.excerpt|default:post.content|truncatewords:50 }}</p>
-                
-                <div class="d-flex justify-content-between align-items-center">
-                    <div>
-                        <small class="text-muted">
-                            <i class="bi bi-person"></i> {{ post.author.username }} |
-                            <i class="bi bi-calendar"></i> {{ post.created_at|date:"d.m.Y" }} |
-                            <i class="bi bi-eye"></i> {{ post.view_count }} |
-                            <i class="bi bi-heart"></i> {{ post.like_count }}
-                        </small>
+                <div class="d-flex">
+                    <!-- Блок голосування -->
+                    <div class="d-flex flex-column align-items-center me-3">
+                        <button class="btn btn-sm btn-outline-success p-1 mb-1">
+                            <i class="bi bi-arrow-up"></i>
+                        </button>
+                        <span class="text-light fw-bold">{{ post.like_count|default:0 }}</span>
+                        <button class="btn btn-sm btn-outline-danger p-1 mt-1">
+                            <i class="bi bi-arrow-down"></i>
+                        </button>
                     </div>
-                    <a href="/posts/{{ post.slug }}/" class="btn btn-primary">Читати далі</a>
-                </div>
-                
-                <div class="mt-2">
-                    <span class="badge bg-secondary">{{ post.category.name }}</span>
-                    {% for tag in post.tags.all %}
-                    <span class="badge bg-light text-dark">{{ tag.name }}</span>
-                    {% endfor %}
+                    
+                    <!-- Контент поста -->
+                    <div class="flex-grow-1">
+                        {% if post.featured_image %}
+                        <img src="{{ post.featured_image.url }}" class="img-fluid rounded mb-3" alt="{{ post.title }}" 
+                             style="max-height: 400px; width: 100%; object-fit: cover;">
+                        {% endif %}
+                        
+                        <div class="d-flex align-items-center mb-2">
+                            <small class="text-muted">
+                                Опубліковано в 
+                                <a href="/categories/{{ post.category.slug }}/" class="text-warning text-decoration-none">
+                                    /r/{{ post.category.name }}
+                                </a>
+                            </small>
+                            <span class="text-muted mx-1">•</span>
+                            <small class="text-muted">{{ post.created_at|date:"d.m.Y" }}</small>
+                            <span class="text-muted mx-1">•</span>
+                            <small class="text-muted">Автор: {{ post.author.username }}</small>
+                        </div>
+                        
+                        <h5 class="card-title text-light mb-2">
+                            <a href="/posts/{{ post.slug }}/" class="text-light text-decoration-none">
+                                {{ post.title }}
+                            </a>
+                            {% if post.is_featured %}
+                            <span class="badge bg-warning ms-2">Обраний</span>
+                            {% endif %}
+                            {% if post.is_pinned %}
+                            <span class="badge bg-info ms-1">Закріплений</span>
+                            {% endif %}
+                        </h5>
+                        
+                        <p class="card-text text-light mb-3">
+                            {{ post.excerpt|default:post.content|truncatewords:50 }}
+                        </p>
+                        
+                        <!-- Теги та статистика -->
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <div>
+                                <span class="badge bg-secondary me-1">{{ post.category.name }}</span>
+                                {% for tag in post.tags.all %}
+                                <span class="badge bg-dark border border-secondary text-light me-1">{{ tag.name }}</span>
+                                {% endfor %}
+                            </div>
+                            <div class="text-muted small">
+                                <i class="bi bi-eye"></i> {{ post.view_count }}
+                                <span class="mx-1">•</span>
+                                <i class="bi bi-chat"></i> {{ post.comment_count|default:0 }}
+                            </div>
+                        </div>
+                        
+                        <!-- Кнопки дій -->
+                        <div class="d-flex">
+                            <a href="/posts/{{ post.slug }}/" class="btn btn-outline-light btn-sm me-2">
+                                <i class="bi bi-chat"></i> Коментувати
+                            </a>
+                            <button class="btn btn-outline-light btn-sm me-2">
+                                <i class="bi bi-share"></i> Поділитися
+                            </button>
+                            <button class="btn btn-outline-light btn-sm">
+                                <i class="bi bi-bookmark"></i> Зберегти
+                            </button>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
         {% empty %}
-        <div class="alert alert-info">
-            <h4>Постів не знайдено</h4>
-            <p>Спробуйте змінити параметри пошуку або фільтрації.</p>
+        <!-- Повідомлення про відсутність постів -->
+        <div class="card bg-black border-secondary">
+            <div class="card-body text-center py-5">
+                <i class="bi bi-search display-4 text-muted mb-3"></i>
+                <h4 class="text-light">Постів не знайдено</h4>
+                <p class="text-muted mb-4">Спробуйте змінити параметри пошуку або фільтрації.</p>
+                <a href="/posts/" class="btn btn-warning me-2">Скинути фільтри</a>
+                {% if user.is_authenticated %}
+                <a href="/posts/create/" class="btn btn-outline-light">Створити пост</a>
+                {% endif %}
+            </div>
         </div>
         {% endfor %}
 
@@ -78,25 +158,34 @@
             <ul class="pagination justify-content-center">
                 {% if page_obj.has_previous %}
                     <li class="page-item">
-                        <a class="page-link" href="?page={{ page_obj.previous_page_number }}{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}{% if request.GET.sort %}&sort={{ request.GET.sort }}{% endif %}">Попередня</a>
+                        <a class="page-link bg-black border-secondary text-light" 
+                           href="?page={{ page_obj.previous_page_number }}{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}{% if request.GET.sort %}&sort={{ request.GET.sort }}{% endif %}">
+                            <i class="bi bi-chevron-left"></i> Попередня
+                        </a>
                     </li>
                 {% endif %}
                 
                 {% for num in page_obj.paginator.page_range %}
                     {% if page_obj.number == num %}
                         <li class="page-item active">
-                            <a class="page-link" href="#">{{ num }}</a>
+                            <a class="page-link bg-warning border-warning text-dark" href="#">{{ num }}</a>
                         </li>
                     {% else %}
                         <li class="page-item">
-                            <a class="page-link" href="?page={{ num }}{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}{% if request.GET.sort %}&sort={{ request.GET.sort }}{% endif %}">{{ num }}</a>
+                            <a class="page-link bg-black border-secondary text-light" 
+                               href="?page={{ num }}{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}{% if request.GET.sort %}&sort={{ request.GET.sort }}{% endif %}">
+                                {{ num }}
+                            </a>
                         </li>
                     {% endif %}
                 {% endfor %}
                 
                 {% if page_obj.has_next %}
                     <li class="page-item">
-                        <a class="page-link" href="?page={{ page_obj.next_page_number }}{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}{% if request.GET.sort %}&sort={{ request.GET.sort }}{% endif %}">Наступна</a>
+                        <a class="page-link bg-black border-secondary text-light" 
+                           href="?page={{ page_obj.next_page_number }}{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}{% if request.GET.sort %}&sort={{ request.GET.sort }}{% endif %}">
+                            Наступна <i class="bi bi-chevron-right"></i>
+                        </a>
                     </li>
                 {% endif %}
             </ul>
@@ -107,53 +196,70 @@
     <!-- Бічна панель -->
     <div class="col-md-4">
         <!-- Популярні теги -->
-        <div class="card mb-4">
-            <div class="card-header">
-                <i class="bi bi-tags"></i> Популярні теги
-            </div>
+        <div class="card bg-black border-secondary mb-4">
             <div class="card-body">
-                {% for tag in popular_tags %}
-                <a href="/tags/{{ tag.slug }}/" class="badge bg-primary text-decoration-none me-1 mb-1">
-                    {{ tag.name }} ({{ tag.post_count }})
-                </a>
-                {% empty %}
-                <p class="text-muted">Тегів ще немає</p>
-                {% endfor %}
+                <h5 class="text-light mb-3">
+                    <i class="bi bi-tags text-warning"></i> Популярні теги
+                </h5>
+                <div class="d-flex flex-wrap">
+                    {% for tag in popular_tags %}
+                    <a href="/tags/{{ tag.slug }}/" class="badge bg-dark border border-secondary text-light text-decoration-none me-1 mb-1">
+                        {{ tag.name }} ({{ tag.post_count }})
+                    </a>
+                    {% empty %}
+                    <p class="text-muted small">Тегів ще немає</p>
+                    {% endfor %}
+                </div>
             </div>
         </div>
 
         <!-- Обрані пости -->
         {% if featured_posts %}
-        <div class="card mb-4">
-            <div class="card-header">
-                <i class="bi bi-star"></i> Обрані пости
-            </div>
+        <div class="card bg-black border-secondary mb-4">
             <div class="card-body">
+                <h5 class="text-light mb-3">
+                    <i class="bi bi-star text-warning"></i> Обрані пости
+                </h5>
                 {% for post in featured_posts %}
-                <div class="mb-3">
-                    <h6><a href="/posts/{{ post.slug }}/" class="text-decoration-none">{{ post.title }}</a></h6>
-                    <small class="text-muted">{{ post.created_at|date:"d.m.Y" }}</small>
+                <div class="mb-3 pb-2 {% if not forloop.last %}border-bottom border-secondary{% endif %}">
+                    <h6 class="mb-1">
+                        <a href="/posts/{{ post.slug }}/" class="text-light text-decoration-none">
+                            {{ post.title }}
+                        </a>
+                    </h6>
+                    <div class="d-flex justify-content-between align-items-center">
+                        <small class="text-muted">{{ post.created_at|date:"d.m.Y" }}</small>
+                        <small class="text-muted">
+                            <i class="bi bi-eye"></i> {{ post.view_count }}
+                        </small>
+                    </div>
                 </div>
-                {% if not forloop.last %}<hr>{% endif %}
                 {% endfor %}
             </div>
         </div>
         {% endif %}
 
-        <!-- Категорії -->
-        <div class="card">
-            <div class="card-header">
-                <i class="bi bi-folder"></i> Категорії
-            </div>
+        <!-- Спільноти -->
+        <div class="card bg-black border-secondary">
             <div class="card-body">
+                <h5 class="text-light mb-3">
+                    <i class="bi bi-reddit text-warning"></i> Спільноти
+                </h5>
                 {% for category in categories %}
-                <div class="d-flex justify-content-between mb-2">
-                    <a href="/categories/{{ category.slug }}/" class="text-decoration-none">{{ category.name }}</a>
+                <div class="d-flex justify-content-between align-items-center mb-2 pb-2 {% if not forloop.last %}border-bottom border-secondary{% endif %}">
+                    <a href="/categories/{{ category.slug }}/" class="text-light text-decoration-none">
+                        <i class="bi bi-record-circle text-warning me-1"></i> /r/{{ category.name }}
+                    </a>
                     <span class="badge bg-secondary">{{ category.post_count }}</span>
                 </div>
                 {% empty %}
-                <p class="text-muted">Категорій ще немає</p>
+                <p class="text-muted small">Спільнот ще немає</p>
                 {% endfor %}
+                <div class="text-center mt-3">
+                    <a href="/categories/" class="btn btn-outline-light btn-sm">
+                        <i class="bi bi-eye"></i> Всі спільноти
+                    </a>
+                </div>
             </div>
         </div>
     </div>

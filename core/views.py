@@ -4,13 +4,15 @@ from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.urls import reverse_lazy
-from django.db.models import Q, Count, Avg
+from django.db.models import Q, Count
 from django.http import JsonResponse
 from django.core.paginator import Paginator
 from django.utils import timezone
 from .models import Post, Category, Tag, PostComment, PostLike, Subscription
 from .forms import PostForm, CommentForm, SubscriptionForm
-from django.contrib.auth.models import User
+from django.contrib.auth import get_user_model
+
+User = get_user_model()
 
 
 class PostListView(ListView):
@@ -167,6 +169,135 @@ class UserPostListView(ListView):
         return context
 
 
+class CategoryListView(ListView):
+    """Список всіх категорій"""
+    model = Category
+    template_name = 'core/category_list.html'
+    context_object_name = 'categories'
+    
+    def get_queryset(self):
+        return Category.objects.annotate(
+            post_count=Count('post')
+        ).order_by('name')
+    
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        categories = self.get_queryset()
+        
+        # Статистика
+        total_posts = sum(category.post_count for category in categories)
+        avg_posts_per_category = round(total_posts / len(categories)) if categories else 0
+        most_popular_category = categories.order_by('-post_count').first() if categories else None
+        popular_categories = categories.order_by('-post_count')[:5]
+        
+        context.update({
+            'total_posts': total_posts,
+            'avg_posts_per_category': avg_posts_per_category,
+            'most_popular_category': most_popular_category,
+            'popular_categories': popular_categories,
+        })
+        return context
+
+
+class CategoryDetailView(DetailView):
+    """Детальний перегляд категорії з постами"""
+    model = Category
+    template_name = 'core/category_detail.html'
+    context_object_name = 'category'
+    
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        category = self.get_object()
+        
+        posts = Post.get_published_posts().filter(category=category)
+        
+        paginator = Paginator(posts, 10)
+        page_number = self.request.GET.get('page')
+        page_obj = paginator.get_page(page_number)
+        
+        context['posts'] = page_obj
+        context['post_count'] = posts.count()
+        context['categories'] = Category.objects.annotate(post_count=Count('post'))
+        return context
+
+
+class CategoryCreateView(LoginRequiredMixin, UserPassesTestMixin, CreateView):
+    """Створення нової категорії"""
+    model = Category
+    fields = ['name', 'description']
+    template_name = 'core/category_form.html'
+    success_url = reverse_lazy('category_list')
+    
+    def test_func(self):
+        return self.request.user.is_admin
+    
+    def form_valid(self, form):
+        messages.success(self.request, 'Категорію успішно створено!')
+        return super().form_valid(form)
+
+
+class CategoryUpdateView(LoginRequiredMixin, UserPassesTestMixin, UpdateView):
+    """Редагування категорії"""
+    model = Category
+    fields = ['name', 'description']
+    template_name = 'core/category_form.html'
+    success_url = reverse_lazy('category_list')
+    
+    def test_func(self):
+        return self.request.user.is_admin
+    
+    def form_valid(self, form):
+        messages.success(self.request, 'Категорію успішно оновлено!')
+        return super().form_valid(form)
+
+
+class CategoryDeleteView(LoginRequiredMixin, UserPassesTestMixin, DeleteView):
+    """Видалення категорії"""
+    model = Category
+    template_name = 'core/category_confirm_delete.html'
+    success_url = reverse_lazy('category_list')
+    
+    def test_func(self):
+        return self.request.user.is_admin
+    
+    def delete(self, request, *args, **kwargs):
+        messages.success(request, 'Категорію успішно видалено!')
+        return super().delete(request, *args, **kwargs)
+
+
+class TagListView(ListView):
+    """Список всіх тегів"""
+    model = Tag
+    template_name = 'core/tag_list.html'
+    context_object_name = 'tags'
+    
+    def get_queryset(self):
+        return Tag.objects.annotate(
+            post_count=Count('post')
+        ).order_by('name')
+
+
+class TagDetailView(DetailView):
+    """Детальний перегляд тегу з постами"""
+    model = Tag
+    template_name = 'core/tag_detail.html'
+    context_object_name = 'tag'
+    
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        tag = self.get_object()
+        
+        posts = Post.get_published_posts().filter(tags=tag)
+        
+        paginator = Paginator(posts, 10)
+        page_number = self.request.GET.get('page')
+        page_obj = paginator.get_page(page_number)
+        
+        context['posts'] = page_obj
+        context['post_count'] = posts.count()
+        return context
+
+
 @login_required
 def add_comment(request, slug):
     """Додавання коментаря до посту"""
@@ -281,72 +412,6 @@ def home(request):
     }
     
     return render(request, 'core/home.html', context)
-
-
-class CategoryListView(ListView):
-    """Список всіх категорій"""
-    model = Category
-    template_name = 'core/category_list.html'
-    context_object_name = 'categories'
-    
-    def get_queryset(self):
-        return Category.objects.annotate(
-            post_count=Count('post')
-        ).order_by('name')
-
-
-class CategoryDetailView(DetailView):
-    """Детальний перегляд категорії з постами"""
-    model = Category
-    template_name = 'core/category_detail.html'
-    context_object_name = 'category'
-    
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        category = self.get_object()
-        
-        posts = Post.get_published_posts().filter(category=category)
-        
-        paginator = Paginator(posts, 10)
-        page_number = self.request.GET.get('page')
-        page_obj = paginator.get_page(page_number)
-        
-        context['posts'] = page_obj
-        context['post_count'] = posts.count()
-        return context
-
-
-class TagListView(ListView):
-    """Список всіх тегів"""
-    model = Tag
-    template_name = 'core/tag_list.html'
-    context_object_name = 'tags'
-    
-    def get_queryset(self):
-        return Tag.objects.annotate(
-            post_count=Count('post')
-        ).order_by('name')
-
-
-class TagDetailView(DetailView):
-    """Детальний перегляд тегу з постами"""
-    model = Tag
-    template_name = 'core/tag_detail.html'
-    context_object_name = 'tag'
-    
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        tag = self.get_object()
-        
-        posts = Post.get_published_posts().filter(tags=tag)
-        
-        paginator = Paginator(posts, 10)
-        page_number = self.request.GET.get('page')
-        page_obj = paginator.get_page(page_number)
-        
-        context['posts'] = page_obj
-        context['post_count'] = posts.count()
-        return context
 
 
 def api_posts(request):

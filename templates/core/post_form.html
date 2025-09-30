@@ -1,0 +1,279 @@
+{% extends 'base.html' %}
+
+{% block title %}{% if form.instance.pk %}Редагування посту{% else %}Створення посту{% endif %}{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-10">
+        <!-- Заголовок -->
+        <div class="card bg-black border-secondary mb-4">
+            <div class="card-body">
+                <h4 class="text-light mb-0">
+                    <i class="bi bi-{% if form.instance.pk %}pencil{% else %}plus-circle{% endif %} text-warning"></i>
+                    {% if form.instance.pk %}Редагування посту{% else %}Створення нового посту{% endif %}
+                </h4>
+            </div>
+        </div>
+
+        <!-- Форма -->
+        <div class="card bg-black border-secondary mb-4">
+            <div class="card-body">
+                <form method="post" enctype="multipart/form-data">
+                    {% csrf_token %}
+                    
+                    <!-- Заголовок -->
+                    <div class="mb-4">
+                        <label class="form-label text-light">Заголовок *</label>
+                        {{ form.title }}
+                        {% if form.title.errors %}
+                            <div class="text-danger small mt-1">{{ form.title.errors }}</div>
+                        {% endif %}
+                    </div>
+
+                    <!-- Короткий опис -->
+                    <div class="mb-4">
+                        <label class="form-label text-light">Короткий опис</label>
+                        {{ form.excerpt }}
+                        <div class="form-text text-muted">Короткий опис, який буде відображатися в списку постів</div>
+                        {% if form.excerpt.errors %}
+                            <div class="text-danger small mt-1">{{ form.excerpt.errors }}</div>
+                        {% endif %}
+                    </div>
+
+                    <!-- Зміст -->
+                    <div class="mb-4">
+                        <label class="form-label text-light">Зміст *</label>
+                        {{ form.content }}
+                        {% if form.content.errors %}
+                            <div class="text-danger small mt-1">{{ form.content.errors }}</div>
+                        {% endif %}
+                    </div>
+
+                    <div class="row">
+                        <!-- Категорія -->
+                        <div class="col-md-6">
+                            <div class="mb-4">
+                                <label class="form-label text-light">Спільнота *</label>
+                                {{ form.category }}
+                                {% if form.category.errors %}
+                                    <div class="text-danger small mt-1">{{ form.category.errors }}</div>
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        <!-- Тип посту -->
+                        <div class="col-md-6">
+                            <div class="mb-4">
+                                <label class="form-label text-light">Тип посту</label>
+                                {{ form.post_type }}
+                                {% if form.post_type.errors %}
+                                    <div class="text-danger small mt-1">{{ form.post_type.errors }}</div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <!-- Теги -->
+                        <div class="col-md-6">
+                            <div class="mb-4">
+                                <label class="form-label text-light">Теги</label>
+                                {{ form.tags }}
+                                <div class="form-text text-muted">Утримуйте Ctrl для вибору кількох тегів</div>
+                                {% if form.tags.errors %}
+                                    <div class="text-danger small mt-1">{{ form.tags.errors }}</div>
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        <!-- Статус -->
+                        <div class="col-md-6">
+                            <div class="mb-4">
+                                <label class="form-label text-light">Статус</label>
+                                {{ form.status }}
+                                {% if form.status.errors %}
+                                    <div class="text-danger small mt-1">{{ form.status.errors }}</div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Головне зображення -->
+                    <div class="mb-4">
+                        <label class="form-label text-light">Головне зображення</label>
+                        {% if form.instance.featured_image %}
+                            <div class="mb-3">
+                                <img src="{{ form.instance.featured_image.url }}" alt="Поточне зображення" class="img-thumbnail border-secondary" width="200">
+                                <div class="form-check mt-2">
+                                    <input class="form-check-input" type="checkbox" name="featured_image-clear" id="featured_image-clear">
+                                    <label class="form-check-label text-light" for="featured_image-clear">
+                                        Видалити поточне зображення
+                                    </label>
+                                </div>
+                            </div>
+                        {% endif %}
+                        <input type="file" name="featured_image" class="form-control bg-dark border-secondary text-light" accept="image/*">
+                        <div class="form-text text-muted">Завантажте головне зображення для посту</div>
+                        {% if form.featured_image.errors %}
+                            <div class="text-danger small mt-1">{{ form.featured_image.errors }}</div>
+                        {% endif %}
+                    </div>
+
+                    <!-- Налаштування -->
+                    <div class="card bg-dark border-secondary mb-4">
+                        <div class="card-header bg-black border-secondary">
+                            <h6 class="mb-0 text-light">
+                                <i class="bi bi-gear text-warning"></i> Налаштування
+                            </h6>
+                        </div>
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="form-check form-switch mb-3">
+                                        {{ form.is_featured }}
+                                        <label class="form-check-label text-light" for="{{ form.is_featured.id_for_label }}">
+                                            <i class="bi bi-star"></i> Обраний пост
+                                        </label>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="form-check form-switch mb-3">
+                                        {{ form.is_pinned }}
+                                        <label class="form-check-label text-light" for="{{ form.is_pinned.id_for_label }}">
+                                            <i class="bi bi-pin-angle"></i> Закріплений
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="form-check form-switch">
+                                {{ form.allow_comments }}
+                                <label class="form-check-label text-light" for="{{ form.allow_comments.id_for_label }}">
+                                    <i class="bi bi-chat"></i> Дозволити коментарі
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- SEO -->
+                    <div class="card bg-dark border-secondary mb-4">
+                        <div class="card-header bg-black border-secondary">
+                            <h6 class="mb-0 text-light">
+                                <i class="bi bi-search text-warning"></i> SEO налаштування
+                            </h6>
+                        </div>
+                        <div class="card-body">
+                            <div class="mb-3">
+                                <label class="form-label text-light">Мета-заголовок</label>
+                                {{ form.meta_title }}
+                                <div class="form-text text-muted">Заголовок для пошукових систем (якщо не вказано, використовується заголовок посту)</div>
+                                {% if form.meta_title.errors %}
+                                    <div class="text-danger small mt-1">{{ form.meta_title.errors }}</div>
+                                {% endif %}
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label text-light">Мета-опис</label>
+                                {{ form.meta_description }}
+                                <div class="form-text text-muted">Опис для пошукових систем (якщо не вказано, використовується короткий опис)</div>
+                                {% if form.meta_description.errors %}
+                                    <div class="text-danger small mt-1">{{ form.meta_description.errors }}</div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Кнопки -->
+                    <div class="d-flex justify-content-between align-items-center pt-3 border-top border-secondary">
+                        <div>
+                            <button type="submit" class="btn btn-warning me-2">
+                                <i class="bi bi-check"></i>
+                                {% if form.instance.pk %}Оновити пост{% else %}Опублікувати{% endif %}
+                            </button>
+                            <button type="submit" name="save_draft" value="true" class="btn btn-outline-light">
+                                <i class="bi bi-save"></i> Зберегти чернетку
+                            </button>
+                        </div>
+                        <div>
+                            <a href="{% if form.instance.pk %}/posts/{{ form.instance.slug }}/{% else %}/posts/{% endif %}" class="btn btn-outline-secondary">
+                                <i class="bi bi-x"></i> Скасувати
+                            </a>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Підказки -->
+        <div class="card bg-black border-secondary">
+            <div class="card-header bg-black border-secondary">
+                <h6 class="mb-0 text-light">
+                    <i class="bi bi-lightbulb text-warning"></i> Поради щодо створення посту
+                </h6>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <ul class="text-light mb-3 mb-md-0">
+                            <li>Використовуйте зрозумілий та привабливий заголовок</li>
+                            <li>Додайте короткий опис для кращого відображення в списках</li>
+                            <li>Оберіть відповідну спільноту для кращої організації</li>
+                        </ul>
+                    </div>
+                    <div class="col-md-6">
+                        <ul class="text-light">
+                            <li>Використовуйте теги для полегшення пошуку</li>
+                            <li>Додайте якісне зображення для привернення уваги</li>
+                            <li>Переконайтеся, що контент корисний та цікавий</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Автоматичне заповнення мета-полів
+    const titleField = document.getElementById('{{ form.title.id_for_label }}');
+    const excerptField = document.getElementById('{{ form.excerpt.id_for_label }}');
+    const metaTitleField = document.getElementById('{{ form.meta_title.id_for_label }}');
+    const metaDescriptionField = document.getElementById('{{ form.meta_description.id_for_label }}');
+    
+    function updateMetaFields() {
+        if (!metaTitleField.value) {
+            metaTitleField.value = titleField.value;
+        }
+        if (!metaDescriptionField.value && excerptField.value) {
+            metaDescriptionField.value = excerptField.value.substring(0, 300);
+        }
+    }
+    
+    titleField.addEventListener('blur', updateMetaFields);
+    excerptField.addEventListener('blur', updateMetaFields);
+
+    // Додавання темних класів для всіх полів вводу
+    const formControls = document.querySelectorAll('input, select, textarea');
+    formControls.forEach(control => {
+        if (!control.classList.contains('form-check-input')) {
+            control.classList.add('bg-dark', 'border-secondary', 'text-light');
+        }
+    });
+});
+</script>
+
+<style>
+.form-control:focus, .form-select:focus {
+    background-color: #1a1a1b !important;
+    border-color: #ff4500 !important;
+    box-shadow: 0 0 0 0.2rem rgba(255, 69, 0, 0.25) !important;
+    color: #ffffff !important;
+}
+
+.form-check-input:checked {
+    background-color: #ff4500;
+    border-color: #ff4500;
+}
+</style>
+{% endblock %}

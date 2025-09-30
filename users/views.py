@@ -100,7 +100,7 @@ def toggle_user_status(request, user_id):
 
 @login_required
 def my_profile(request):
-    return redirect('profile-detail', username=request.user.username)
+    return redirect('users:profile_detail', username=request.user.username)
 
 @login_required
 @user_passes_test(is_admin)

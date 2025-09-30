@@ -10,11 +10,12 @@
     
     {% block extra_css %}{% endblock %}
 </head>
-<body>
-    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+<body class="bg-dark text-light">
+    <!-- Навігація у стилі Reddit -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-black border-bottom border-secondary">
         <div class="container">
-            <a class="navbar-brand" href="/">
-                <i class="bi bi-journal-text"></i> Мій Блог
+            <a class="navbar-brand fw-bold text-warning" href="/">
+                <i class="bi bi-reddit me-1"></i> Мій Блог
             </a>
             
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
@@ -24,33 +25,33 @@
             <div class="collapse navbar-collapse" id="navbarNav">
                 <ul class="navbar-nav me-auto">
                     <li class="nav-item">
-                        <a class="nav-link" href="/">
-                            <i class="bi bi-house"></i> Головна
+                        <a class="nav-link text-light" href="/">
+                            <i class="bi bi-house-door"></i> Головна
                         </a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="/posts/">
-                            <i class="bi bi-newspaper"></i> Всі пости
+                        <a class="nav-link text-light" href="/posts/">
+                            <i class="bi bi-card-text"></i> Всі пости
                         </a>
                     </li>
                     <li class="nav-item dropdown">
-                        <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
-                            <i class="bi bi-tags"></i> Категорії
+                        <a class="nav-link dropdown-toggle text-light" href="#" role="button" data-bs-toggle="dropdown">
+                            <i class="bi bi-collection"></i> Категорії
                         </a>
-                        <ul class="dropdown-menu">
+                        <ul class="dropdown-menu bg-black border-secondary">
                             {% for category in categories %}
                             <li>
-                                <a class="dropdown-item" href="/categories/{{ category.slug }}/">
+                                <a class="dropdown-item text-light bg-black" href="/categories/{{ category.slug }}/">
                                     {{ category.name }}
                                 </a>
                             </li>
                             {% empty %}
-                            <li><a class="dropdown-item" href="#">Немає категорій</a></li>
+                            <li><a class="dropdown-item text-light bg-black" href="#">Немає категорій</a></li>
                             {% endfor %}
                         </ul>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="/search/">
+                        <a class="nav-link text-light" href="/search/">
                             <i class="bi bi-search"></i> Пошук
                         </a>
                     </li>
@@ -59,38 +60,38 @@
                 <ul class="navbar-nav">
                     {% if user.is_authenticated %}
                         <li class="nav-item dropdown">
-                            <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
+                            <a class="nav-link dropdown-toggle text-light" href="#" role="button" data-bs-toggle="dropdown">
                                 <i class="bi bi-person-circle"></i> {{ user.username }}
                             </a>
-                            <ul class="dropdown-menu">
+                            <ul class="dropdown-menu bg-black border-secondary">
                                 <li>
-                                    <a class="dropdown-item" href="/users/my-profile/">
+                                    <a class="dropdown-item text-light bg-black" href="/users/my-profile/">
                                         <i class="bi bi-person"></i> Мій профіль
                                     </a>
                                 </li>
                                 <li>
-                                    <a class="dropdown-item" href="/posts/create/">
-                                        <i class="bi bi-plus-circle"></i> Створити пост
+                                    <a class="dropdown-item text-light bg-black" href="/posts/create/">
+                                        <i class="bi bi-plus-square"></i> Створити пост
                                     </a>
                                 </li>
-                                <li><hr class="dropdown-divider"></li>
+                                <li><hr class="dropdown-divider bg-secondary"></li>
                                 {% if user.is_moderator or user.is_admin %}
                                 <li>
-                                    <a class="dropdown-item" href="/users/">
+                                    <a class="dropdown-item text-light bg-black" href="/users/">
                                         <i class="bi bi-people"></i> Користувачі
                                     </a>
                                 </li>
                                 {% endif %}
                                 {% if user.is_admin %}
                                 <li>
-                                    <a class="dropdown-item" href="/users/statistics/">
+                                    <a class="dropdown-item text-light bg-black" href="/users/statistics/">
                                         <i class="bi bi-graph-up"></i> Статистика
                                     </a>
                                 </li>
                                 {% endif %}
-                                <li><hr class="dropdown-divider"></li>
+                                <li><hr class="dropdown-divider bg-secondary"></li>
                                 <li>
-                                    <a class="dropdown-item" href="/logout/">
+                                    <a class="dropdown-item text-light bg-black" href="/logout/">
                                         <i class="bi bi-box-arrow-right"></i> Вийти
                                     </a>
                                 </li>
@@ -98,12 +99,12 @@
                         </li>
                     {% else %}
                         <li class="nav-item">
-                            <a class="nav-link" href="/login/">
+                            <a class="nav-link text-light" href="/login/">
                                 <i class="bi bi-box-arrow-in-right"></i> Увійти
                             </a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link" href="/register/">
+                            <a class="nav-link text-light" href="/register/">
                                 <i class="bi bi-person-plus"></i> Реєстрація
                             </a>
                         </li>
@@ -113,6 +114,7 @@
         </div>
     </nav>
 
+    <!-- Контейнер для повідомлень -->
     <div class="container mt-3">
         {% if messages %}
             {% for message in messages %}
@@ -124,42 +126,182 @@
         {% endif %}
     </div>
 
+    <!-- Основний контент -->
     <main class="container my-4">
         {% block content %}
+        <!-- Приклад структури поста у стилі Reddit -->
+        <div class="row">
+            <div class="col-md-8 mx-auto">
+                <!-- Приклад поста -->
+                <div class="card bg-black border-secondary mb-3">
+                    <div class="card-body">
+                        <div class="d-flex">
+                            <!-- Блок голосування -->
+                            <div class="d-flex flex-column align-items-center me-3">
+                                <button class="btn btn-sm btn-outline-success p-1 mb-1">
+                                    <i class="bi bi-arrow-up"></i>
+                                </button>
+                                <span class="text-light fw-bold">42</span>
+                                <button class="btn btn-sm btn-outline-danger p-1 mt-1">
+                                    <i class="bi bi-arrow-down"></i>
+                                </button>
+                            </div>
+                            
+                            <!-- Контент поста -->
+                            <div class="flex-grow-1">
+                                <div class="d-flex align-items-center mb-2">
+                                    <small class="text-muted">Опубліковано у <a href="#" class="text-warning">/r/категорія</a></small>
+                                    <span class="text-muted mx-1">•</span>
+                                    <small class="text-muted">5 годин тому</small>
+                                    <span class="text-muted mx-1">•</span>
+                                    <small class="text-muted">Автор: user123</small>
+                                </div>
+                                
+                                <h5 class="card-title text-light">Заголовок цікавого поста</h5>
+                                <p class="card-text text-light">Тут буде контент поста. Це може бути текст, зображення або посилання на зовнішній ресурс.</p>
+                                
+                                <div class="d-flex mt-3">
+                                    <button class="btn btn-sm btn-outline-secondary me-2">
+                                        <i class="bi bi-chat"></i> 12 коментарів
+                                    </button>
+                                    <button class="btn btn-sm btn-outline-secondary me-2">
+                                        <i class="bi bi-share"></i> Поділитися
+                                    </button>
+                                    <button class="btn btn-sm btn-outline-secondary">
+                                        <i class="bi bi-bookmark"></i> Зберегти
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Ще один приклад поста -->
+                <div class="card bg-black border-secondary mb-3">
+                    <div class="card-body">
+                        <div class="d-flex">
+                            <!-- Блок голосування -->
+                            <div class="d-flex flex-column align-items-center me-3">
+                                <button class="btn btn-sm btn-outline-success p-1 mb-1">
+                                    <i class="bi bi-arrow-up"></i>
+                                </button>
+                                <span class="text-light fw-bold">128</span>
+                                <button class="btn btn-sm btn-outline-danger p-1 mt-1">
+                                    <i class="bi bi-arrow-down"></i>
+                                </button>
+                            </div>
+                            
+                            <!-- Контент поста -->
+                            <div class="flex-grow-1">
+                                <div class="d-flex align-items-center mb-2">
+                                    <small class="text-muted">Опубліковано у <a href="#" class="text-warning">/r/новини</a></small>
+                                    <span class="text-muted mx-1">•</span>
+                                    <small class="text-muted">1 день тому</small>
+                                    <span class="text-muted mx-1">•</span>
+                                    <small class="text-muted">Автор: news_editor</small>
+                                </div>
+                                
+                                <h5 class="card-title text-light">Важлива новина для спільноти</h5>
+                                <p class="card-text text-light">Короткий опис новини, яка може зацікавити учасників спільноти. Тут може бути довший текст з деталями.</p>
+                                
+                                <div class="d-flex mt-3">
+                                    <button class="btn btn-sm btn-outline-secondary me-2">
+                                        <i class="bi bi-chat"></i> 47 коментарів
+                                    </button>
+                                    <button class="btn btn-sm btn-outline-secondary me-2">
+                                        <i class="bi bi-share"></i> Поділитися
+                                    </button>
+                                    <button class="btn btn-sm btn-outline-secondary">
+                                        <i class="bi bi-bookmark"></i> Зберегти
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Бічна панель у стилі Reddit -->
+            <div class="col-md-4">
+                <div class="card bg-black border-secondary mb-3">
+                    <div class="card-body">
+                        <h5 class="card-title text-light">Про спільноту</h5>
+                        <p class="card-text text-light">Ласкаво просимо до нашої спільноти! Тут ми ділимося цікавими думками, новинами та досвідом.</p>
+                        <div class="d-grid gap-2">
+                            <button class="btn btn-warning">
+                                <i class="bi bi-plus-circle"></i> Створити пост
+                            </button>
+                            <button class="btn btn-outline-light">
+                                <i class="bi bi-bell"></i> Слідкувати
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="card bg-black border-secondary">
+                    <div class="card-body">
+                        <h5 class="card-title text-light">Популярні категорії</h5>
+                        <ul class="list-group list-group-flush bg-black">
+                            <li class="list-group-item bg-black text-light border-secondary">
+                                <a href="#" class="text-light text-decoration-none">/r/новини</a>
+                                <span class="badge bg-secondary float-end">125</span>
+                            </li>
+                            <li class="list-group-item bg-black text-light border-secondary">
+                                <a href="#" class="text-light text-decoration-none">/r/технології</a>
+                                <span class="badge bg-secondary float-end">98</span>
+                            </li>
+                            <li class="list-group-item bg-black text-light border-secondary">
+                                <a href="#" class="text-light text-decoration-none">/r/мистецтво</a>
+                                <span class="badge bg-secondary float-end">76</span>
+                            </li>
+                            <li class="list-group-item bg-black text-light border-secondary">
+                                <a href="#" class="text-light text-decoration-none">/r/наука</a>
+                                <span class="badge bg-secondary float-end">64</span>
+                            </li>
+                            <li class="list-group-item bg-black text-light border-secondary">
+                                <a href="#" class="text-light text-decoration-none">/r/подорожі</a>
+                                <span class="badge bg-secondary float-end">52</span>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
         {% endblock %}
     </main>
 
-    <footer class="bg-dark text-light py-4 mt-5">
+    <!-- Футер -->
+    <footer class="bg-black text-light py-4 mt-5 border-top border-secondary">
         <div class="container">
             <div class="row">
                 <div class="col-md-6">
-                    <h5>Мій Блог</h5>
-                    <p>Тут ви знайдете цікаві статті, новини та корисні матеріали.</p>
+                    <h5 class="text-warning">Мій Блог</h5>
+                    <p class="text-light">Тут ви знайдете цікаві статті, новини та корисні матеріали.</p>
                 </div>
                 <div class="col-md-3">
-                    <h5>Навігація</h5>
+                    <h5 class="text-warning">Навігація</h5>
                     <ul class="list-unstyled">
-                        <li><a href="/" class="text-light">Головна</a></li>
-                        <li><a href="/posts/" class="text-light">Всі пости</a></li>
-                        <li><a href="/categories/" class="text-light">Категорії</a></li>
+                        <li><a href="/" class="text-light text-decoration-none">Головна</a></li>
+                        <li><a href="/posts/" class="text-light text-decoration-none">Всі пости</a></li>
+                        <li><a href="/categories/" class="text-light text-decoration-none">Категорії</a></li>
                     </ul>
                 </div>
                 <div class="col-md-3">
-                    <h5>Користувач</h5>
+                    <h5 class="text-warning">Користувач</h5>
                     <ul class="list-unstyled">
                         {% if user.is_authenticated %}
-                            <li><a href="/users/my-profile/" class="text-light">Мій профіль</a></li>
-                            <li><a href="/posts/create/" class="text-light">Створити пост</a></li>
+                            <li><a href="/users/my-profile/" class="text-light text-decoration-none">Мій профіль</a></li>
+                            <li><a href="/posts/create/" class="text-light text-decoration-none">Створити пост</a></li>
                         {% else %}
-                            <li><a href="/login/" class="text-light">Увійти</a></li>
-                            <li><a href="/register/" class="text-light">Реєстрація</a></li>
+                            <li><a href="/login/" class="text-light text-decoration-none">Увійти</a></li>
+                            <li><a href="/register/" class="text-light text-decoration-none">Реєстрація</a></li>
                         {% endif %}
                     </ul>
                 </div>
             </div>
-            <hr class="bg-light">
+            <hr class="bg-secondary">
             <div class="text-center">
-                <p>&copy; 2024 Мій Блог. Всі права захищені.</p>
+                <p class="text-light">&copy; 2024 Мій Блог. Всі права захищені.</p>
             </div>
         </div>
     </footer>
