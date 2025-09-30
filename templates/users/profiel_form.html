@@ -1,71 +1,124 @@
 {% extends 'base.html' %}
 
-{% block title %}Редагування профілю{% endblock %}
+{% block title %}Редагування профілю - Мій Блог{% endblock %}
 
 {% block content %}
 <div class="row justify-content-center">
     <div class="col-md-8">
-        <div class="card">
-            <div class="card-header">
-                <h4 class="mb-0"><i class="bi bi-gear"></i> Налаштування профілю</h4>
+        <!-- Заголовок -->
+        <div class="card bg-black border-secondary mb-4">
+            <div class="card-body">
+                <h4 class="text-light mb-0">
+                    <i class="bi bi-gear text-warning"></i> Редагування профілю
+                </h4>
             </div>
+        </div>
+
+        <!-- Форма -->
+        <div class="card bg-black border-secondary">
             <div class="card-body">
                 <form method="post" enctype="multipart/form-data">
                     {% csrf_token %}
                     
+                    <!-- Аватар -->
+                    <div class="mb-4">
+                        <label class="form-label text-light">Аватар</label>
+                        {% if user.profile.avatar %}
+                        <div class="mb-3">
+                            <img src="{{ user.profile.avatar.url }}" alt="Поточний аватар" class="img-thumbnail border-secondary" width="150">
+                            <div class="form-check mt-2">
+                                <input class="form-check-input" type="checkbox" name="avatar-clear" id="avatar-clear">
+                                <label class="form-check-label text-light" for="avatar-clear">
+                                    Видалити поточний аватар
+                                </label>
+                            </div>
+                        </div>
+                        {% endif %}
+                        <input type="file" name="avatar" class="form-control bg-dark border-secondary text-light" accept="image/*">
+                    </div>
+
+                    <!-- Біографія -->
+                    <div class="mb-4">
+                        <label class="form-label text-light">Біографія</label>
+                        <textarea name="bio" class="form-control bg-dark border-secondary text-light" rows="4" placeholder="Розкажіть трохи про себе...">{{ form.bio.value|default:'' }}</textarea>
+                    </div>
+
+                    <!-- Контактна інформація -->
                     <div class="row">
-                        <div class="col-md-6">
+                        <div class="col-md-6 mb-4">
+                            <label class="form-label text-light">Телефон</label>
+                            <input type="text" name="phone" class="form-control bg-dark border-secondary text-light" value="{{ form.phone.value|default:'' }}">
+                        </div>
+                        <div class="col-md-6 mb-4">
+                            <label class="form-label text-light">Місцезнаходження</label>
+                            <input type="text" name="location" class="form-control bg-dark border-secondary text-light" value="{{ form.location.value|default:'' }}">
+                        </div>
+                    </div>
+
+                    <!-- Вебсайт -->
+                    <div class="mb-4">
+                        <label class="form-label text-light">Вебсайт</label>
+                        <input type="url" name="website" class="form-control bg-dark border-secondary text-light" value="{{ form.website.value|default:'' }}">
+                    </div>
+
+                    <!-- Дата народження -->
+                    <div class="mb-4">
+                        <label class="form-label text-light">Дата народження</label>
+                        <input type="date" name="birth_date" class="form-control bg-dark border-secondary text-light" value="{{ form.birth_date.value|default:'' }}">
+                    </div>
+
+                    <!-- Соціальні мережі -->
+                    <div class="card bg-dark border-secondary mb-4">
+                        <div class="card-header bg-black border-secondary">
+                            <h6 class="mb-0 text-light">
+                                <i class="bi bi-share text-warning"></i> Соціальні мережі
+                            </h6>
+                        </div>
+                        <div class="card-body">
                             <div class="mb-3">
-                                <label class="form-label">Телефон</label>
-                                {{ form.phone }}
+                                <label class="form-label text-light">Facebook</label>
+                                <input type="url" name="social_facebook" class="form-control bg-dark border-secondary text-light" value="{{ form.social_facebook.value|default:'' }}">
                             </div>
-                        </div>
-                        <div class="col-md-6">
                             <div class="mb-3">
-                                <label class="form-label">Місцезнаходження</label>
-                                {{ form.location }}
+                                <label class="form-label text-light">X (Twitter)</label>
+                                <input type="url" name="social_x" class="form-control bg-dark border-secondary text-light" value="{{ form.social_x.value|default:'' }}">
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label text-light">Instagram</label>
+                                <input type="url" name="social_instagram" class="form-control bg-dark border-secondary text-light" value="{{ form.social_instagram.value|default:'' }}">
                             </div>
                         </div>
                     </div>
-                    
-                    <div class="mb-3">
-                        <label class="form-label">Вебсайт</label>
-                        {{ form.website }}
-                    </div>
-                    
-                    <div class="mb-3">
-                        <label class="form-label">Дата народження</label>
-                        {{ form.birth_date }}
-                    </div>
-                    
-                    <div class="mb-3">
-                        <label class="form-label">Соціальні мережі</label>
-                        <div class="row">
-                            <div class="col-md-4">
-                                <label class="form-label small">Facebook</label>
-                                {{ form.social_facebook }}
+
+                    <!-- Налаштування -->
+                    <div class="card bg-dark border-secondary mb-4">
+                        <div class="card-header bg-black border-secondary">
+                            <h6 class="mb-0 text-light">
+                                <i class="bi bi-bell text-warning"></i> Налаштування сповіщень
+                            </h6>
+                        </div>
+                        <div class="card-body">
+                            <div class="form-check form-switch mb-3">
+                                <input class="form-check-input" type="checkbox" name="email_notifications" id="email_notifications" {% if form.email_notifications.value %}checked{% endif %}>
+                                <label class="form-check-label text-light" for="email_notifications">
+                                    Email сповіщення
+                                </label>
                             </div>
-                            <div class="col-md-4">
-                                <label class="form-label small">X (Twitter)</label>
-                                {{ form.social_x }}
-                            </div>
-                            <div class="col-md-4">
-                                <label class="form-label small">Instagram</label>
-                                {{ form.social_instagram }}
+                            <div class="form-check form-switch">
+                                <input class="form-check-input" type="checkbox" name="email_subscriptions" id="email_subscriptions" {% if form.email_subscriptions.value %}checked{% endif %}>
+                                <label class="form-check-label text-light" for="email_subscriptions">
+                                    Підписки на новини
+                                </label>
                             </div>
                         </div>
                     </div>
-                    
-                    <div class="mb-3 form-check">
-                        {{ form.email_notifications }}
-                        <label class="form-check-label">Email сповіщення</label>
-                    </div>
-                    
-                    <div class="d-flex gap-2">
-                        <button type="submit" class="btn btn-primary">
+
+                    <!-- Кнопки -->
+                    <div class="d-flex justify-content-between align-items-center pt-3 border-top border-secondary">
+                        <button type="submit" class="btn btn-warning">
                             <i class="bi bi-check"></i> Зберегти зміни
                         </button>
-                        <a href="{% url 'profile-detail' username=user.username %}" class="btn btn-secondary">
+                        <a href="{% url 'users:profile_detail' username=user.username %}" class="btn btn-outline-light">
                             <i class="bi bi-x"></i> Скасувати
                         </a>
                     </div>
@@ -74,4 +127,32 @@
         </div>
     </div>
 </div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Додавання темних класів для всіх полів вводу
+    const formControls = document.querySelectorAll('input, textarea, select');
+    formControls.forEach(control => {
+        if (!control.classList.contains('form-check-input')) {
+            control.classList.add('bg-dark', 'border-secondary', 'text-light');
+        }
+    });
+});
+</script>
+
+<style>
+.form-control:focus, .form-select:focus {
+    background-color: #1a1a1b !important;
+    border-color: #ff4500 !important;
+    box-shadow: 0 0 0 0.2rem rgba(255, 69, 0, 0.25) !important;
+    color: #ffffff !important;
+}
+
+.form-check-input:checked {
+    background-color: #ff4500;
+    border-color: #ff4500;
+}
+</style>
 {% endblock %}

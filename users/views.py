@@ -35,7 +35,7 @@ class ProfileUpdateView(LoginRequiredMixin, UpdateView):
         return self.request.user.profile
     
     def get_success_url(self):
-        return reverse_lazy('profile-detail', kwargs={'username': self.request.user.username})
+        return reverse_lazy('users:profile_detail', kwargs={'username': self.request.user.username})
     
     def form_valid(self, form):
         messages.success(self.request, 'Профіль успішно оновлено!')
@@ -50,7 +50,7 @@ class UserUpdateView(LoginRequiredMixin, UpdateView):
         return self.request.user
     
     def get_success_url(self):
-        return reverse_lazy('profile-detail', kwargs={'username': self.request.user.username})
+        return reverse_lazy('users:profile_detail', kwargs={'username': self.request.user.username})
     
     def form_valid(self, form):
         messages.success(self.request, 'Дані користувача успішно оновлено!')

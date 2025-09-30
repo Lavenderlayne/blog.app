@@ -113,7 +113,7 @@ class PostCreateView(LoginRequiredMixin, CreateView):
         return super().form_valid(form)
     
     def get_success_url(self):
-        return reverse_lazy('post_detail', kwargs={'slug': self.object.slug})
+        return reverse_lazy('core:post_detail', kwargs={'slug': self.object.slug})
 
 
 class PostUpdateView(LoginRequiredMixin, UserPassesTestMixin, UpdateView):
@@ -131,7 +131,7 @@ class PostUpdateView(LoginRequiredMixin, UserPassesTestMixin, UpdateView):
         return self.request.user == post.author or self.request.user.is_staff
     
     def get_success_url(self):
-        return reverse_lazy('post_detail', kwargs={'slug': self.object.slug})
+        return reverse_lazy('core:post_detail', kwargs={'slug': self.object.slug})  # Додано core:
 
 
 class PostDeleteView(LoginRequiredMixin, UserPassesTestMixin, DeleteView):
