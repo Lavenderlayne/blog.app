@@ -1,0 +1,109 @@
+{% extends 'base.html' %}
+
+{% block title %}Реєстрація - Мій Блог{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-6">
+        <!-- Заголовок -->
+        <div class="card bg-black border-secondary mb-4">
+            <div class="card-body text-center">
+                <h4 class="text-light mb-0">
+                    <i class="bi bi-person-plus text-warning"></i> Реєстрація
+                </h4>
+            </div>
+        </div>
+
+        <!-- Форма реєстрації -->
+        <div class="card bg-black border-secondary">
+            <div class="card-body">
+                <form method="post">
+                    {% csrf_token %}
+                    
+                    <!-- Ім'я користувача -->
+                    <div class="mb-4">
+                        <label class="form-label text-light">Ім'я користувача</label>
+                        {{ form.username }}
+                        {% if form.username.errors %}
+                            <div class="text-warning small mt-1">{{ form.username.errors }}</div>
+                        {% endif %}
+                        <div class="form-text text-muted">Оберіть унікальне ім'я користувача</div>
+                    </div>
+
+                    <!-- Email -->
+                    <div class="mb-4">
+                        <label class="form-label text-light">Email</label>
+                        {{ form.email }}
+                        {% if form.email.errors %}
+                            <div class="text-warning small mt-1">{{ form.email.errors }}</div>
+                        {% endif %}
+                        <div class="form-text text-muted">Введіть дійсну email адресу</div>
+                    </div>
+
+                    <!-- Пароль -->
+                    <div class="mb-4">
+                        <label class="form-label text-light">Пароль</label>
+                        {{ form.password1 }}
+                        {% if form.password1.errors %}
+                            <div class="text-warning small mt-1">{{ form.password1.errors }}</div>
+                        {% endif %}
+                        <div class="form-text text-muted">
+                            <ul class="small">
+                                <li>Пароль має містити щонайменше 8 символів</li>
+                                <li>Не може бути схожим на ім'я користувача</li>
+                                <li>Не може бути звичайним паролем</li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <!-- Підтвердження пароля -->
+                    <div class="mb-4">
+                        <label class="form-label text-light">Підтвердження пароля</label>
+                        {{ form.password2 }}
+                        {% if form.password2.errors %}
+                            <div class="text-warning small mt-1">{{ form.password2.errors }}</div>
+                        {% endif %}
+                        <div class="form-text text-muted">Введіть той самий пароль ще раз</div>
+                    </div>
+
+                    <!-- Кнопка реєстрації -->
+                    <div class="d-grid mb-4">
+                        <button type="submit" class="btn btn-warning btn-lg">
+                            <i class="bi bi-person-plus"></i> Зареєструватися
+                        </button>
+                    </div>
+
+                    <!-- Посилання на вхід -->
+                    <div class="text-center">
+                        <p class="text-muted mb-2">Вже маєте акаунт?</p>
+                        <a href="{% url 'users:login' %}" class="btn btn-outline-light btn-sm">
+                            <i class="bi bi-box-arrow-in-right"></i> Увійти
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Додавання темних класів для всіх полів вводу
+    const formControls = document.querySelectorAll('input');
+    formControls.forEach(control => {
+        control.classList.add('bg-dark', 'border-secondary', 'text-light');
+    });
+});
+</script>
+
+<style>
+.form-control:focus {
+    background-color: #1a1a1b !important;
+    border-color: #ff4500 !important;
+    box-shadow: 0 0 0 0.2rem rgba(255, 69, 0, 0.25) !important;
+    color: #ffffff !important;
+}
+</style>
+{% endblock %}

@@ -14,7 +14,7 @@
     <!-- Навігація у стилі Reddit -->
     <nav class="navbar navbar-expand-lg navbar-dark bg-black border-bottom border-secondary">
         <div class="container">
-            <a class="navbar-brand fw-bold text-warning" href="/">
+            <a class="navbar-brand fw-bold text-warning" href="{% url 'core:home' %}">
                 <i class="bi bi-reddit me-1"></i> Мій Блог
             </a>
             
@@ -25,12 +25,12 @@
             <div class="collapse navbar-collapse" id="navbarNav">
                 <ul class="navbar-nav me-auto">
                     <li class="nav-item">
-                        <a class="nav-link text-light" href="/">
+                        <a class="nav-link text-light" href="{% url 'core:home' %}">
                             <i class="bi bi-house-door"></i> Головна
                         </a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link text-light" href="/posts/">
+                        <a class="nav-link text-light" href="{% url 'core:post_list' %}">
                             <i class="bi bi-card-text"></i> Всі пости
                         </a>
                     </li>
@@ -41,7 +41,7 @@
                         <ul class="dropdown-menu bg-black border-secondary">
                             {% for category in categories %}
                             <li>
-                                <a class="dropdown-item text-light bg-black" href="/categories/{{ category.slug }}/">
+                                <a class="dropdown-item text-light bg-black" href="{% url 'core:category_detail' category.slug %}">
                                     {{ category.name }}
                                 </a>
                             </li>
@@ -51,7 +51,7 @@
                         </ul>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link text-light" href="/search/">
+                        <a class="nav-link text-light" href="{% url 'core:search' %}">
                             <i class="bi bi-search"></i> Пошук
                         </a>
                     </li>
@@ -65,46 +65,49 @@
                             </a>
                             <ul class="dropdown-menu bg-black border-secondary">
                                 <li>
-                                    <a class="dropdown-item text-light bg-black" href="/users/my-profile/">
+                                    <a class="dropdown-item text-light bg-black" href="{% url 'users:my_profile' %}">
                                         <i class="bi bi-person"></i> Мій профіль
                                     </a>
                                 </li>
                                 <li>
-                                    <a class="dropdown-item text-light bg-black" href="/posts/create/">
+                                    <a class="dropdown-item text-light bg-black" href="{% url 'core:post_create' %}">
                                         <i class="bi bi-plus-square"></i> Створити пост
                                     </a>
                                 </li>
                                 <li><hr class="dropdown-divider bg-secondary"></li>
                                 {% if user.is_moderator or user.is_admin %}
                                 <li>
-                                    <a class="dropdown-item text-light bg-black" href="/users/">
+                                    <a class="dropdown-item text-light bg-black" href="{% url 'users:user_list' %}">
                                         <i class="bi bi-people"></i> Користувачі
                                     </a>
                                 </li>
                                 {% endif %}
                                 {% if user.is_admin %}
                                 <li>
-                                    <a class="dropdown-item text-light bg-black" href="/users/statistics/">
+                                    <a class="dropdown-item text-light bg-black" href="{% url 'users:user_statistics' %}">
                                         <i class="bi bi-graph-up"></i> Статистика
                                     </a>
                                 </li>
                                 {% endif %}
                                 <li><hr class="dropdown-divider bg-secondary"></li>
                                 <li>
-                                    <a class="dropdown-item text-light bg-black" href="/logout/">
-                                        <i class="bi bi-box-arrow-right"></i> Вийти
-                                    </a>
+                                    <form method="post" action="{% url 'users:logout' %}" class="d-inline">
+                                        {% csrf_token %}
+                                        <button type="submit" class="dropdown-item text-light bg-black border-0 text-start w-100">
+                                            <i class="bi bi-box-arrow-right"></i> Вийти
+                                        </button>
+                                    </form>
                                 </li>
                             </ul>
                         </li>
                     {% else %}
                         <li class="nav-item">
-                            <a class="nav-link text-light" href="/login/">
+                            <a class="nav-link text-light" href="{% url 'users:login' %}">
                                 <i class="bi bi-box-arrow-in-right"></i> Увійти
                             </a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link text-light" href="/register/">
+                            <a class="nav-link text-light" href="{% url 'users:register' %}">
                                 <i class="bi bi-person-plus"></i> Реєстрація
                             </a>
                         </li>
@@ -228,9 +231,9 @@
                         <h5 class="card-title text-light">Про спільноту</h5>
                         <p class="card-text text-light">Ласкаво просимо до нашої спільноти! Тут ми ділимося цікавими думками, новинами та досвідом.</p>
                         <div class="d-grid gap-2">
-                            <button class="btn btn-warning">
+                            <a href="{% url 'core:post_create' %}" class="btn btn-warning">
                                 <i class="bi bi-plus-circle"></i> Створити пост
-                            </button>
+                            </a>
                             <button class="btn btn-outline-light">
                                 <i class="bi bi-bell"></i> Слідкувати
                             </button>
@@ -281,20 +284,20 @@
                 <div class="col-md-3">
                     <h5 class="text-warning">Навігація</h5>
                     <ul class="list-unstyled">
-                        <li><a href="/" class="text-light text-decoration-none">Головна</a></li>
-                        <li><a href="/posts/" class="text-light text-decoration-none">Всі пости</a></li>
-                        <li><a href="/categories/" class="text-light text-decoration-none">Категорії</a></li>
+                        <li><a href="{% url 'core:home' %}" class="text-light text-decoration-none">Головна</a></li>
+                        <li><a href="{% url 'core:post_list' %}" class="text-light text-decoration-none">Всі пости</a></li>
+                        <li><a href="{% url 'core:category_list' %}" class="text-light text-decoration-none">Категорії</a></li>
                     </ul>
                 </div>
                 <div class="col-md-3">
                     <h5 class="text-warning">Користувач</h5>
                     <ul class="list-unstyled">
                         {% if user.is_authenticated %}
-                            <li><a href="/users/my-profile/" class="text-light text-decoration-none">Мій профіль</a></li>
-                            <li><a href="/posts/create/" class="text-light text-decoration-none">Створити пост</a></li>
+                            <li><a href="{% url 'users:my_profile' %}" class="text-light text-decoration-none">Мій профіль</a></li>
+                            <li><a href="{% url 'core:post_create' %}" class="text-light text-decoration-none">Створити пост</a></li>
                         {% else %}
-                            <li><a href="/login/" class="text-light text-decoration-none">Увійти</a></li>
-                            <li><a href="/register/" class="text-light text-decoration-none">Реєстрація</a></li>
+                            <li><a href="{% url 'users:login' %}" class="text-light text-decoration-none">Увійти</a></li>
+                            <li><a href="{% url 'users:register' %}" class="text-light text-decoration-none">Реєстрація</a></li>
                         {% endif %}
                     </ul>
                 </div>

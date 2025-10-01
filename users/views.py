@@ -6,7 +6,29 @@ from django.urls import reverse_lazy
 from django.contrib import messages
 from django.db.models import Q
 from .models import CustomUser, Profile
-from .forms import ProfileUpdateForm, UserUpdateForm
+from .forms import ProfileUpdateForm, UserUpdateForm, UserRegistrationForm
+from django.contrib.auth.views import LoginView
+from django.contrib.auth import login
+
+def register(request):
+    if request.method == 'POST':
+        form = UserRegistrationForm(request.POST)
+        if form.is_valid():
+            user = form.save()
+            login(request, user)
+            messages.success(request, 'Реєстрація успішна! Ласкаво просимо!')
+            return redirect('core:home')  # Використовуємо core:home
+    else:
+        form = UserRegistrationForm()
+    
+    return render(request, 'users/register.html', {'form': form})
+
+class CustomLoginView(LoginView):
+    template_name = 'users/login.html'
+    redirect_authenticated_user = True
+    
+    def get_success_url(self):
+        return reverse_lazy('core:home')  # Виправлено на core:home
 
 def is_moderator(user):
     return user.is_authenticated and (user.role == 'moderator' or user.is_superuser)
@@ -21,20 +43,18 @@ class ProfileDetailView(LoginRequiredMixin, DetailView):
     
     def get_object(self):
         user = get_object_or_404(CustomUser, username=self.kwargs['username'])
+        # Перевірка чи існує профіль, якщо ні - створюємо
         if not hasattr(user, 'profile'):
             Profile.objects.create(user=user)
         return user
-    
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        return context
-    
+
 class ProfileUpdateView(LoginRequiredMixin, UpdateView):
     model = Profile
     form_class = ProfileUpdateForm
     template_name = 'users/profile_form.html'
     
     def get_object(self):
+        # Перевірка чи існує профіль
         if not hasattr(self.request.user, 'profile'):
             Profile.objects.create(user=self.request.user)
         return self.request.user.profile
@@ -63,7 +83,7 @@ class UserUpdateView(LoginRequiredMixin, UpdateView):
 
 class UserListView(LoginRequiredMixin, UserPassesTestMixin, ListView):
     model = CustomUser
-    template_name = 'users/user_list.html'
+    template_name = 'users/user_list.html'  # Виправлено назву шаблону
     context_object_name = 'users'
     paginate_by = 20
     
@@ -112,7 +132,6 @@ def my_profile(request):
 def user_statistics(request):
     total_users = CustomUser.objects.count()
     active_users = CustomUser.objects.filter(is_active=True).count()
-    authors_count = CustomUser.objects.filter(role='author').count()
     moderators_count = CustomUser.objects.filter(role='moderator').count()
     admins_count = CustomUser.objects.filter(role='admin').count()
     

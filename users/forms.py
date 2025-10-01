@@ -1,5 +1,21 @@
 from django import forms
 from .models import CustomUser, Profile
+from django import forms
+from django.contrib.auth.forms import UserCreationForm
+from .models import CustomUser
+
+class UserRegistrationForm(UserCreationForm):
+    email = forms.EmailField(required=True)
+    
+    class Meta:
+        model = CustomUser
+        fields = ['username', 'email', 'password1', 'password2']
+    
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # Додаємо стилі до полів
+        for field_name, field in self.fields.items():
+            field.widget.attrs.update({'class': 'form-control bg-dark border-secondary text-light'})
 
 class UserUpdateForm(forms.ModelForm):
     class Meta:

@@ -1,16 +1,26 @@
 from django.urls import path
 from . import views
+from django.conf import settings
+from django.conf.urls.static import static
+from .views import CustomLoginView, register
+from django.contrib.auth import views as auth_views
 
 app_name = 'users'
 
-from django.conf import settings
-from django.conf.urls.static import static
-
 urlpatterns = [
+    # Аутентифікація
+    path('login/', CustomLoginView.as_view(), name='login'),
+    path('logout/', auth_views.LogoutView.as_view(), name='logout'),
+    path('register/', register, name='register'),
+    path('logout/', auth_views.LogoutView.as_view(http_method_names=['get', 'post']), name='logout'),
+    
+    # Профілі користувачів
     path('my-profile/', views.my_profile, name='my_profile'),
     path('profile/edit/', views.ProfileUpdateView.as_view(), name='profile_update'),
     path('user/edit/', views.UserUpdateView.as_view(), name='user_update'),
     path('profile/<str:username>/', views.ProfileDetailView.as_view(), name='profile_detail'),
+    
+    # Адмін-функції
     path('', views.UserListView.as_view(), name='user_list'),
     path('search/', views.UserSearchView.as_view(), name='user_search'),
     path('statistics/', views.user_statistics, name='user_statistics'),

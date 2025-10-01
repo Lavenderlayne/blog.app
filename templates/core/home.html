@@ -36,7 +36,7 @@
                         <div class="d-flex align-items-center mb-2">
                             <small class="text-muted">
                                 Опубліковано в 
-                                <a href="/categories/{{ post.category.slug }}/" class="text-warning text-decoration-none">
+                                <a href="{% url 'core:category_detail' post.category.slug %}" class="text-warning text-decoration-none">
                                     /r/{{ post.category.name }}
                                 </a>
                             </small>
@@ -47,7 +47,7 @@
                         </div>
                         
                         <h5 class="card-title text-light mb-2">
-                            <a href="/posts/{{ post.slug }}/" class="text-light text-decoration-none">
+                            <a href="{% url 'core:post_detail' post.slug %}" class="text-light text-decoration-none">
                                 {{ post.title }}
                             </a>
                             {% if post.is_featured %}
@@ -69,9 +69,9 @@
                                 <i class="bi bi-clock"></i> {{ post.created_at|timesince }} тому
                             </div>
                             <div class="btn-group">
-                                <button class="btn btn-outline-light btn-sm me-1">
+                                <a href="{% url 'core:post_detail' post.slug %}" class="btn btn-outline-light btn-sm me-1">
                                     <i class="bi bi-chat"></i>
-                                </button>
+                                </a>
                                 <button class="btn btn-outline-light btn-sm me-1">
                                     <i class="bi bi-share"></i>
                                 </button>
@@ -92,11 +92,11 @@
                 <h4 class="text-light">Постів ще немає</h4>
                 <p class="text-muted mb-4">Будьте першим, хто опублікує пост!</p>
                 {% if user.is_authenticated %}
-                <a href="/posts/create/" class="btn btn-warning">
+                <a href="{% url 'core:post_create' %}" class="btn btn-warning">
                     <i class="bi bi-plus-circle"></i> Створити перший пост
                 </a>
                 {% else %}
-                <a href="/register/" class="btn btn-warning">Приєднатися до спільноти</a>
+                <a href="{% url 'users:register' %}" class="btn btn-warning">Приєднатися до спільноти</a>
                 {% endif %}
             </div>
         </div>
@@ -105,7 +105,7 @@
         <!-- Кнопка для перегляду всіх постів -->
         {% if latest_posts %}
         <div class="text-center mt-4">
-            <a href="/posts/" class="btn btn-outline-light">
+            <a href="{% url 'core:post_list' %}" class="btn btn-outline-light">
                 <i class="bi bi-card-text"></i> Переглянути всі пости
             </a>
         </div>
@@ -122,7 +122,7 @@
                 </h5>
                 <div class="list-group list-group-flush bg-black">
                     {% for category in categories %}
-                    <a href="/categories/{{ category.slug }}/" 
+                    <a href="{% url 'core:category_detail' category.slug %}" 
                        class="list-group-item list-group-item-action bg-black border-secondary text-light d-flex justify-content-between align-items-center">
                         <div class="d-flex align-items-center">
                             <i class="bi bi-reddit text-warning me-2"></i>
@@ -138,7 +138,7 @@
                     {% endfor %}
                 </div>
                 <div class="text-center mt-3">
-                    <a href="/categories/" class="btn btn-outline-light btn-sm">
+                    <a href="{% url 'core:category_list' %}" class="btn btn-outline-light btn-sm">
                         <i class="bi bi-eye"></i> Всі спільноти
                     </a>
                 </div>
@@ -153,18 +153,18 @@
                 </h5>
                 <div class="d-grid gap-2">
                     {% if user.is_authenticated %}
-                    <a href="/posts/create/" class="btn btn-warning">
+                    <a href="{% url 'core:post_create' %}" class="btn btn-warning">
                         <i class="bi bi-plus-circle"></i> Створити пост
                     </a>
                     {% else %}
-                    <a href="/login/" class="btn btn-warning">
+                    <a href="{% url 'users:login' %}" class="btn btn-warning">
                         <i class="bi bi-box-arrow-in-right"></i> Увійти
                     </a>
-                    <a href="/register/" class="btn btn-outline-light">
+                    <a href="{% url 'users:register' %}" class="btn btn-outline-light">
                         <i class="bi bi-person-plus"></i> Зареєструватися
                     </a>
                     {% endif %}
-                    <a href="/search/" class="btn btn-outline-light">
+                    <a href="{% url 'core:search' %}" class="btn btn-outline-light">
                         <i class="bi bi-search"></i> Пошук
                     </a>
                 </div>

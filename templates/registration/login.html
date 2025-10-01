@@ -1,0 +1,107 @@
+{% extends 'base.html' %}
+
+{% block title %}Вхід - Мій Блог{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-6">
+        <!-- Заголовок -->
+        <div class="card bg-black border-secondary mb-4">
+            <div class="card-body text-center">
+                <h4 class="text-light mb-0">
+                    <i class="bi bi-box-arrow-in-right text-warning"></i> Вхід до акаунту
+                </h4>
+            </div>
+        </div>
+
+        <!-- Форма входу -->
+        <div class="card bg-black border-secondary">
+            <div class="card-body">
+                {% if form.errors %}
+                <div class="alert alert-dark border-warning mb-4">
+                    <i class="bi bi-exclamation-triangle text-warning"></i>
+                    Невірне ім'я користувача або пароль. Спробуйте ще раз.
+                </div>
+                {% endif %}
+
+                <form method="post">
+                    {% csrf_token %}
+                    
+                    <!-- Ім'я користувача -->
+                    <div class="mb-4">
+                        <label class="form-label text-light">Ім'я користувача</label>
+                        <input type="text" name="username" class="form-control bg-dark border-secondary text-light" 
+                               placeholder="Введіть ваше ім'я користувача" required autofocus>
+                    </div>
+
+                    <!-- Пароль -->
+                    <div class="mb-4">
+                        <label class="form-label text-light">Пароль</label>
+                        <input type="password" name="password" class="form-control bg-dark border-secondary text-light" 
+                               placeholder="Введіть ваш пароль" required>
+                    </div>
+
+                    <!-- Запам'ятати мене -->
+                    <div class="form-check mb-4">
+                        <input class="form-check-input" type="checkbox" name="remember_me" id="remember_me">
+                        <label class="form-check-label text-light" for="remember_me">
+                            Запам'ятати мене
+                        </label>
+                    </div>
+
+                    <!-- Кнопка входу -->
+                    <div class="d-grid mb-4">
+                        <button type="submit" class="btn btn-warning btn-lg">
+                            <i class="bi bi-box-arrow-in-right"></i> Увійти
+                        </button>
+                    </div>
+
+                    <!-- Додаткові посилання -->
+                    <div class="text-center">
+                        <p class="text-muted mb-2">Ще не маєте акаунту?</p>
+                        <a href="{% url 'register' %}" class="btn btn-outline-light btn-sm">
+                            <i class="bi bi-person-plus"></i> Зареєструватися
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Додаткова інформація -->
+        <div class="card bg-black border-secondary mt-4">
+            <div class="card-body text-center">
+                <p class="text-muted small mb-0">
+                    <i class="bi bi-info-circle"></i>
+                    Якщо ви забули пароль, зверніться до адміністратора
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Додавання темних класів для всіх полів вводу
+    const formControls = document.querySelectorAll('input');
+    formControls.forEach(control => {
+        control.classList.add('bg-dark', 'border-secondary', 'text-light');
+    });
+});
+</script>
+
+<style>
+.form-control:focus {
+    background-color: #1a1a1b !important;
+    border-color: #ff4500 !important;
+    box-shadow: 0 0 0 0.2rem rgba(255, 69, 0, 0.25) !important;
+    color: #ffffff !important;
+}
+
+.form-check-input:checked {
+    background-color: #ff4500;
+    border-color: #ff4500;
+}
+</style>
+{% endblock %}

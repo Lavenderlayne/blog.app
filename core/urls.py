@@ -2,6 +2,7 @@ from django.urls import path
 from . import views
 from django.conf import settings
 from django.conf.urls.static import static
+from django.urls import include
 
 app_name = 'core'
 
@@ -13,7 +14,7 @@ urlpatterns = [
     path('posts/<slug:slug>/delete/', views.PostDeleteView.as_view(), name='post_delete'),
     path('posts/<slug:slug>/', views.PostDetailView.as_view(), name='post_detail'),
     
-    # Додайте цей маршрут для коментарів
+    # Маршрут для коментарів
     path('posts/<slug:slug>/comment/', views.add_comment, name='add_comment'),
     
     path('categories/', views.CategoryListView.as_view(), name='category_list'),
@@ -30,6 +31,7 @@ urlpatterns = [
     path('user/<str:username>/posts/', views.UserPostListView.as_view(), name='user_posts'),
     path('api/posts/', views.api_posts, name='api_posts'),
     path('api/posts/<slug:slug>/', views.api_post_detail, name='api_post_detail'),
+    path('users/', include('users.urls')),
 ]
 
 if settings.DEBUG:
