@@ -87,7 +87,7 @@ def change_user_role(request, user_id):
         else:
             messages.error(request, 'Невірна роль')
     
-    return redirect('user-list')
+    return redirect('users:user_list')
 
 @login_required
 @user_passes_test(is_moderator)
@@ -101,7 +101,7 @@ def toggle_user_status(request, user_id):
         status = "активовано" if user.is_active else "заблоковано"
         messages.success(request, f'Користувача {user.username} {status}')
     
-    return redirect('user-list')
+    return redirect('users:user_list')
 
 @login_required
 def my_profile(request):

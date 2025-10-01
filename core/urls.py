@@ -1,5 +1,7 @@
 from django.urls import path
 from . import views
+from django.conf import settings
+from django.conf.urls.static import static
 
 app_name = 'core'
 
@@ -29,3 +31,6 @@ urlpatterns = [
     path('api/posts/', views.api_posts, name='api_posts'),
     path('api/posts/<slug:slug>/', views.api_post_detail, name='api_post_detail'),
 ]
+
+if settings.DEBUG:
+    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

@@ -312,8 +312,7 @@ def add_comment(request, slug):
             comment.save()
             messages.success(request, 'Коментар успішно додано!')
     
-    return redirect('post_detail', slug=slug)
-
+    return redirect('core:post_detail', slug=slug)
 
 @login_required
 def delete_comment(request, pk):

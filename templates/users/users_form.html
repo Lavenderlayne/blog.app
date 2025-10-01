@@ -1,52 +1,116 @@
 {% extends 'base.html' %}
 
-{% block title %}Редагування користувача{% endblock %}
+{% block title %}Редагування даних - Мій Блог{% endblock %}
 
 {% block content %}
 <div class="row justify-content-center">
     <div class="col-md-8">
-        <div class="card">
-            <div class="card-header">
-                <h4 class="mb-0"><i class="bi bi-person-gear"></i> Редагування даних користувача</h4>
+        <!-- Заголовок -->
+        <div class="card bg-black border-secondary mb-4">
+            <div class="card-body">
+                <h4 class="text-light mb-0">
+                    <i class="bi bi-person text-warning"></i> Редагування даних користувача
+                </h4>
             </div>
+        </div>
+
+        <!-- Повідомлення про помилки -->
+        {% if form.errors %}
+        <div class="alert alert-dark border-warning mb-4">
+            <i class="bi bi-exclamation-triangle text-warning"></i>
+            Будь ласка, виправте помилки нижче.
+        </div>
+        {% endif %}
+
+        <!-- Форма -->
+        <div class="card bg-black border-secondary">
             <div class="card-body">
                 <form method="post">
                     {% csrf_token %}
                     
                     <div class="row">
                         <div class="col-md-6">
-                            <div class="mb-3">
-                                <label class="form-label">Ім'я</label>
-                                {{ form.first_name }}
+                            <div class="mb-4">
+                                <label class="form-label text-light">Ім'я</label>
+                                <input type="text" name="first_name" class="form-control bg-dark border-secondary text-light" 
+                                       value="{{ form.first_name.value|default:'' }}" placeholder="Ваше ім'я">
                                 {% if form.first_name.errors %}
-                                    <div class="text-danger small">{{ form.first_name.errors }}</div>
+                                    <div class="text-warning small mt-1">{{ form.first_name.errors }}</div>
                                 {% endif %}
                             </div>
                         </div>
                         <div class="col-md-6">
-                            <div class="mb-3">
-                                <label class="form-label">Прізвище</label>
-                                {{ form.last_name }}
+                            <div class="mb-4">
+                                <label class="form-label text-light">Прізвище</label>
+                                <input type="text" name="last_name" class="form-control bg-dark border-secondary text-light" 
+                                       value="{{ form.last_name.value|default:'' }}" placeholder="Ваше прізвище">
                                 {% if form.last_name.errors %}
-                                    <div class="text-danger small">{{ form.last_name.errors }}</div>
+                                    <div class="text-warning small mt-1">{{ form.last_name.errors }}</div>
                                 {% endif %}
                             </div>
                         </div>
                     </div>
                     
-                    <div class="mb-3">
-                        <label class="form-label">Email</label>
-                        {{ form.email }}
+                    <div class="mb-4">
+                        <label class="form-label text-light">Email</label>
+                        <input type="email" name="email" class="form-control bg-dark border-secondary text-light" 
+                               value="{{ form.email.value|default:'' }}" placeholder="your@email.com">
+                        <div class="form-text text-muted">Ця адреса використовується для входу та сповіщень</div>
                         {% if form.email.errors %}
-                            <div class="text-danger small">{{ form.email.errors }}</div>
+                            <div class="text-warning small mt-1">{{ form.email.errors }}</div>
                         {% endif %}
                     </div>
+
+                    <!-- Інформація про акаунт -->
+                    <div class="card bg-dark border-secondary mb-4">
+                        <div class="card-header bg-black border-secondary">
+                            <h6 class="mb-0 text-light">
+                                <i class="bi bi-info-circle text-warning"></i> Інформація про акаунт
+                            </h6>
+                        </div>
+                        <div class="card-body">
+                            <div class="row text-light small">
+                                <div class="col-md-6 mb-2">
+                                    <strong>Ім'я користувача:</strong>
+                                    <br>
+                                    <span class="text-muted">{{ user.username }}</span>
+                                </div>
+                                <div class="col-md-6 mb-2">
+                                    <strong>Дата реєстрації:</strong>
+                                    <br>
+                                    <span class="text-muted">{{ user.date_joined|date:"d.m.Y" }}</span>
+                                </div>
+                                <div class="col-md-6 mb-2">
+                                    <strong>Роль:</strong>
+                                    <br>
+                                    <span class="badge bg-{% if user.role == 'admin' %}danger{% elif user.role == 'moderator' %}warning text-dark{% else %}primary{% endif %}">
+                                        {{ user.get_role_display }}
+                                    </span>
+                                </div>
+                                <div class="col-md-6 mb-2">
+                                    <strong>Статус:</strong>
+                                    <br>
+                                    {% if user.is_active %}
+                                        <span class="badge bg-success">Активний</span>
+                                    {% else %}
+                                        <span class="badge bg-danger">Заблокований</span>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                     
-                    <div class="d-flex gap-2">
-                        <button type="submit" class="btn btn-primary">
-                            <i class="bi bi-check"></i> Зберегти зміни
-                        </button>
-                        <a href="{% url 'users:profile-detail' username=user.username %}" class="btn btn-secondary">
+                    <!-- Кнопки -->
+                    <div class="d-flex justify-content-between align-items-center pt-3 border-top border-secondary">
+                        <div>
+                            <button type="submit" class="btn btn-warning me-2">
+                                <i class="bi bi-check"></i> Зберегти зміни
+                            </button>
+                            <button type="reset" class="btn btn-outline-secondary">
+                                <i class="bi bi-arrow-clockwise"></i> Скинути
+                            </button>
+                        </div>
+                        <a href="{% url 'users:profile_detail' username=user.username %}" class="btn btn-outline-light">
                             <i class="bi bi-x"></i> Скасувати
                         </a>
                     </div>
@@ -55,4 +119,40 @@
         </div>
     </div>
 </div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Додавання темних класів для всіх полів вводу
+    const formControls = document.querySelectorAll('input, textarea, select');
+    formControls.forEach(control => {
+        if (!control.classList.contains('form-check-input')) {
+            control.classList.add('bg-dark', 'border-secondary', 'text-light');
+        }
+    });
+
+    // Підсвічування помилкових полів
+    const errorFields = document.querySelectorAll('.text-warning');
+    errorFields.forEach(error => {
+        const field = error.closest('.mb-4').querySelector('input, textarea, select');
+        if (field) {
+            field.classList.add('border-warning');
+        }
+    });
+});
+</script>
+
+<style>
+.form-control:focus, .form-select:focus {
+    background-color: #1a1a1b !important;
+    border-color: #ff4500 !important;
+    box-shadow: 0 0 0 0.2rem rgba(255, 69, 0, 0.25) !important;
+    color: #ffffff !important;
+}
+
+.form-control.border-warning {
+    border-color: #ffc107 !important;
+}
+</style>
 {% endblock %}

@@ -14,6 +14,14 @@
             </div>
         </div>
 
+        <!-- Повідомлення про помилки -->
+        {% if form.errors %}
+        <div class="alert alert-dark border-warning mb-4">
+            <i class="bi bi-exclamation-triangle text-warning"></i>
+            Будь ласка, виправте помилки нижче.
+        </div>
+        {% endif %}
+
         <!-- Форма -->
         <div class="card bg-black border-secondary">
             <div class="card-body">
@@ -35,36 +43,60 @@
                         </div>
                         {% endif %}
                         <input type="file" name="avatar" class="form-control bg-dark border-secondary text-light" accept="image/*">
+                        <div class="form-text text-muted">Рекомендований розмір: 150x150 пікселів</div>
                     </div>
 
                     <!-- Біографія -->
                     <div class="mb-4">
                         <label class="form-label text-light">Біографія</label>
-                        <textarea name="bio" class="form-control bg-dark border-secondary text-light" rows="4" placeholder="Розкажіть трохи про себе...">{{ form.bio.value|default:'' }}</textarea>
+                        <textarea name="bio" class="form-control bg-dark border-secondary text-light" rows="4" 
+                                  placeholder="Розкажіть трохи про себе...">{{ form.bio.value|default:'' }}</textarea>
+                        <div class="form-text text-muted">Максимум 500 символів</div>
+                        {% if form.bio.errors %}
+                            <div class="text-warning small mt-1">{{ form.bio.errors }}</div>
+                        {% endif %}
                     </div>
 
                     <!-- Контактна інформація -->
                     <div class="row">
                         <div class="col-md-6 mb-4">
                             <label class="form-label text-light">Телефон</label>
-                            <input type="text" name="phone" class="form-control bg-dark border-secondary text-light" value="{{ form.phone.value|default:'' }}">
+                            <input type="text" name="phone" class="form-control bg-dark border-secondary text-light" 
+                                   value="{{ form.phone.value|default:'' }}" placeholder="+380 XX XXX XX XX">
+                            {% if form.phone.errors %}
+                                <div class="text-warning small mt-1">{{ form.phone.errors }}</div>
+                            {% endif %}
                         </div>
                         <div class="col-md-6 mb-4">
                             <label class="form-label text-light">Місцезнаходження</label>
-                            <input type="text" name="location" class="form-control bg-dark border-secondary text-light" value="{{ form.location.value|default:'' }}">
+                            <input type="text" name="location" class="form-control bg-dark border-secondary text-light" 
+                                   value="{{ form.location.value|default:'' }}" placeholder="Місто, країна">
+                            {% if form.location.errors %}
+                                <div class="text-warning small mt-1">{{ form.location.errors }}</div>
+                            {% endif %}
                         </div>
                     </div>
 
                     <!-- Вебсайт -->
                     <div class="mb-4">
                         <label class="form-label text-light">Вебсайт</label>
-                        <input type="url" name="website" class="form-control bg-dark border-secondary text-light" value="{{ form.website.value|default:'' }}">
+                        <input type="url" name="website" class="form-control bg-dark border-secondary text-light" 
+                               value="{{ form.website.value|default:'' }}" placeholder="https://example.com">
+                        <div class="form-text text-muted">Введіть повну URL-адресу</div>
+                        {% if form.website.errors %}
+                            <div class="text-warning small mt-1">{{ form.website.errors }}</div>
+                        {% endif %}
                     </div>
 
                     <!-- Дата народження -->
                     <div class="mb-4">
                         <label class="form-label text-light">Дата народження</label>
-                        <input type="date" name="birth_date" class="form-control bg-dark border-secondary text-light" value="{{ form.birth_date.value|default:'' }}">
+                        <input type="date" name="birth_date" class="form-control bg-dark border-secondary text-light" 
+                               value="{{ form.birth_date.value|default:'' }}">
+                        <div class="form-text text-muted">Оберіть вашу дату народження</div>
+                        {% if form.birth_date.errors %}
+                            <div class="text-warning small mt-1">{{ form.birth_date.errors }}</div>
+                        {% endif %}
                     </div>
 
                     <!-- Соціальні мережі -->
@@ -77,15 +109,27 @@
                         <div class="card-body">
                             <div class="mb-3">
                                 <label class="form-label text-light">Facebook</label>
-                                <input type="url" name="social_facebook" class="form-control bg-dark border-secondary text-light" value="{{ form.social_facebook.value|default:'' }}">
+                                <input type="url" name="social_facebook" class="form-control bg-dark border-secondary text-light" 
+                                       value="{{ form.social_facebook.value|default:'' }}" placeholder="https://facebook.com/username">
+                                {% if form.social_facebook.errors %}
+                                    <div class="text-warning small mt-1">{{ form.social_facebook.errors }}</div>
+                                {% endif %}
                             </div>
                             <div class="mb-3">
                                 <label class="form-label text-light">X (Twitter)</label>
-                                <input type="url" name="social_x" class="form-control bg-dark border-secondary text-light" value="{{ form.social_x.value|default:'' }}">
+                                <input type="url" name="social_x" class="form-control bg-dark border-secondary text-light" 
+                                       value="{{ form.social_x.value|default:'' }}" placeholder="https://x.com/username">
+                                {% if form.social_x.errors %}
+                                    <div class="text-warning small mt-1">{{ form.social_x.errors }}</div>
+                                {% endif %}
                             </div>
                             <div class="mb-3">
                                 <label class="form-label text-light">Instagram</label>
-                                <input type="url" name="social_instagram" class="form-control bg-dark border-secondary text-light" value="{{ form.social_instagram.value|default:'' }}">
+                                <input type="url" name="social_instagram" class="form-control bg-dark border-secondary text-light" 
+                                       value="{{ form.social_instagram.value|default:'' }}" placeholder="https://instagram.com/username">
+                                {% if form.social_instagram.errors %}
+                                    <div class="text-warning small mt-1">{{ form.social_instagram.errors }}</div>
+                                {% endif %}
                             </div>
                         </div>
                     </div>
@@ -99,25 +143,34 @@
                         </div>
                         <div class="card-body">
                             <div class="form-check form-switch mb-3">
-                                <input class="form-check-input" type="checkbox" name="email_notifications" id="email_notifications" {% if form.email_notifications.value %}checked{% endif %}>
+                                <input class="form-check-input" type="checkbox" name="email_notifications" id="email_notifications" 
+                                       {% if form.email_notifications.value %}checked{% endif %}>
                                 <label class="form-check-label text-light" for="email_notifications">
-                                    Email сповіщення
+                                    <i class="bi bi-envelope me-1"></i> Email сповіщення
                                 </label>
+                                <div class="form-text text-muted">Отримувати сповіщення про нові коментарі та відповіді</div>
                             </div>
                             <div class="form-check form-switch">
-                                <input class="form-check-input" type="checkbox" name="email_subscriptions" id="email_subscriptions" {% if form.email_subscriptions.value %}checked{% endif %}>
+                                <input class="form-check-input" type="checkbox" name="email_subscriptions" id="email_subscriptions" 
+                                       {% if form.email_subscriptions.value %}checked{% endif %}>
                                 <label class="form-check-label text-light" for="email_subscriptions">
-                                    Підписки на новини
+                                    <i class="bi bi-megaphone me-1"></i> Підписки на новини
                                 </label>
+                                <div class="form-text text-muted">Отримувати розсилку про нові статті та оновлення</div>
                             </div>
                         </div>
                     </div>
 
                     <!-- Кнопки -->
                     <div class="d-flex justify-content-between align-items-center pt-3 border-top border-secondary">
-                        <button type="submit" class="btn btn-warning">
-                            <i class="bi bi-check"></i> Зберегти зміни
-                        </button>
+                        <div>
+                            <button type="submit" class="btn btn-warning me-2">
+                                <i class="bi bi-check"></i> Зберегти зміни
+                            </button>
+                            <button type="reset" class="btn btn-outline-secondary">
+                                <i class="bi bi-arrow-clockwise"></i> Скинути
+                            </button>
+                        </div>
                         <a href="{% url 'users:profile_detail' username=user.username %}" class="btn btn-outline-light">
                             <i class="bi bi-x"></i> Скасувати
                         </a>
@@ -139,6 +192,15 @@ document.addEventListener('DOMContentLoaded', function() {
             control.classList.add('bg-dark', 'border-secondary', 'text-light');
         }
     });
+
+    // Підсвічування помилкових полів
+    const errorFields = document.querySelectorAll('.text-warning');
+    errorFields.forEach(error => {
+        const field = error.closest('.mb-4, .mb-3').querySelector('input, textarea, select');
+        if (field) {
+            field.classList.add('border-warning');
+        }
+    });
 });
 </script>
 
@@ -153,6 +215,10 @@ document.addEventListener('DOMContentLoaded', function() {
 .form-check-input:checked {
     background-color: #ff4500;
     border-color: #ff4500;
+}
+
+.form-control.border-warning {
+    border-color: #ffc107 !important;
 }
 </style>
 {% endblock %}
