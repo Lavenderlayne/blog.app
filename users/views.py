@@ -20,18 +20,23 @@ class ProfileDetailView(LoginRequiredMixin, DetailView):
     context_object_name = 'profile_user'
     
     def get_object(self):
-        return get_object_or_404(CustomUser, username=self.kwargs['username'])
+        user = get_object_or_404(CustomUser, username=self.kwargs['username'])
+        if not hasattr(user, 'profile'):
+            Profile.objects.create(user=user)
+        return user
     
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         return context
-
+    
 class ProfileUpdateView(LoginRequiredMixin, UpdateView):
     model = Profile
     form_class = ProfileUpdateForm
     template_name = 'users/profile_form.html'
     
     def get_object(self):
+        if not hasattr(self.request.user, 'profile'):
+            Profile.objects.create(user=self.request.user)
         return self.request.user.profile
     
     def get_success_url(self):

@@ -10,6 +10,10 @@ urlpatterns = [
     path('posts/<slug:slug>/update/', views.PostUpdateView.as_view(), name='post_update'),
     path('posts/<slug:slug>/delete/', views.PostDeleteView.as_view(), name='post_delete'),
     path('posts/<slug:slug>/', views.PostDetailView.as_view(), name='post_detail'),
+    
+    # Додайте цей маршрут для коментарів
+    path('posts/<slug:slug>/comment/', views.add_comment, name='add_comment'),
+    
     path('categories/', views.CategoryListView.as_view(), name='category_list'),
     path('categories/create/', views.CategoryCreateView.as_view(), name='category_create'),
     path('categories/<slug:slug>/update/', views.CategoryUpdateView.as_view(), name='category_update'),
