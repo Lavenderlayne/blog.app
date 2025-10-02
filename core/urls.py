@@ -13,7 +13,7 @@ urlpatterns = [
     path('posts/<slug:slug>/update/', views.PostUpdateView.as_view(), name='post_update'),
     path('posts/<slug:slug>/delete/', views.PostDeleteView.as_view(), name='post_delete'),
     path('posts/<slug:slug>/', views.PostDetailView.as_view(), name='post_detail'),
-    
+
     # Маршрут для коментарів
     path('posts/<slug:slug>/comment/', views.add_comment, name='add_comment'),
     

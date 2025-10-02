@@ -274,7 +274,7 @@
     </main>
 
     <!-- Футер -->
-    <footer class="bg-black text-light py-4 mt-5 border-top border-secondary">
+    <!-- <footer class="bg-black text-light py-4 mt-5 border-top border-secondary">
         <div class="container">
             <div class="row">
                 <div class="col-md-6">
@@ -307,10 +307,103 @@
                 <p class="text-light">&copy; 2024 Мій Блог. Всі права захищені.</p>
             </div>
         </div>
-    </footer>
+    </footer> -->
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     
     {% block extra_js %}{% endblock %}
+<script>
+// Функція для поділитися
+function sharePost(slug) {
+    const url = `${window.location.origin}/posts/${slug}/`;
+    
+    if (navigator.share) {
+        navigator.share({
+            title: 'Цікавий пост',
+            text: 'Переглянь цей пост',
+            url: url
+        });
+    } else {
+        navigator.clipboard.writeText(url).then(() => {
+            console.log('Посилання скопійовано');
+        });
+    }
+}
+
+// Функція для збереження / видалення
+function savePost(slug, button) {
+    let savedPosts = JSON.parse(localStorage.getItem('savedPosts') || '[]');
+
+    if (savedPosts.includes(slug)) {
+        // Видалити зі збережених
+        savedPosts = savedPosts.filter(item => item !== slug);
+        localStorage.setItem('savedPosts', JSON.stringify(savedPosts));
+        
+        button.innerHTML = '<i class="bi bi-bookmark"></i> Зберегти';
+        button.classList.remove('btn-success');
+        button.classList.add('btn-outline-light');
+    } else {
+        // Додати до збережених
+        savedPosts.push(slug);
+        localStorage.setItem('savedPosts', JSON.stringify(savedPosts));
+        
+        button.innerHTML = '<i class="bi bi-bookmark-fill"></i> Збережено';
+        button.classList.remove('btn-outline-light');
+        button.classList.add('btn-success');
+    }
+}
+
+// Додаємо обробники подій після завантаження сторінки
+document.addEventListener('DOMContentLoaded', function() {
+    // Для головної сторінки (home.html)
+    document.querySelectorAll('.card .btn-outline-light, .card .btn-success').forEach(button => {
+        const icon = button.querySelector('i');
+        if (!icon) return;
+
+        const postLink = button.closest('.card')?.querySelector('a[href*="/posts/"]');
+        if (!postLink || !postLink.href) return;
+
+        const hrefParts = postLink.href.split('/posts/');
+        if (hrefParts.length > 1) {
+            const slug = hrefParts[1].replace('/', '');
+
+            if (icon.classList.contains('bi-share')) {
+                button.onclick = () => sharePost(slug);
+            }
+            else if (icon.classList.contains('bi-bookmark')) {
+                button.onclick = (e) => {
+                    e.preventDefault();
+                    savePost(slug, button);
+                };
+            }
+        }
+    });
+
+    // Для сторінки поста (post_detail.html)
+    const shareBtn = document.querySelector('button .bi-share')?.closest('button');
+    const saveBtn = document.querySelector('button .bi-bookmark, button .bi-bookmark-fill')?.closest('button');
+    
+    if (shareBtn) {
+        const pathParts = window.location.pathname.split('/posts/');
+        if (pathParts.length > 1) {
+            const slug = pathParts[1].replace('/', '');
+            shareBtn.onclick = () => sharePost(slug);
+        }
+    }
+    
+    if (saveBtn) {
+        const pathParts = window.location.pathname.split('/posts/');
+        if (pathParts.length > 1) {
+            const slug = pathParts[1].replace('/', '');
+            saveBtn.onclick = (e) => {
+                e.preventDefault();
+                savePost(slug, saveBtn);
+            };
+        }
+    }
+});
+</script>
+
+</script>
 </body>
 </html>
