@@ -325,7 +325,6 @@ function sharePost(slug) {
         });
     } else {
         navigator.clipboard.writeText(url).then(() => {
-            console.log('Посилання скопійовано');
         });
     }
 }
@@ -339,7 +338,7 @@ function savePost(slug, button) {
         savedPosts = savedPosts.filter(item => item !== slug);
         localStorage.setItem('savedPosts', JSON.stringify(savedPosts));
         
-        button.innerHTML = '<i class="bi bi-bookmark"></i> Зберегти';
+        button.innerHTML = '<i class="bi bi-bookmark"></i>';
         button.classList.remove('btn-success');
         button.classList.add('btn-outline-light');
     } else {
@@ -347,7 +346,7 @@ function savePost(slug, button) {
         savedPosts.push(slug);
         localStorage.setItem('savedPosts', JSON.stringify(savedPosts));
         
-        button.innerHTML = '<i class="bi bi-bookmark-fill"></i> Збережено';
+        button.innerHTML = '<i class="bi bi-bookmark-fill"></i>';
         button.classList.remove('btn-outline-light');
         button.classList.add('btn-success');
     }
@@ -402,8 +401,6 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 });
-</script>
-
 </script>
 </body>
 </html>
