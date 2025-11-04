@@ -4,9 +4,7 @@
 
 {% block content %}
 <div class="row">
-    <!-- Основний контент -->
     <div class="col-md-8">
-        <!-- Заголовок та сортування -->
         <div class="card bg-black border-secondary mb-4">
             <div class="card-body">
                 <div class="d-flex justify-content-between align-items-center">
@@ -30,16 +28,22 @@
                             </li>
                             <li>
                                 <a class="dropdown-item text-light bg-black" href="?sort=featured">
-                                    <i class="bi bi-star"></i> Обрані
+                                    <i class="bi bi-star"></i> Рекомендовані
                                 </a>
                             </li>
+                            {% if user.is_authenticated %}
+                            <li>
+                                <a class="dropdown-item text-light bg-black" href="?sort=bookmarked">
+                                    <i class="bi bi-bookmark-fill"></i> Мої закладки
+                                </a>
+                            </li>
+                            {% endif %}
                         </ul>
                     </div>
                 </div>
             </div>
         </div>
 
-        <!-- Пошук -->
         <div class="card bg-black border-secondary mb-4">
             <div class="card-body">
                 <form method="get" class="mb-0">
@@ -54,12 +58,10 @@
             </div>
         </div>
 
-        <!-- Список постів -->
         {% for post in posts %}
         <div class="card bg-black border-secondary mb-3">
             <div class="card-body">
                 <div class="d-flex">
-                    <!-- Блок голосування -->
                     <div class="d-flex flex-column align-items-center me-3">
                         <button class="btn btn-sm btn-outline-success p-1 mb-1">
                             <i class="bi bi-arrow-up"></i>
@@ -70,7 +72,6 @@
                         </button>
                     </div>
                     
-                    <!-- Контент поста -->
                     <div class="flex-grow-1">
                         {% if post.featured_image %}
                         <img src="{{ post.featured_image.url }}" class="img-fluid rounded mb-3" alt="{{ post.title }}" 
@@ -106,7 +107,6 @@
                             {{ post.excerpt|default:post.content|truncatewords:50 }}
                         </p>
                         
-                        <!-- Теги та статистика -->
                         <div class="d-flex justify-content-between align-items-center mb-3">
                             <div>
                                 <span class="badge bg-secondary me-1">{{ post.category.name }}</span>
@@ -121,7 +121,6 @@
                             </div>
                         </div>
                         
-                        <!-- Кнопки дій -->
                         <div class="d-flex">
                             <a href="/posts/{{ post.slug }}/" class="btn btn-outline-light btn-sm me-2">
                                 <i class="bi bi-chat"></i> Коментувати
@@ -129,8 +128,8 @@
                             <button class="btn btn-outline-light btn-sm me-2">
                                 <i class="bi bi-share"></i> Поділитися
                             </button>
-                            <button class="btn btn-outline-light btn-sm">
-                                <i class="bi bi-bookmark"></i> Зберегти
+                            <button class="btn {% if post.is_bookmarked %}btn-success{% else %}btn-outline-light{% endif %} btn-sm">
+                                <i class="bi {% if post.is_bookmarked %}bi-bookmark-fill{% else %}bi-bookmark{% endif %}"></i> Зберегти
                             </button>
                         </div>
                     </div>
@@ -138,7 +137,6 @@
             </div>
         </div>
         {% empty %}
-        <!-- Повідомлення про відсутність постів -->
         <div class="card bg-black border-secondary">
             <div class="card-body text-center py-5">
                 <i class="bi bi-search display-4 text-muted mb-3"></i>
@@ -152,7 +150,6 @@
         </div>
         {% endfor %}
 
-        <!-- Пагінація -->
         {% if is_paginated %}
         <nav aria-label="Page navigation">
             <ul class="pagination justify-content-center">
@@ -193,9 +190,7 @@
         {% endif %}
     </div>
 
-    <!-- Бічна панель -->
     <div class="col-md-4">
-        <!-- Популярні теги -->
         <div class="card bg-black border-secondary mb-4">
             <div class="card-body">
                 <h5 class="text-light mb-3">
@@ -213,12 +208,11 @@
             </div>
         </div>
 
-        <!-- Обрані пости -->
         {% if featured_posts %}
         <div class="card bg-black border-secondary mb-4">
             <div class="card-body">
                 <h5 class="text-light mb-3">
-                    <i class="bi bi-star text-warning"></i> Обрані пости
+                    <i class="bi bi-star text-warning"></i> Рекомендовані пости
                 </h5>
                 {% for post in featured_posts %}
                 <div class="mb-3 pb-2 {% if not forloop.last %}border-bottom border-secondary{% endif %}">
@@ -239,7 +233,6 @@
         </div>
         {% endif %}
 
-        <!-- Спільноти -->
         <div class="card bg-black border-secondary">
             <div class="card-body">
                 <h5 class="text-light mb-3">

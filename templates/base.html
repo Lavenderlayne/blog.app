@@ -10,8 +10,7 @@
     
     {% block extra_css %}{% endblock %}
 </head>
-<body class="bg-dark text-light">
-    <!-- Навігація у стилі Reddit -->
+<body class="bg-dark text-light" data-bs-theme="dark">
     <nav class="navbar navbar-expand-lg navbar-dark bg-black border-bottom border-secondary">
         <div class="container">
             <a class="navbar-brand fw-bold text-warning" href="{% url 'core:home' %}">
@@ -117,29 +116,24 @@
         </div>
     </nav>
 
-    <!-- Контейнер для повідомлень -->
     <div class="container mt-3">
         {% if messages %}
             {% for message in messages %}
                 <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
                     {{ message }}
-                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                    <button typebutton" class="btn-close" data-bs-dismiss="alert"></button>
                 </div>
             {% endfor %}
         {% endif %}
     </div>
 
-    <!-- Основний контент -->
     <main class="container my-4">
         {% block content %}
-        <!-- Приклад структури поста у стилі Reddit -->
         <div class="row">
             <div class="col-md-8 mx-auto">
-                <!-- Приклад поста -->
                 <div class="card bg-black border-secondary mb-3">
                     <div class="card-body">
                         <div class="d-flex">
-                            <!-- Блок голосування -->
                             <div class="d-flex flex-column align-items-center me-3">
                                 <button class="btn btn-sm btn-outline-success p-1 mb-1">
                                     <i class="bi bi-arrow-up"></i>
@@ -150,7 +144,6 @@
                                 </button>
                             </div>
                             
-                            <!-- Контент поста -->
                             <div class="flex-grow-1">
                                 <div class="d-flex align-items-center mb-2">
                                     <small class="text-muted">Опубліковано у <a href="#" class="text-warning">/r/категорія</a></small>
@@ -179,11 +172,9 @@
                     </div>
                 </div>
                 
-                <!-- Ще один приклад поста -->
                 <div class="card bg-black border-secondary mb-3">
                     <div class="card-body">
                         <div class="d-flex">
-                            <!-- Блок голосування -->
                             <div class="d-flex flex-column align-items-center me-3">
                                 <button class="btn btn-sm btn-outline-success p-1 mb-1">
                                     <i class="bi bi-arrow-up"></i>
@@ -194,7 +185,6 @@
                                 </button>
                             </div>
                             
-                            <!-- Контент поста -->
                             <div class="flex-grow-1">
                                 <div class="d-flex align-items-center mb-2">
                                     <small class="text-muted">Опубліковано у <a href="#" class="text-warning">/r/новини</a></small>
@@ -224,7 +214,6 @@
                 </div>
             </div>
             
-            <!-- Бічна панель у стилі Reddit -->
             <div class="col-md-4">
                 <div class="card bg-black border-secondary mb-3">
                     <div class="card-body">
@@ -273,46 +262,27 @@
         {% endblock %}
     </main>
 
-    <!-- Футер -->
-    <!-- <footer class="bg-black text-light py-4 mt-5 border-top border-secondary">
-        <div class="container">
-            <div class="row">
-                <div class="col-md-6">
-                    <h5 class="text-warning">Мій Блог</h5>
-                    <p class="text-light">Тут ви знайдете цікаві статті, новини та корисні матеріали.</p>
-                </div>
-                <div class="col-md-3">
-                    <h5 class="text-warning">Навігація</h5>
-                    <ul class="list-unstyled">
-                        <li><a href="{% url 'core:home' %}" class="text-light text-decoration-none">Головна</a></li>
-                        <li><a href="{% url 'core:post_list' %}" class="text-light text-decoration-none">Всі пости</a></li>
-                        <li><a href="{% url 'core:category_list' %}" class="text-light text-decoration-none">Категорії</a></li>
-                    </ul>
-                </div>
-                <div class="col-md-3">
-                    <h5 class="text-warning">Користувач</h5>
-                    <ul class="list-unstyled">
-                        {% if user.is_authenticated %}
-                            <li><a href="{% url 'users:my_profile' %}" class="text-light text-decoration-none">Мій профіль</a></li>
-                            <li><a href="{% url 'core:post_create' %}" class="text-light text-decoration-none">Створити пост</a></li>
-                        {% else %}
-                            <li><a href="{% url 'users:login' %}" class="text-light text-decoration-none">Увійти</a></li>
-                            <li><a href="{% url 'users:register' %}" class="text-light text-decoration-none">Реєстрація</a></li>
-                        {% endif %}
-                    </ul>
-                </div>
-            </div>
-            <hr class="bg-secondary">
-            <div class="text-center">
-                <p class="text-light">&copy; 2024 Мій Блог. Всі права захищені.</p>
-            </div>
-        </div>
-    </footer> -->
-
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     
     {% block extra_js %}{% endblock %}
 <script>
+// --- ОНОВЛЕНО: Функція для отримання CSRF токена ---
+function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+        const cookies = document.cookie.split(';');
+        for (let i = 0; i < cookies.length; i++) {
+            const cookie = cookies[i].trim();
+            if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                break;
+            }
+        }
+    }
+    return cookieValue;
+}
+const csrftoken = getCookie('csrftoken');
+
 // Функція для поділитися
 function sharePost(slug) {
     const url = `${window.location.origin}/posts/${slug}/`;
@@ -329,27 +299,41 @@ function sharePost(slug) {
     }
 }
 
-// Функція для збереження / видалення
+// --- ОНОВЛЕНО: Функція для збереження / видалення через Fetch ---
 function savePost(slug, button) {
-    let savedPosts = JSON.parse(localStorage.getItem('savedPosts') || '[]');
+    // Перевіряємо, чи користувач авторизований
+    {% if not user.is_authenticated %}
+        window.location.href = "{% url 'users:login' %}?next=" + window.location.pathname;
+        return;
+    {% endif %}
 
-    if (savedPosts.includes(slug)) {
-        // Видалити зі збережених
-        savedPosts = savedPosts.filter(item => item !== slug);
-        localStorage.setItem('savedPosts', JSON.stringify(savedPosts));
-        
-        button.innerHTML = '<i class="bi bi-bookmark"></i>';
-        button.classList.remove('btn-success');
-        button.classList.add('btn-outline-light');
-    } else {
-        // Додати до збережених
-        savedPosts.push(slug);
-        localStorage.setItem('savedPosts', JSON.stringify(savedPosts));
-        
-        button.innerHTML = '<i class="bi bi-bookmark-fill"></i>';
-        button.classList.remove('btn-outline-light');
-        button.classList.add('btn-success');
-    }
+    const url = `/bookmark/${slug}/`; // Використовуємо новий URL
+    
+    fetch(url, {
+        method: 'POST',
+        headers: {
+            'X-Requested-With': 'XMLHttpRequest',
+            'X-CSRFToken': csrftoken,
+            'Content-Type': 'application/json'
+        },
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.bookmarked) {
+            // Додано до закладок
+            button.innerHTML = '<i class="bi bi-bookmark-fill"></i>';
+            button.classList.remove('btn-outline-light');
+            button.classList.add('btn-success');
+        } else {
+            // Видалено з закладок
+            button.innerHTML = '<i class="bi bi-bookmark"></i>';
+            button.classList.remove('btn-success');
+            button.classList.add('btn-outline-light');
+        }
+    })
+    .catch(error => {
+        console.error('Error toggling bookmark:', error);
+    });
 }
 
 // Додаємо обробники подій після завантаження сторінки
@@ -369,7 +353,7 @@ document.addEventListener('DOMContentLoaded', function() {
             if (icon.classList.contains('bi-share')) {
                 button.onclick = () => sharePost(slug);
             }
-            else if (icon.classList.contains('bi-bookmark')) {
+            else if (icon.classList.contains('bi-bookmark') || icon.classList.contains('bi-bookmark-fill')) {
                 button.onclick = (e) => {
                     e.preventDefault();
                     savePost(slug, button);

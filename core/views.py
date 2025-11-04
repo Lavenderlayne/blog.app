@@ -4,7 +4,7 @@ from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.urls import reverse_lazy
-from django.db.models import Q, Count
+from django.db.models import Q, Count, Exists, OuterRef
 from django.http import JsonResponse
 from django.core.paginator import Paginator
 from django.utils import timezone
@@ -27,6 +27,13 @@ class PostListView(ListView):
             'author', 'category'
         ).prefetch_related('tags')
         
+        # --- ОНОВЛЕНО: Додано анотацію для закладок ---
+        if self.request.user.is_authenticated:
+            bookmarked_subquery = Exists(
+                self.request.user.bookmarked_posts.filter(pk=OuterRef('pk'))
+            )
+            queryset = queryset.annotate(is_bookmarked=bookmarked_subquery)
+        
         category_slug = self.kwargs.get('category_slug')
         if category_slug:
             queryset = queryset.filter(category__slug=category_slug)
@@ -43,11 +50,14 @@ class PostListView(ListView):
                 Q(excerpt__icontains=search_query)
             )
         
+        # --- ОНОВЛЕНО: Додано логіку сортування за закладками ---
         sort = self.request.GET.get('sort', 'newest')
         if sort == 'popular':
             queryset = queryset.order_by('-view_count')
         elif sort == 'featured':
             queryset = queryset.filter(is_featured=True).order_by('-created_at')
+        elif sort == 'bookmarked' and self.request.user.is_authenticated:
+            queryset = queryset.filter(bookmarked_by=self.request.user).order_by('-created_at')
         else:
             queryset = queryset.order_by('-created_at')
         
@@ -73,7 +83,7 @@ class PostDetailView(DetailView):
         return Post.objects.filter(
             Q(status='published') | 
             Q(author=self.request.user) if self.request.user.is_authenticated else Q(status='published')
-        ).select_related('author', 'category').prefetch_related('tags', 'comments', 'comments__author')
+        ).select_related('author', 'category').prefetch_related('tags', 'comments', 'comments__author', 'bookmarked_by')
     
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -87,12 +97,15 @@ class PostDetailView(DetailView):
         context['comment_form'] = CommentForm()
         context['comment_count'] = post.comments.filter(is_active=True).count()
         
+        # --- ОНОВЛЕНО: Додано перевірку закладок ---
         if self.request.user.is_authenticated:
             context['user_liked'] = PostLike.objects.filter(
                 post=post, user=self.request.user
             ).exists()
+            context['user_bookmarked'] = post.bookmarked_by.filter(id=self.request.user.id).exists()
         else:
             context['user_liked'] = False
+            context['user_bookmarked'] = False
         
         context['related_posts'] = Post.get_published_posts().filter(
             category=post.category
@@ -210,6 +223,13 @@ class CategoryDetailView(DetailView):
         category = self.get_object()
         
         posts = Post.get_published_posts().filter(category=category)
+        
+        # --- ОНОВЛЕНО: Додано анотацію для закладок ---
+        if self.request.user.is_authenticated:
+            bookmarked_subquery = Exists(
+                self.request.user.bookmarked_posts.filter(pk=OuterRef('pk'))
+            )
+            posts = posts.annotate(is_bookmarked=bookmarked_subquery)
         
         paginator = Paginator(posts, 10)
         page_number = self.request.GET.get('page')
@@ -354,6 +374,31 @@ def toggle_like(request, slug):
     return redirect('post_detail', slug=slug)
 
 
+# --- ДОДАНО НОВУ ФУНКЦІЮ ---
+@login_required
+def toggle_bookmark(request, slug):
+    """Додавання/видалення посту з закладок"""
+    post = get_object_or_404(Post, slug=slug, status='published')
+    
+    if request.method == 'POST' and request.headers.get('x-requested-with') == 'XMLHttpRequest':
+        user = request.user
+        bookmarked = False
+        if post.bookmarked_by.filter(id=user.id).exists():
+            # Видалити з закладок
+            post.bookmarked_by.remove(user)
+            bookmarked = False
+        else:
+            # Додати в закладки
+            post.bookmarked_by.add(user)
+            bookmarked = True
+        
+        return JsonResponse({
+            'bookmarked': bookmarked,
+        })
+    
+    return redirect('core:post_detail', slug=slug) # Fallback
+
+
 def subscribe(request):
     """Підписка на розсилку"""
     if request.method == 'POST':
@@ -395,6 +440,13 @@ def home(request):
     latest_posts = Post.get_published_posts().select_related(
         'author', 'category'
     ).prefetch_related('tags')[:6]
+    
+    # --- ОНОВЛЕНО: Додано анотацію для закладок ---
+    if request.user.is_authenticated:
+        bookmarked_subquery = Exists(
+            request.user.bookmarked_posts.filter(pk=OuterRef('pk'))
+        )
+        latest_posts = latest_posts.annotate(is_bookmarked=bookmarked_subquery)
     
     featured_posts = Post.get_featured_posts()[:3]
     popular_posts = Post.get_published_posts().order_by('-view_count')[:5]
@@ -452,6 +504,12 @@ def search(request):
             Q(excerpt__icontains=query) |
             Q(tags__name__icontains=query)
         ).distinct().order_by('-created_at')
+        
+        if request.user.is_authenticated:
+            bookmarked_subquery = Exists(
+                request.user.bookmarked_posts.filter(pk=OuterRef('pk'))
+            )
+            posts = posts.annotate(is_bookmarked=bookmarked_subquery)
     
     context = {
         'query': query,

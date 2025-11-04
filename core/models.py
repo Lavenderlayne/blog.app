@@ -119,6 +119,14 @@ class Post(models.Model):
     is_pinned = models.BooleanField(default=False, verbose_name="Закріплений")
     allow_comments = models.BooleanField(default=True, verbose_name="Дозволити коментарі")
     
+    # --- ДОДАНО НОВЕ ПОЛЕ ---
+    bookmarked_by = models.ManyToManyField(
+        settings.AUTH_USER_MODEL, 
+        related_name='bookmarked_posts', 
+        blank=True, 
+        verbose_name="Збережено користувачами"
+    )
+    
     class Meta:
         verbose_name = "Пост"
         verbose_name_plural = "Пости"
