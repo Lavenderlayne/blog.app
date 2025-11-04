@@ -29,7 +29,7 @@ class CommentForm(forms.ModelForm):
         fields = ['content', 'parent']
         widgets = {
             'content': forms.Textarea(attrs={
-                'class': 'form-control', 
+                'class': 'form-control bg-dark border-secondary text-light', 
                 'rows': 3,
                 'placeholder': 'Залишити коментар...'
             }),

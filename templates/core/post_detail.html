@@ -102,8 +102,9 @@
                 {% if user.is_authenticated and post.allow_comments %}
                 <form method="post" action="{% url 'core:add_comment' post.slug %}" class="mb-4">
                     {% csrf_token %}
+                    {{ comment_form.parent }} {# Приховане поле, value=None #}
                     <div class="mb-3">
-                        <textarea name="content" class="form-control bg-dark border-secondary text-light" rows="3" placeholder="Залишити коментар..."></textarea>
+                        {{ comment_form.content }} {# Використовуємо поле з forms.py #}
                     </div>
                     <button type="submit" class="btn btn-warning btn-sm">Написати коментар</button>
                 </form>
@@ -113,34 +114,17 @@
                 </div>
                 {% endif %}
                 
+                
                 {% for comment in comments %}
-                <div class="card bg-dark border-secondary mb-3">
-                    <div class="card-body">
-                        <div class="d-flex">
-                            <div class="flex-grow-1">
-                                <div class="d-flex align-items-center mb-2">
-                                    <small class="text-muted">
-                                        <a href="{% url 'users:profile_detail' comment.author.username %}" class="text-warning text-decoration-none">
-                                            {{ comment.author.username }}
-                                        </a>
-                                    </small>
-                                    <span class="text-muted mx-1">•</span>
-                                    <small class="text-muted">{{ comment.created_at|date:"d.m.Y H:i" }}</small>
-                                </div>
-                                <p class="text-light mb-2">{{ comment.content }}</p>
-                                {% if user.is_authenticated %}
-                                <button class="btn btn-outline-light btn-sm">Відповісти</button>
-                                {% endif %}
-                            </div>
-                        </div>
-                    </div>
-                </div>
+                    {# Включаємо наш рекурсивний шаблон #}
+                    {% include 'core/_comment.html' with comment=comment post=post %}
                 {% empty %}
                 <div class="text-center py-4">
                     <i class="bi bi-chat display-4 text-muted mb-3"></i>
                     <p class="text-muted">Коментарів ще немає. Будьте першим!</p>
                 </div>
                 {% endfor %}
+
             </div>
         </div>
     </div>
@@ -210,4 +194,104 @@
         </div>
     </div>
 </div>
+{% endblock %}
+
+
+{% block extra_js %}
+<script>
+    // --- JavaScript для ВІДПОВІДЕЙ на коментарі ---
+    document.querySelectorAll('.reply-btn').forEach(button => {
+        button.addEventListener('click', function() {
+            const commentId = this.getAttribute('data-comment-id');
+            const formContainer = document.getElementById('reply-form-container-' + commentId);
+            
+            if (formContainer.style.display === 'none') {
+                // Спершу ховаємо всі інші відкриті форми
+                document.querySelectorAll('[id^="reply-form-container-"]').forEach(f => {
+                    f.style.display = 'none';
+                });
+                // Потім показуємо поточну
+                formContainer.style.display = 'block';
+            } else {
+                formContainer.style.display = 'none';
+            }
+        });
+    });
+
+    // Функція для кнопки "Скасувати" у формі відповіді
+    function hideReplyForm(commentId) {
+        const formContainer = document.getElementById('reply-form-container-' + commentId);
+        if (formContainer) {
+            formContainer.style.display = 'none';
+        }
+    }
+
+    // --- JavaScript для ЛАЙКІВ коментарів ---
+    document.addEventListener('DOMContentLoaded', function() {
+        
+        // Функція для отримання CSRF токена з cookie
+        function getCookie(name) {
+            let cookieValue = null;
+            if (document.cookie && document.cookie !== '') {
+                const cookies = document.cookie.split(';');
+                for (let i = 0; i < cookies.length; i++) {
+                    const cookie = cookies[i].trim();
+                    if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                        break;
+                    }
+                }
+            }
+            return cookieValue;
+        }
+        const csrftoken = getCookie('csrftoken');
+
+        // Функція, що обробляє клік на лайк коментаря
+        function handleCommentLike(commentId, button) {
+            const url = `/comment/${commentId}/like/`; // Наш новий URL
+            
+            fetch(url, {
+                method: 'POST',
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'X-CSRFToken': csrftoken,
+                    'Content-Type': 'application/json'
+                },
+            })
+            .then(response => response.json())
+            .then(data => {
+                // Оновлюємо лічильник лайків
+                const likeCounter = document.getElementById('comment-likes-' + commentId);
+                if (likeCounter) {
+                    likeCounter.textContent = data.like_count;
+                }
+                
+                // Оновлюємо вигляд кнопки
+                if (data.liked) {
+                    button.classList.remove('btn-outline-danger');
+                    button.classList.add('btn-danger'); // Заповнене серце
+                    button.innerHTML = '<i class="bi bi-heart-fill"></i>';
+                } else {
+                    button.classList.remove('btn-danger');
+                    button.classList.add('btn-outline-danger'); // Пусте серце
+                    button.innerHTML = '<i class="bi bi-heart"></i>';
+                }
+            })
+            .catch(error => {
+                console.error('Error toggling comment like:', error);
+            });
+        }
+
+        // Додаємо один обробник подій на 'body' (делегування)
+        document.body.addEventListener('click', function(event) {
+            // Шукаємо, чи був клік по кнопці лайка коментаря
+            const button = event.target.closest('.comment-like-btn');
+            if (button) {
+                event.preventDefault();
+                const commentId = button.getAttribute('data-comment-id');
+                handleCommentLike(commentId, button);
+            }
+        });
+    });
+</script>
 {% endblock %}

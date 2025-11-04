@@ -8,7 +8,8 @@ from django.db.models import Q, Count, Exists, OuterRef
 from django.http import JsonResponse
 from django.core.paginator import Paginator
 from django.utils import timezone
-from .models import Post, Category, Tag, PostComment, PostLike, Subscription
+# --- ОНОВЛЕНО: Додано CommentLike ---
+from .models import Post, Category, Tag, PostComment, PostLike, Subscription, CommentLike
 from .forms import PostForm, CommentForm, SubscriptionForm
 from django.contrib.auth import get_user_model
 
@@ -92,7 +93,8 @@ class PostDetailView(DetailView):
         if post.status == 'published':
             post.increment_view_count()
         
-        comments = post.comments.filter(is_active=True, parent=None)
+        # --- ОНОВЛЕНО: Оптимізовано для вкладених коментарів ---
+        comments = post.comments.filter(is_active=True, parent=None).select_related('author')
         context['comments'] = comments
         context['comment_form'] = CommentForm()
         context['comment_count'] = post.comments.filter(is_active=True).count()
@@ -345,7 +347,8 @@ def delete_comment(request, pk):
     else:
         messages.error(request, 'У вас немає прав для видалення цього коментаря!')
     
-    return redirect('post_detail', slug=comment.post.slug)
+    # --- ОНОВЛЕНО: Виправлено NoReverseMatch ---
+    return redirect('core:post_detail', slug=comment.post.slug)
 
 
 @login_required
@@ -371,7 +374,40 @@ def toggle_like(request, slug):
             'like_count': post.like_count
         })
     
-    return redirect('post_detail', slug=slug)
+    return redirect('core:post_detail', slug=slug) # --- Оновлено: додано 'core:' ---
+
+
+# --- ДОДАНО: Нова функція для лайків коментарів ---
+@login_required
+def toggle_comment_like(request, pk):
+    """Додавання/видалення лайку для коментаря (AJAX)"""
+    # Знаходимо коментар за його ID (pk)
+    comment = get_object_or_404(PostComment, pk=pk)
+    
+    if request.method == 'POST' and request.headers.get('x-requested-with') == 'XMLHttpRequest':
+        # Спробуємо знайти лайк, або створити його
+        like, created = CommentLike.objects.get_or_create(comment=comment, user=request.user)
+        
+        if not created:
+            # Якщо лайк вже існував (created == False), ми його видаляємо
+            like.delete()
+            liked = False
+            comment.like_count = max(0, comment.like_count - 1)
+        else:
+            # Якщо лайк був щойно створений (created == True)
+            liked = True
+            comment.like_count += 1
+        
+        # Зберігаємо оновлену кількість лайків у моделі коментаря
+        comment.save(update_fields=['like_count'])
+        
+        return JsonResponse({
+            'liked': liked,
+            'like_count': comment.like_count
+        })
+    
+    # Якщо це не AJAX, просто перенаправляємо на пост
+    return redirect('core:post_detail', slug=comment.post.slug)
 
 
 # --- ДОДАНО НОВУ ФУНКЦІЮ ---

@@ -16,6 +16,10 @@ urlpatterns = [
 
     # Маршрут для коментарів
     path('posts/<slug:slug>/comment/', views.add_comment, name='add_comment'),
+    path('comment/<int:pk>/delete/', views.delete_comment, name='delete_comment'),
+    
+    # --- ДОДАНО: URL для лайка коментаря ---
+    path('comment/<int:pk>/like/', views.toggle_comment_like, name='toggle_comment_like'),
     
     path('categories/', views.CategoryListView.as_view(), name='category_list'),
     path('categories/create/', views.CategoryCreateView.as_view(), name='category_create'),
@@ -26,7 +30,6 @@ urlpatterns = [
     path('tags/<slug:slug>/', views.TagDetailView.as_view(), name='tag_detail'),
     path('search/', views.search, name='search'),
     path('subscribe/', views.subscribe, name='subscribe'),
-    path('comment/<int:pk>/delete/', views.delete_comment, name='delete_comment'),
     path('like/<slug:slug>/', views.toggle_like, name='toggle_like'),
     
     path('bookmark/<slug:slug>/', views.toggle_bookmark, name='toggle_bookmark'),

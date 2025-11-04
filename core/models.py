@@ -119,7 +119,6 @@ class Post(models.Model):
     is_pinned = models.BooleanField(default=False, verbose_name="Закріплений")
     allow_comments = models.BooleanField(default=True, verbose_name="Дозволити коментарі")
     
-    # --- ДОДАНО НОВЕ ПОЛЕ ---
     bookmarked_by = models.ManyToManyField(
         settings.AUTH_USER_MODEL, 
         related_name='bookmarked_posts', 
@@ -242,6 +241,9 @@ class PostComment(models.Model):
         verbose_name="Відповідь на"
     )
     
+    # --- ОНОВЛЕНО: Додано лічильник лайків ---
+    like_count = models.PositiveIntegerField(default=0, verbose_name="Лайки")
+    
     class Meta:
         verbose_name = "Коментар до посту"
         verbose_name_plural = "Коментарі до постів"
@@ -281,6 +283,31 @@ class PostLike(models.Model):
     
     def __str__(self):
         return f"Лайк від {self.user} для {self.post}"
+
+class CommentLike(models.Model):
+    """Модель лайку для коментаря"""
+    comment = models.ForeignKey(
+        PostComment, 
+        on_delete=models.CASCADE, 
+        related_name='likes',
+        verbose_name="Коментар"
+    )
+    
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        verbose_name="Користувач"
+    )
+    
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name="Створено")
+    
+    class Meta:
+        verbose_name = "Лайк коментаря"
+        verbose_name_plural = "Лайки коментарів"
+        unique_together = ['comment', 'user'] # Гарантує, що юзер не лайкне двічі
+    
+    def __str__(self):
+        return f"Лайк від {self.user} для {self.comment_id}"
 
 
 class Subscription(models.Model):
