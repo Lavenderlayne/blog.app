@@ -4,56 +4,61 @@ from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.urls import reverse_lazy
-# --- ОНОВЛЕНО: Додано Sum, Subquery ---
-from django.db import models
-from django.db.models import Q, Count, Exists, OuterRef, Sum, Subquery, IntegerField, Value
+from django.db.models import Q, Count, Exists, OuterRef, Sum, Subquery, Value, IntegerField
 from django.http import JsonResponse, HttpResponseBadRequest
 from django.core.paginator import Paginator
-# --- ОНОВЛЕНО: Додано timezone ---
 from django.utils import timezone
-# --- ОНОВЛЕНО: 'PostLike' замінено на 'PostVote' ---
-# --- ОНОВЛЕНО: Додано Advertisement ---
 from .models import Post, Category, Tag, PostComment, PostVote, Subscription, CommentLike, Advertisement
-from .forms import PostForm, CommentForm, SubscriptionForm
+# --- ОНОВЛЕНО: Додано TagForm та slugify ---
+from .forms import PostForm, CommentForm, SubscriptionForm, TagForm
+from django.utils.text import slugify
+# ---
 from django.contrib.auth import get_user_model
 
 User = get_user_model()
 
 
-# --- ДОПОМІЖНА ФУНКЦІЯ ДЛЯ АНОТАЦІЙ (ОНОВЛЕНО) ---
-# In lavenderlayne/blog_app/blog_app-dev/core/views.py
-
 def annotate_post_queryset(queryset, user):
     """Додає анотації is_bookmarked та user_vote до queryset"""
-    
     if user.is_authenticated:
         bookmarked_subquery = Exists(
             user.bookmarked_posts.filter(pk=OuterRef('pk'))
         )
-        
         vote_subquery = Subquery(
             PostVote.objects.filter(
                 post=OuterRef('pk'), 
                 user=user
             ).values('value')[:1],
-            # Додано output_field для надійності
-            output_field=models.IntegerField() 
+            output_field=IntegerField() 
         )
-        
         return queryset.annotate(
             is_bookmarked=bookmarked_subquery,
             user_vote=vote_subquery
         )
     
-    # --- ВИПРАВЛЕНО ДЛЯ НЕАВТОРИЗОВАНИХ КОРИСТУВАЧІВ ---
-    # Ми просто повертаємо 0 (Integer) та False (Boolean)
     return queryset.annotate(
         is_bookmarked=Value(False),
-        user_vote=Value(0, output_field=models.IntegerField())
+        user_vote=Value(0, output_field=IntegerField())
     )
 
+
+# --- ЛОГІКА ОБРОБКИ ТЕГІВ ---
+def handle_tags(post_object, tag_string):
+    """Допоміжна функція для очищення та додавання тегів до посту."""
+    post_object.tags.clear()
+    tag_names = [name.strip() for name in tag_string.split(',') if name.strip()]
+    for name in tag_names:
+        # Використовуємо iexact для уникнення дублікатів (Python, python)
+        # Створюємо слаг під час створення
+        tag, created = Tag.objects.get_or_create(
+            name__iexact=name, 
+            defaults={'name': name, 'slug': slugify(name)}
+        )
+        post_object.tags.add(tag)
+# --- КІНЕЦЬ ---
+
+
 class PostListView(ListView):
-    """Список всіх опублікованих постів"""
     model = Post
     template_name = 'core/post_list.html'
     context_object_name = 'posts'
@@ -64,7 +69,6 @@ class PostListView(ListView):
             'author', 'category'
         ).prefetch_related('tags', 'votes')
         
-        # --- ОНОВЛЕНО: Використання нової функції анотації ---
         queryset = annotate_post_queryset(queryset, self.request.user)
         
         category_slug = self.kwargs.get('category_slug')
@@ -86,7 +90,6 @@ class PostListView(ListView):
         sort = self.request.GET.get('sort', 'newest')
         if sort == 'popular':
             queryset = queryset.order_by('-view_count')
-        # --- ОНОВЛЕНО: Сортування за новим полем 'vote_score' ---
         elif sort == 'top': 
             queryset = queryset.order_by('-vote_score')
         elif sort == 'featured':
@@ -105,18 +108,14 @@ class PostListView(ListView):
             post_count=Count('post')
         ).order_by('-post_count')[:10]
         context['featured_posts'] = Post.get_featured_posts()[:5]
-        
-        # --- ДОДАНО ОГОЛОШЕННЯ ---
         context['active_ads'] = Advertisement.objects.filter(
             is_active=True, 
             expires_at__gte=timezone.now()
         ).order_by('?')[:2]
-        
         return context
 
 
 class PostDetailView(DetailView):
-    """Детальний перегляд посту"""
     model = Post
     template_name = 'core/post_detail.html'
     context_object_name = 'post'
@@ -139,24 +138,21 @@ class PostDetailView(DetailView):
         context['comment_form'] = CommentForm()
         context['comment_count'] = post.comments.filter(is_active=True).count()
         
-        # --- ОНОВЛЕНО: Отримуємо конкретне значення голосу (1, -1 або 0) ---
         user_vote = 0
         if self.request.user.is_authenticated:
             vote_obj = post.votes.filter(user=self.request.user).first()
             if vote_obj:
                 user_vote = vote_obj.value
-            
             context['user_bookmarked'] = post.bookmarked_by.filter(id=self.request.user.id).exists()
         else:
             context['user_bookmarked'] = False
         
-        context['user_vote'] = user_vote # 1, -1, or 0
+        context['user_vote'] = user_vote
         
         context['related_posts'] = Post.get_published_posts().filter(
             category=post.category
         ).exclude(id=post.id)[:3]
         
-        # --- ДОДАНО ОГОЛОШЕННЯ ---
         context['active_ads'] = Advertisement.objects.filter(
             is_active=True, 
             expires_at__gte=timezone.now()
@@ -166,29 +162,50 @@ class PostDetailView(DetailView):
 
 
 class PostCreateView(LoginRequiredMixin, CreateView):
-    """Створення нового посту"""
     model = Post
     form_class = PostForm
     template_name = 'core/post_form.html'
     
+    # --- ОНОВЛЕНО: Додано form_valid для обробки тегів ---
     def form_valid(self, form):
         form.instance.author = self.request.user
+        # Зберігаємо пост, щоб отримати ID
+        self.object = form.save() 
+        
+        # Отримуємо рядок тегів з форми
+        tag_string = form.cleaned_data.get('tags', '')
+        handle_tags(self.object, tag_string)
+        
         messages.success(self.request, 'Пост успішно створено!')
-        return super().form_valid(form)
-    
+        return redirect(self.get_success_url()) # Викликаємо redirect замість super().form_valid
+
     def get_success_url(self):
         return reverse_lazy('core:post_detail', kwargs={'slug': self.object.slug})
 
 
 class PostUpdateView(LoginRequiredMixin, UserPassesTestMixin, UpdateView):
-    """Редагування посту"""
     model = Post
     form_class = PostForm
     template_name = 'core/post_form.html'
     
+    # --- ДОДАНО: Заповнюємо поле тегів початковими даними ---
+    def get_initial(self):
+        initial = super().get_initial()
+        if self.object.tags.exists():
+            initial['tags'] = ', '.join(tag.name for tag in self.object.tags.all())
+        return initial
+    
+    # --- ОНОВЛЕНО: Додано form_valid для обробки тегів ---
     def form_valid(self, form):
+        # Зберігаємо пост
+        self.object = form.save() 
+        
+        # Отримуємо рядок тегів з форми
+        tag_string = form.cleaned_data.get('tags', '')
+        handle_tags(self.object, tag_string)
+        
         messages.success(self.request, 'Пост успішно оновлено!')
-        return super().form_valid(form)
+        return redirect(self.get_success_url()) # Викликаємо redirect замість super().form_valid
     
     def test_func(self):
         post = self.get_object()
@@ -199,7 +216,6 @@ class PostUpdateView(LoginRequiredMixin, UserPassesTestMixin, UpdateView):
 
 
 class PostDeleteView(LoginRequiredMixin, UserPassesTestMixin, DeleteView):
-    """Видалення посту"""
     model = Post
     template_name = 'core/post_confirm_delete.html'
     success_url = reverse_lazy('post_list')
@@ -214,7 +230,6 @@ class PostDeleteView(LoginRequiredMixin, UserPassesTestMixin, DeleteView):
 
 
 class UserPostListView(ListView):
-    """Список постів конкретного автора"""
     model = Post
     template_name = 'core/user_posts.html'
     context_object_name = 'posts'
@@ -226,8 +241,6 @@ class UserPostListView(ListView):
             author__username=username, 
             status='published'
         ).order_by('-created_at')
-        
-        # --- ОНОВЛЕНО: Додано анотації ---
         queryset = annotate_post_queryset(queryset, self.request.user)
         return queryset
     
@@ -238,7 +251,6 @@ class UserPostListView(ListView):
 
 
 class CategoryListView(ListView):
-    """Список всіх категорій"""
     model = Category
     template_name = 'core/category_list.html'
     context_object_name = 'categories'
@@ -267,7 +279,6 @@ class CategoryListView(ListView):
 
 
 class CategoryDetailView(DetailView):
-    """Детальний перегляд категорії з постами"""
     model = Category
     template_name = 'core/category_detail.html'
     context_object_name = 'category'
@@ -275,26 +286,20 @@ class CategoryDetailView(DetailView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         category = self.get_object()
+        posts_qs = Post.get_published_posts().filter(category=category)
+        posts = annotate_post_queryset(posts_qs, self.request.user)
         
-        # Отримуємо queryset постів
-        posts = Post.get_published_posts().filter(category=category)
-        
-        # --- ОНОВЛЕНО: Використання допоміжної функції ---
-        posts = annotate_post_queryset(posts, self.request.user)
-        
-        # --- ДОДАНО: Обчислення статистики ПЕРЕД пагінацією ---
         one_month_ago = timezone.now() - timezone.timedelta(days=30)
         context['active_users'] = User.objects.filter(is_active=True).count()
         context['monthly_posts'] = posts.filter(created_at__gte=one_month_ago).count()
         context['total_views'] = posts.aggregate(total=Sum('view_count'))['total'] or 0
         
-        # Пагінація
         paginator = Paginator(posts, 10)
         page_number = self.request.GET.get('page')
         page_obj = paginator.get_page(page_number)
         
         context['posts'] = page_obj
-        context['post_count'] = posts.count()
+        context['post_count'] = posts_qs.count()
         context['categories'] = Category.objects.annotate(post_count=Count('post'))
         return context
 
@@ -302,11 +307,11 @@ class CategoryDetailView(DetailView):
 class CategoryCreateView(LoginRequiredMixin, UserPassesTestMixin, CreateView):
     model = Category
     fields = ['name', 'description']
-    template_name = 'core/category_form.html'
-    success_url = reverse_lazy('category_list')
+    template_name = 'core/category_form.html' # Будемо використовувати спільний шаблон
+    success_url = reverse_lazy('core:category_list')
     def test_func(self): return self.request.user.is_admin
     def form_valid(self, form):
-        messages.success(self.request, 'Категорію успішно створено!')
+        messages.success(self.request, 'Спільноту успішно створено!')
         return super().form_valid(form)
 
 
@@ -314,25 +319,24 @@ class CategoryUpdateView(LoginRequiredMixin, UserPassesTestMixin, UpdateView):
     model = Category
     fields = ['name', 'description']
     template_name = 'core/category_form.html'
-    success_url = reverse_lazy('category_list')
+    success_url = reverse_lazy('core:category_list')
     def test_func(self): return self.request.user.is_admin
     def form_valid(self, form):
-        messages.success(self.request, 'Категорію успішно оновлено!')
+        messages.success(self.request, 'Спільноту успішно оновлено!')
         return super().form_valid(form)
 
 
 class CategoryDeleteView(LoginRequiredMixin, UserPassesTestMixin, DeleteView):
     model = Category
-    template_name = 'core/category_confirm_delete.html'
-    success_url = reverse_lazy('category_list')
+    template_name = 'core/category_confirm_delete.html' # Спільний шаблон
+    success_url = reverse_lazy('core:category_list')
     def test_func(self): return self.request.user.is_admin
     def delete(self, request, *args, **kwargs):
-        messages.success(request, 'Категорію успішно видалено!')
+        messages.success(request, 'Спільноту успішно видалено!')
         return super().delete(request, *args, **kwargs)
 
 
 class TagListView(ListView):
-    """Список всіх тегів"""
     model = Tag
     template_name = 'core/tag_list.html'
     context_object_name = 'tags'
@@ -344,7 +348,6 @@ class TagListView(ListView):
 
 
 class TagDetailView(DetailView):
-    """Детальний перегляд тегу з постами"""
     model = Tag
     template_name = 'core/tag_detail.html'
     context_object_name = 'tag'
@@ -353,25 +356,63 @@ class TagDetailView(DetailView):
         context = super().get_context_data(**kwargs)
         tag = self.get_object()
         
-        posts = Post.get_published_posts().filter(tags=tag)
-        
-        # --- ОНОВЛЕНО: Додано анотації ---
-        posts = annotate_post_queryset(posts, self.request.user)
+        posts_qs = Post.get_published_posts().filter(tags=tag)
+        posts = annotate_post_queryset(posts_qs, self.request.user)
         
         paginator = Paginator(posts, 10)
         page_number = self.request.GET.get('page')
         page_obj = paginator.get_page(page_number)
         
         context['posts'] = page_obj
-        context['post_count'] = posts.count()
+        context['post_count'] = posts_qs.count()
         return context
+
+# ---
+# --- ДОДАНО НОВІ VIEWS ДЛЯ КЕРУВАННЯ ТЕГАМИ (ДЛЯ АДМІНІВ) ---
+# ---
+class TagCreateView(LoginRequiredMixin, UserPassesTestMixin, CreateView):
+    model = Tag
+    form_class = TagForm
+    template_name = 'core/tag_form.html'
+    success_url = reverse_lazy('core:tag_list')
+    
+    def test_func(self):
+        return self.request.user.is_admin
+        
+    def form_valid(self, form):
+        messages.success(self.request, 'Тег успішно створено!')
+        return super().form_valid(form)
+
+class TagUpdateView(LoginRequiredMixin, UserPassesTestMixin, UpdateView):
+    model = Tag
+    form_class = TagForm
+    template_name = 'core/tag_form.html'
+    success_url = reverse_lazy('core:tag_list')
+    
+    def test_func(self):
+        return self.request.user.is_admin
+        
+    def form_valid(self, form):
+        messages.success(self.request, 'Тег успішно оновлено!')
+        return super().form_valid(form)
+
+class TagDeleteView(LoginRequiredMixin, UserPassesTestMixin, DeleteView):
+    model = Tag
+    template_name = 'core/tag_confirm_delete.html'
+    success_url = reverse_lazy('core:tag_list')
+    
+    def test_func(self):
+        return self.request.user.is_admin
+        
+    def delete(self, request, *args, **kwargs):
+        messages.success(request, 'Тег успішно видалено!')
+        return super().delete(request, *args, **kwargs)
+# --- КІНЕЦЬ НОВИХ VIEWS ---
 
 
 @login_required
 def add_comment(request, slug):
-    """Додавання коментаря до посту"""
     post = get_object_or_404(Post, slug=slug, status='published')
-    
     if request.method == 'POST':
         form = CommentForm(request.POST)
         if form.is_valid():
@@ -380,57 +421,42 @@ def add_comment(request, slug):
             comment.author = request.user
             comment.save()
             messages.success(request, 'Коментар успішно додано!')
-    
     return redirect('core:post_detail', slug=slug)
 
 @login_required
 def delete_comment(request, pk):
-    """Видалення коментаря"""
     comment = get_object_or_404(PostComment, pk=pk)
-    
     if request.user == comment.author or request.user == comment.post.author or request.user.is_staff:
         comment.delete()
         messages.success(request, 'Коментар успішно видалено!')
     else:
         messages.error(request, 'У вас немає прав для видалення цього коментаря!')
-    
     return redirect('core:post_detail', slug=comment.post.slug)
 
 
-# --- ОНОВЛЕНО: 'toggle_like' повністю замінено на 'post_vote' ---
 @login_required
 def post_vote(request, slug, direction):
-    """Обробка голосу (вгору/вниз)"""
     if request.method != 'POST' or request.headers.get('x-requested-with') != 'XMLHttpRequest':
         return HttpResponseBadRequest("Invalid request")
 
     post = get_object_or_404(Post, slug=slug, status='published')
     user = request.user
     
-    # Визначаємо, яке значення голосу (+1 або -1)
     new_vote_value = 1 if direction == 'up' else -1
     
     try:
-        # Шукаємо існуючий голос
         vote = PostVote.objects.get(post=post, user=user)
-        
         if vote.value == new_vote_value:
-            # Користувач натискає ту саму кнопку (скасування голосу)
             vote.delete()
-            user_vote_status = 0 # 0 означає "немає голосу"
+            user_vote_status = 0
         else:
-            # Користувач змінює свій голос
             vote.value = new_vote_value
             vote.save()
-            user_vote_status = new_vote_value # 1 або -1
-            
+            user_vote_status = new_vote_value
     except PostVote.DoesNotExist:
-        # Створюємо новий голос
         PostVote.objects.create(post=post, user=user, value=new_vote_value)
         user_vote_status = new_vote_value
     
-    # Перераховуємо загальний рахунок посту
-    # Використовуємо 'votes__value' (related_name 'votes' з моделі PostVote)
     new_score_data = post.votes.aggregate(score=Sum('value'))
     new_score = new_score_data.get('score') or 0
     
@@ -439,16 +465,12 @@ def post_vote(request, slug, direction):
     
     return JsonResponse({
         'vote_score': new_score,
-        'user_vote': user_vote_status # 1, -1, or 0
+        'user_vote': user_vote_status
     })
-# --- Кінець нової функції post_vote ---
-
 
 @login_required
 def toggle_comment_like(request, pk):
-    """Додавання/видалення лайку для коментаря (AJAX)"""
     comment = get_object_or_404(PostComment, pk=pk)
-    
     if request.method == 'POST' and request.headers.get('x-requested-with') == 'XMLHttpRequest':
         like, created = CommentLike.objects.get_or_create(comment=comment, user=request.user)
         
@@ -466,15 +488,12 @@ def toggle_comment_like(request, pk):
             'liked': liked,
             'like_count': comment.like_count
         })
-    
     return redirect('core:post_detail', slug=comment.post.slug)
 
 
 @login_required
 def toggle_bookmark(request, slug):
-    """Додавання/видалення посту з закладок"""
     post = get_object_or_404(Post, slug=slug, status='published')
-    
     if request.method == 'POST' and request.headers.get('x-requested-with') == 'XMLHttpRequest':
         user = request.user
         bookmarked = False
@@ -484,16 +503,11 @@ def toggle_bookmark(request, slug):
         else:
             post.bookmarked_by.add(user)
             bookmarked = True
-        
-        return JsonResponse({
-            'bookmarked': bookmarked,
-        })
-    
-    return redirect('core:post_detail', slug=slug) # Fallback
+        return JsonResponse({'bookmarked': bookmarked})
+    return redirect('core:post_detail', slug=slug)
 
 
 def subscribe(request):
-    """Підписка на розсилку"""
     if request.method == 'POST':
         form = SubscriptionForm(request.POST)
         if form.is_valid():
@@ -501,7 +515,6 @@ def subscribe(request):
                 email=form.cleaned_data['email'],
                 defaults={'is_active': True}
             )
-            
             if created: messages.success(request, 'Ви успішно підписались на розсилку!')
             else:
                 if not subscription.is_active:
@@ -509,28 +522,24 @@ def subscribe(request):
                     subscription.save()
                     messages.success(request, 'Вашу підписку відновлено!')
                 else: messages.info(request, 'Ви вже підписані на нашу розсилку!')
-            return redirect('post_list')
+            return redirect('core:post_list') # Змінено з post_list
     else: form = SubscriptionForm()
     return render(request, 'core/subscribe.html', {'form': form})
 
 
 def unsubscribe(request, email):
-    """Відписка від розсилки"""
     subscription = get_object_or_404(Subscription, email=email)
     subscription.is_active = False
     subscription.save()
     messages.success(request, 'Ви успішно відписались від розсилки.')
-    return redirect('post_list')
+    return redirect('core:post_list') # Змінено з post_list
 
 
 def home(request):
-    """Головна сторінка блогу"""
-    latest_posts = Post.get_published_posts().select_related(
+    latest_posts_qs = Post.get_published_posts().select_related(
         'author', 'category'
     ).prefetch_related('tags')[:6]
-    
-    # --- ОНОВЛЕНО: Використання допоміжної функції ---
-    latest_posts = annotate_post_queryset(latest_posts, request.user)
+    latest_posts = annotate_post_queryset(latest_posts_qs, request.user)
     
     featured_posts = Post.get_featured_posts()[:3]
     popular_posts = Post.get_published_posts().order_by('-view_count')[:5]
@@ -539,13 +548,11 @@ def home(request):
         post_count=Count('post')
     ).order_by('-post_count')[:8]
     
-    # --- ДОДАНО: Обчислення загальної статистики ---
     total_posts = Post.get_published_posts().count()
     total_categories = Category.objects.count()
     total_users = User.objects.count()
     active_users = User.objects.filter(is_active=True).count()
     
-    # --- ДОДАНО ОГОЛОШЕННЯ ---
     active_ads = Advertisement.objects.filter(
         is_active=True, 
         expires_at__gte=timezone.now()
@@ -556,22 +563,16 @@ def home(request):
         'featured_posts': featured_posts,
         'popular_posts': popular_posts,
         'categories': categories,
-        
-        # --- ДОДАНО: Передача статистики в шаблон ---
         'total_posts': total_posts,
         'total_categories': total_categories,
         'total_users': total_users,
         'active_users': active_users,
-        
-        # --- ДОДАНО ОГОЛОШЕННЯ ---
         'active_ads': active_ads,
     }
-    
     return render(request, 'core/home.html', context)
 
 
 def api_posts(request):
-    """API для отримання постів (для AJAX)"""
     posts = Post.get_published_posts().values(
         'id', 'title', 'slug', 'excerpt', 'created_at', 'view_count', 'author__username'
     )[:10]
@@ -579,7 +580,6 @@ def api_posts(request):
 
 
 def api_post_detail(request, slug):
-    """API для отримання деталей посту"""
     post = get_object_or_404(Post, slug=slug, status='published')
     data = {
         'id': post.id,
@@ -588,13 +588,13 @@ def api_post_detail(request, slug):
         'author': post.author.username,
         'created_at': post.created_at.isoformat(),
         'view_count': post.view_count,
-        'like_count': post.vote_score, # --- ОНОВЛЕНО ---
+        'like_count': post.vote_score,
         'reading_time': post.reading_time,
     }
     return JsonResponse(data)
 
+
 def search(request):
-    """Сторінка пошуку"""
     query = request.GET.get('q', '')
     posts = []
     
@@ -605,11 +605,8 @@ def search(request):
             Q(excerpt__icontains=query) |
             Q(tags__name__icontains=query)
         ).distinct().order_by('-created_at')
-        
-        # --- ОНОВЛЕНО: Використання допоміжної функції ---
         posts = annotate_post_queryset(posts_qs, request.user)
     
-    # --- ДОДАНО: Отримуємо дані для бічної панелі ЗАВЖДИ ---
     popular_tags = Tag.objects.annotate(
         post_count=Count('post')
     ).order_by('-post_count')[:15]
@@ -625,5 +622,4 @@ def search(request):
         'popular_tags': popular_tags,
         'categories': categories,
     }
-    
     return render(request, 'core/search.html', context)

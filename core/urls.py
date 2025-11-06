@@ -17,23 +17,27 @@ urlpatterns = [
     # Маршрут для коментарів
     path('posts/<slug:slug>/comment/', views.add_comment, name='add_comment'),
     path('comment/<int:pk>/delete/', views.delete_comment, name='delete_comment'),
-    
-    # --- URL для лайка коментаря (залишається) ---
     path('comment/<int:pk>/like/', views.toggle_comment_like, name='toggle_comment_like'),
     
+    # Спільноти (Категорії)
     path('categories/', views.CategoryListView.as_view(), name='category_list'),
     path('categories/create/', views.CategoryCreateView.as_view(), name='category_create'),
     path('categories/<slug:slug>/update/', views.CategoryUpdateView.as_view(), name='category_update'),
     path('categories/<slug:slug>/delete/', views.CategoryDeleteView.as_view(), name='category_delete'),
     path('categories/<slug:slug>/', views.CategoryDetailView.as_view(), name='category_detail'),
+    
+    # --- ОНОВЛЕНО: Додано CRUD для Тегів ---
     path('tags/', views.TagListView.as_view(), name='tag_list'),
+    path('tags/create/', views.TagCreateView.as_view(), name='tag_create'),
+    path('tags/<slug:slug>/update/', views.TagUpdateView.as_view(), name='tag_update'),
+    path('tags/<slug:slug>/delete/', views.TagDeleteView.as_view(), name='tag_delete'),
     path('tags/<slug:slug>/', views.TagDetailView.as_view(), name='tag_detail'),
+    # --- КІНЕЦЬ ОНОВЛЕННЯ ---
+    
     path('search/', views.search, name='search'),
     path('subscribe/', views.subscribe, name='subscribe'),
     
-    # --- ОНОВЛЕНО: 'toggle_like' замінено на 'post_vote' з напрямком ---
     path('vote/<slug:slug>/<str:direction>/', views.post_vote, name='post_vote'),
-    
     path('bookmark/<slug:slug>/', views.toggle_bookmark, name='toggle_bookmark'),
     
     path('user/<str:username>/posts/', views.UserPostListView.as_view(), name='user_posts'),

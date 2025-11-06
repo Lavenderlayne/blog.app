@@ -35,19 +35,30 @@
                     </li>
                     <li class="nav-item dropdown">
                         <a class="nav-link dropdown-toggle text-light" href="#" role="button" data-bs-toggle="dropdown">
-                            <i class="bi bi-collection"></i> Категорії
+                            <i class="bi bi-reddit"></i> Спільноти
                         </a>
                         <ul class="dropdown-menu bg-black border-secondary">
                             {% for category in categories %}
                             <li>
                                 <a class="dropdown-item text-light bg-black" href="{% url 'core:category_detail' category.slug %}">
-                                    {{ category.name }}
+                                    /r/{{ category.name }}
                                 </a>
                             </li>
                             {% empty %}
-                            <li><a class="dropdown-item text-light bg-black" href="#">Немає категорій</a></li>
+                            <li><a class="dropdown-item text-light bg-black" href="#">Немає спільнот</a></li>
                             {% endfor %}
+                            <li><hr class="dropdown-divider bg-secondary"></li>
+                            <li>
+                                <a class="dropdown-item text-light bg-black" href="{% url 'core:category_list' %}">
+                                    <i class="bi bi-eye"></i> Всі спільноти
+                                </a>
+                            </li>
                         </ul>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link text-light" href="{% url 'core:tag_list' %}">
+                            <i class="bi bi-tags"></i> Теги
+                        </a>
                     </li>
                     <li class="nav-item">
                         <a class="nav-link text-light" href="{% url 'core:search' %}">

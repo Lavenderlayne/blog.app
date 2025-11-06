@@ -10,7 +10,11 @@ from .forms import ProfileUpdateForm, UserUpdateForm, UserRegistrationForm
 from django.contrib.auth.views import LoginView
 from django.contrib.auth import login
 from django.http import JsonResponse, HttpResponseBadRequest
+
+# --- ДОДАНО ІМПОРТИ ДЛЯ ПОСТІВ, КОМЕНТАРІВ ТА ЧАСУ ---
 from core.models import Post, PostComment
+from django.utils import timezone
+from datetime import timedelta
 # ---
 
 def register(request):
@@ -20,7 +24,7 @@ def register(request):
             user = form.save()
             login(request, user)
             messages.success(request, 'Реєстрація успішна! Ласкаво просимо!')
-            return redirect('core:home')  # Використовуємо core:home
+            return redirect('core:home')
     else:
         form = UserRegistrationForm()
     
@@ -31,7 +35,7 @@ class CustomLoginView(LoginView):
     redirect_authenticated_user = True
     
     def get_success_url(self):
-        return reverse_lazy('core:home')  # Виправлено на core:home
+        return reverse_lazy('core:home')
 
 def is_moderator(user):
     return user.is_authenticated and (user.role == 'moderator' or user.is_superuser)
@@ -46,18 +50,15 @@ class ProfileDetailView(LoginRequiredMixin, DetailView):
     
     def get_object(self):
         user = get_object_or_404(CustomUser, username=self.kwargs['username'])
-        # Перевірка чи існує профіль, якщо ні - створюємо
         if not hasattr(user, 'profile'):
             Profile.objects.create(user=user)
         return user
-
-    # --- ОНОВЛЕНИЙ GET_CONTEXT_DATA ---
+    
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         profile_user = self.get_object()
         request_user = self.request.user
         
-        # Отримуємо основну активність
         context['user_posts'] = Post.objects.filter(
             author=profile_user, status='published'
         ).order_by('-created_at')
@@ -66,23 +67,19 @@ class ProfileDetailView(LoginRequiredMixin, DetailView):
             author=profile_user, is_active=True
         ).select_related('post').order_by('-created_at')[:15]
         
-        # Отримуємо закладки (тільки якщо це наш профіль)
         if request_user == profile_user:
             context['bookmarked_posts'] = profile_user.bookmarked_posts.all().order_by('-created_at')
 
-        # Статистика
         context['post_count'] = context['user_posts'].count()
         context['comment_count'] = context['user_comments'].count()
         context['followers_count'] = profile_user.followers.count()
         context['following_count'] = profile_user.following.count()
         
-        # Перевіряємо, чи поточний юзер підписаний
         context['is_following'] = False
         if request_user.is_authenticated:
             context['is_following'] = profile_user.followers.filter(id=request_user.id).exists()
             
         return context
-    # --- КІНЕЦЬ ОНОВЛЕННЯ ---
 
 class ProfileUpdateView(LoginRequiredMixin, UpdateView):
     model = Profile
@@ -90,7 +87,6 @@ class ProfileUpdateView(LoginRequiredMixin, UpdateView):
     template_name = 'users/profile_form.html'
     
     def get_object(self):
-        # Перевірка чи існує профіль
         if not hasattr(self.request.user, 'profile'):
             Profile.objects.create(user=self.request.user)
         return self.request.user.profile
@@ -119,7 +115,7 @@ class UserUpdateView(LoginRequiredMixin, UpdateView):
 
 class UserListView(LoginRequiredMixin, UserPassesTestMixin, ListView):
     model = CustomUser
-    template_name = 'users/user_list.html'  # Виправлено назву шаблону
+    template_name = 'users/user_list.html'
     context_object_name = 'users'
     paginate_by = 20
     
@@ -163,6 +159,9 @@ def toggle_user_status(request, user_id):
 def my_profile(request):
     return redirect('users:profile_detail', username=request.user.username)
 
+# ---
+# --- ПОВНІСТЮ ЗАМІНІТЬ ЦЮ ФУНКЦІЮ ---
+# ---
 @login_required
 @user_passes_test(is_admin)
 def user_statistics(request):
@@ -173,15 +172,33 @@ def user_statistics(request):
     
     recent_users = CustomUser.objects.order_by('-date_joined')[:10]
     
+    # --- ДОДАНО ОБЧИСЛЕННЯ ---
+    # 1. Обчислюємо реєстрації за останній місяць
+    one_month_ago = timezone.now() - timedelta(days=30)
+    monthly_registrations = CustomUser.objects.filter(date_joined__gte=one_month_ago).count()
+    
+    # 2. Обчислюємо відсоток активності (з перевіркою ділення на нуль)
+    active_percentage = 0
+    if total_users > 0:
+        active_percentage = round((active_users / total_users) * 100)
+    # --- КІНЕЦЬ ДОДАНОГО КОДУ ---
+    
     context = {
         'total_users': total_users,
         'active_users': active_users,
         'moderators_count': moderators_count,
         'admins_count': admins_count,
         'recent_users': recent_users,
+        
+        # --- ДОДАНО ДО КОНТЕКСТУ ---
+        'monthly_registrations': monthly_registrations,
+        'active_percentage': active_percentage,
     }
     
     return render(request, 'users/statistics.html', context)
+# ---
+# --- КІНЕЦЬ ЗАМІНИ ---
+# ---
 
 class UserSearchView(LoginRequiredMixin, UserPassesTestMixin, ListView):
     model = CustomUser
@@ -208,7 +225,6 @@ class UserSearchView(LoginRequiredMixin, UserPassesTestMixin, ListView):
         context['query'] = self.request.GET.get('q', '')
         return context
 
-# --- ДОДАНО НОВУ VIEW-ФУНКЦІЮ ---
 @login_required
 def toggle_follow(request, username):
     if request.method != 'POST' or request.headers.get('x-requested-with') != 'XMLHttpRequest':

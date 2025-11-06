@@ -3,8 +3,7 @@
 {% block title %}Профіль {{ profile_user.username }}{% endblock %}
 
 {% block content %}
-<div class="row">
-    <div class="col-md-4">
+<div class="row g-4"> <div class="col-md-4">
         <div class="card bg-black border-secondary mb-4">
             <div class="card-body text-center">
                 {% if profile_user.profile.avatar %}
@@ -97,22 +96,28 @@
                     
                     {% if profile_user.profile.social_x %}
                     <li class="mb-2">
-                        <i class="bi bi-twitter-x text-warning me-2" style="width: 16px;"></i>
+                        <i class="bi bi-twitter text-warning me-2" style="width: 16px;"></i>
                         <a href="{{ profile_user.profile.social_x }}" target="_blank" class="text-light text-decoration-none">
                             X (Twitter)
                         </a>
                     </li>
                     {% endif %}
+                    
                     {% if profile_user.profile.social_telegram %}
                     <li class="mb-2">
                         <i class="bi bi-telegram text-warning me-2" style="width: 16px;"></i>
-                        {{ profile_user.profile.social_telegram }}
+                        <a href="{% if 'https://' in profile_user.profile.social_telegram %}{{ profile_user.profile.social_telegram }}{% else %}https://t.me/{{ profile_user.profile.social_telegram|cut:"@" }}{% endif %}" target="_blank" class="text-light text-decoration-none">
+                            Telegram
+                        </a>
                     </li>
                     {% endif %}
+                    
                     {% if profile_user.profile.social_discord %}
                     <li class="mb-2">
                         <i class="bi bi-discord text-warning me-2" style="width: 16px;"></i>
-                        {{ profile_user.profile.social_discord }}
+                        <a href="{{ profile_user.profile.social_discord }}" target="_blank" class="text-light text-decoration-none">
+                            Discord
+                        </a>
                     </li>
                     {% endif %}
                 </ul>
@@ -159,7 +164,7 @@
                                     <a href="{% url 'core:post_detail' post.slug %}" class="text-light text-decoration-none h6 d-block mb-1">
                                         {{ post.title }}
                                     </a>
-                                    <small class="text-muted">
+                                    <small class="text-body-secondary">
                                         в <a href="{% url 'core:category_detail' post.category.slug %}" class="text-warning text-decoration-none">/r/{{ post.category.name }}</a>
                                         • {{ post.created_at|date:"d.m.Y H:i" }}
                                     </small>
@@ -177,7 +182,7 @@
                         {% for comment in user_comments %}
                             <div class="mb-3 pb-3 border-bottom border-secondary">
                                 <p class="text-light mb-1">{{ comment.content|truncatewords:30 }}</p>
-                                <small class="text-muted">
+                                <small class="text-body-secondary">
                                     до посту <a href="{% url 'core:post_detail' comment.post.slug %}#comment-{{comment.id}}" class="text-warning text-decoration-none">{{ comment.post.title }}</a>
                                     • {{ comment.created_at|date:"d.m.Y H:i" }}
                                 </small>
@@ -198,7 +203,7 @@
                                     <a href="{% url 'core:post_detail' post.slug %}" class="text-light text-decoration-none h6 d-block mb-1">
                                         {{ post.title }}
                                     </a>
-                                    <small class="text-muted">
+                                    <small class="text-body-secondary">
                                         в <a href="{% url 'core:category_detail' post.category.slug %}" class="text-warning text-decoration-none">/r/{{ post.category.name }}</a>
                                         • автор: {{ post.author.username }}
                                     </small>

@@ -41,7 +41,7 @@
                 </div>
                 <div class="card-body">
                     {{ form.excerpt }}
-                    <div class="form-text text-muted">Короткий опис, який буде відображатися в списку постів</div>
+                    <div class="form-text text-body-secondary">Короткий опис, який буде відображатися в списку постів</div>
                     {% if form.excerpt.errors %}
                         <div class="text-warning small mt-1">{{ form.excerpt.errors }}</div>
                     {% endif %}
@@ -58,7 +58,7 @@
                     <div class="mb-3">
                         <label for="{{ form.meta_title.id_for_label }}" class="form-label text-light">Мета-заголовок</label>
                         {{ form.meta_title }}
-                        <div class="form-text text-muted">Заголовок для пошукових систем (якщо не вказано, використовується заголовок посту)</div>
+                        <div class="form-text text-body-secondary">Заголовок для пошукових систем (якщо не вказано, використовується заголовок посту)</div>
                         {% if form.meta_title.errors %}
                             <div class="text-warning small mt-1">{{ form.meta_title.errors }}</div>
                         {% endif %}
@@ -66,7 +66,7 @@
                     <div>
                         <label for="{{ form.meta_description.id_for_label }}" class="form-label text-light">Мета-опис</label>
                         {{ form.meta_description }}
-                        <div class="form-text text-muted">Опис для пошукових систем (якщо не вказано, використовується короткий опис)</div>
+                        <div class="form-text text-body-secondary">Опис для пошукових систем (якщо не вказано, використовується короткий опис)</div>
                         {% if form.meta_description.errors %}
                             <div class="text-warning small mt-1">{{ form.meta_description.errors }}</div>
                         {% endif %}
@@ -98,7 +98,7 @@
                                 <i class="bi bi-check"></i>
                                 {% if form.instance.pk %}Оновити пост{% else %}Опублікувати{% endif %}
                             </button>
-                            <button type="submit" name="save_draft" value="true" class="btn btn-outline-light">
+                            <button type="submit" name="status" value="draft" class="btn btn-outline-light">
                                 <i class="bi bi-save"></i> Зберегти чернетку
                             </button>
                         </div>
@@ -130,14 +130,14 @@
                             {% endif %}
                         </div>
                         <div>
-                            <label for="{{ form.tags.id_for_label }}" class="form-label text-light">Теги</label>
+                            <label for="{{ form.tags.id_for_label }}" class="form-label text-light">{{ form.tags.label }}</label>
                             {{ form.tags }}
-                            <div class="form-text text-muted">Утримуйте Ctrl/Cmd для вибору кількох</div>
+                            <div class="form-text text-body-secondary">Введіть теги через кому. Нові теги будуть створені автоматично.</div>
                             {% if form.tags.errors %}
                                 <div class="text-warning small mt-1">{{ form.tags.errors }}</div>
                             {% endif %}
                         </div>
-                    </div>
+                        </div>
                 </div>
 
                 <div class="card bg-black border-secondary mb-4">
@@ -146,7 +146,7 @@
                     </div>
                     <div class="card-body">
                         <div class="mb-3">
-                            <label for="{{ form.featured_image.id_for_label }}" class="form-label text-light">Головне зображення</label>
+                            <label for="id_featured_image" class="form-label text-light">Головне зображення</label>
                             {% if form.instance.featured_image %}
                                 <img src="{{ form.instance.featured_image.url }}" alt="Поточне зображення" class="img-fluid rounded mb-2">
                                 <div class="form-check">
@@ -156,7 +156,7 @@
                                     </label>
                                 </div>
                             {% endif %}
-                            <input type="file" name="featured_image" class="form-control bg-dark border-secondary text-light mt-2" accept="image/*" id="{{ form.featured_image.id_for_label }}">
+                            <input type="file" name="featured_image" class="form-control bg-dark border-secondary text-light mt-2" accept="image/*" id="id_featured_image">
                             {% if form.featured_image.errors %}
                                 <div class="text-warning small mt-1">{{ form.featured_image.errors }}</div>
                             {% endif %}
@@ -238,11 +238,6 @@ document.addEventListener('DOMContentLoaded', function() {
 .form-check-input:focus {
     border-color: #ffc107;
     box-shadow: 0 0 0 0.25rem rgba(255, 193, 7, 0.25);
-}
-
-/* Робимо select multiple трохи вищим */
-select[multiple] {
-    min-height: 120px;
 }
 </style>
 {% endblock %}

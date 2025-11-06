@@ -1,0 +1,35 @@
+{% extends 'base.html' %}
+
+{% block title %}Видалення тегу{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-6">
+        <div class="card bg-black border-danger">
+            <div class="card-header bg-dark border-danger">
+                <h4 class="text-light mb-0">
+                    <i class="bi bi-exclamation-triangle-fill text-danger"></i> Підтвердження видалення
+                </h4>
+            </div>
+            <div class="card-body text-center">
+                <p class="text-light fs-5">Ви впевнені, що хочете видалити тег?</p>
+                <h3 class="text-warning mb-4">#{{ object.name }}</h3>
+                
+                <p class="text-body-secondary">Цю дію неможливо скасувати.</p>
+
+                <form method="post">
+                    {% csrf_token %}
+                    <div class="d-grid gap-2 d-md-flex justify-content-md-center">
+                        <a href="{% url 'core:tag_list' %}" class="btn btn-outline-light btn-lg">
+                            <i class="bi bi-x"></i> Скасувати
+                        </a>
+                        <button type="submit" class="btn btn-danger btn-lg">
+                            <i class="bi bi-trash"></i> Так, видалити
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,10 +1,35 @@
-# lavenderlayne/blog_app/blog_app-dev/core/forms.py
-
 from django import forms
-from .models import Post, PostComment, Subscription
+from .models import Post, PostComment, Subscription, Tag # Додано Tag
+
+
+# --- НОВА ФОРМА ДЛЯ СТВОРЕННЯ/РЕДАГУВАННЯ ТЕГІВ ---
+class TagForm(forms.ModelForm):
+    class Meta:
+        model = Tag
+        fields = ['name', 'slug']
+        widgets = {
+            'name': forms.TextInput(attrs={'class': 'form-control bg-dark border-secondary text-light'}),
+            'slug': forms.TextInput(attrs={'class': 'form-control bg-dark border-secondary text-light', 'placeholder': 'Залиште порожнім для авто-генерації'}),
+        }
+    
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['slug'].required = False # Робимо слаг необов'язковим
 
 
 class PostForm(forms.ModelForm):
+    # --- ОНОВЛЕНО ПОЛЕ TAGS ---
+    # Тепер це просте текстове поле, а не ModelMultipleChoiceField
+    tags = forms.CharField(
+        required=False,
+        widget=forms.TextInput(attrs={
+            'class': 'form-control bg-dark border-secondary text-light',
+            'placeholder': 'Введіть теги через кому (напр. django, python)'
+        }),
+        label="Теги"
+    )
+    # --- КІНЕЦЬ ОНОВЛЕННЯ ---
+
     class Meta:
         model = Post
         fields = [
@@ -19,19 +44,17 @@ class PostForm(forms.ModelForm):
             'content': forms.Textarea(attrs={'class': 'form-control bg-dark border-secondary text-light', 'rows': 20}),
             'excerpt': forms.Textarea(attrs={'class': 'form-control bg-dark border-secondary text-light', 'rows': 4}),
             'category': forms.Select(attrs={'class': 'form-select bg-dark border-secondary text-light'}),
-            'tags': forms.SelectMultiple(attrs={'class': 'form-select bg-dark border-secondary text-light', 'rows': 5}),
+            # 'tags' тепер визначено вище як CharField
             'post_type': forms.Select(attrs={'class': 'form-select bg-dark border-secondary text-light'}),
             'status': forms.Select(attrs={'class': 'form-select bg-dark border-secondary text-light'}),
             'video_url': forms.URLInput(attrs={'class': 'form-control bg-dark border-secondary text-light', 'placeholder': 'https://www.youtube.com/watch?v=...'}),
             'meta_title': forms.TextInput(attrs={'class': 'form-control bg-dark border-secondary text-light'}),
             'meta_description': forms.Textarea(attrs={'class': 'form-control bg-dark border-secondary text-light', 'rows': 3}),
             
-            # Додамо класи до чекбоксів
             'is_featured': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
             'is_pinned': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
             'allow_comments': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
         }
-
 
 class CommentForm(forms.ModelForm):
     class Meta:
