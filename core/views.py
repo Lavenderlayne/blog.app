@@ -5,13 +5,15 @@ from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.urls import reverse_lazy
 # --- ОНОВЛЕНО: Додано Sum, Subquery ---
-from django.db.models import Q, Count, Exists, OuterRef, Sum, Subquery
+from django.db import models
+from django.db.models import Q, Count, Exists, OuterRef, Sum, Subquery, IntegerField, Value
 from django.http import JsonResponse, HttpResponseBadRequest
 from django.core.paginator import Paginator
 # --- ОНОВЛЕНО: Додано timezone ---
 from django.utils import timezone
 # --- ОНОВЛЕНО: 'PostLike' замінено на 'PostVote' ---
-from .models import Post, Category, Tag, PostComment, PostVote, Subscription, CommentLike
+# --- ОНОВЛЕНО: Додано Advertisement ---
+from .models import Post, Category, Tag, PostComment, PostVote, Subscription, CommentLike, Advertisement
 from .forms import PostForm, CommentForm, SubscriptionForm
 from django.contrib.auth import get_user_model
 
@@ -19,29 +21,36 @@ User = get_user_model()
 
 
 # --- ДОПОМІЖНА ФУНКЦІЯ ДЛЯ АНОТАЦІЙ (ОНОВЛЕНО) ---
+# In lavenderlayne/blog_app/blog_app-dev/core/views.py
+
 def annotate_post_queryset(queryset, user):
     """Додає анотації is_bookmarked та user_vote до queryset"""
+    
     if user.is_authenticated:
         bookmarked_subquery = Exists(
             user.bookmarked_posts.filter(pk=OuterRef('pk'))
         )
-        # Отримуємо значення голосу (1, -1 або None)
+        
         vote_subquery = Subquery(
             PostVote.objects.filter(
                 post=OuterRef('pk'), 
                 user=user
-            ).values('value')[:1]
+            ).values('value')[:1],
+            # Додано output_field для надійності
+            output_field=models.IntegerField() 
         )
+        
         return queryset.annotate(
             is_bookmarked=bookmarked_subquery,
             user_vote=vote_subquery
         )
-    # Для неавторизованих користувачів
+    
+    # --- ВИПРАВЛЕНО ДЛЯ НЕАВТОРИЗОВАНИХ КОРИСТУВАЧІВ ---
+    # Ми просто повертаємо 0 (Integer) та False (Boolean)
     return queryset.annotate(
-        is_bookmarked=Exists(Post.objects.none()),
-        user_vote=Subquery(PostVote.objects.none())
+        is_bookmarked=Value(False),
+        user_vote=Value(0, output_field=models.IntegerField())
     )
-
 
 class PostListView(ListView):
     """Список всіх опублікованих постів"""
@@ -96,6 +105,13 @@ class PostListView(ListView):
             post_count=Count('post')
         ).order_by('-post_count')[:10]
         context['featured_posts'] = Post.get_featured_posts()[:5]
+        
+        # --- ДОДАНО ОГОЛОШЕННЯ ---
+        context['active_ads'] = Advertisement.objects.filter(
+            is_active=True, 
+            expires_at__gte=timezone.now()
+        ).order_by('?')[:2]
+        
         return context
 
 
@@ -139,6 +155,12 @@ class PostDetailView(DetailView):
         context['related_posts'] = Post.get_published_posts().filter(
             category=post.category
         ).exclude(id=post.id)[:3]
+        
+        # --- ДОДАНО ОГОЛОШЕННЯ ---
+        context['active_ads'] = Advertisement.objects.filter(
+            is_active=True, 
+            expires_at__gte=timezone.now()
+        ).order_by('?')[:2]
         
         return context
 
@@ -522,6 +544,12 @@ def home(request):
     total_categories = Category.objects.count()
     total_users = User.objects.count()
     active_users = User.objects.filter(is_active=True).count()
+    
+    # --- ДОДАНО ОГОЛОШЕННЯ ---
+    active_ads = Advertisement.objects.filter(
+        is_active=True, 
+        expires_at__gte=timezone.now()
+    ).order_by('?')[:2]
 
     context = {
         'latest_posts': latest_posts,
@@ -534,6 +562,9 @@ def home(request):
         'total_categories': total_categories,
         'total_users': total_users,
         'active_users': active_users,
+        
+        # --- ДОДАНО ОГОЛОШЕННЯ ---
+        'active_ads': active_ads,
     }
     
     return render(request, 'core/home.html', context)
@@ -562,14 +593,13 @@ def api_post_detail(request, slug):
     }
     return JsonResponse(data)
 
-
 def search(request):
     """Сторінка пошуку"""
     query = request.GET.get('q', '')
     posts = []
     
     if query:
-        posts = Post.get_published_posts().filter(
+        posts_qs = Post.get_published_posts().filter(
             Q(title__icontains=query) |
             Q(content__icontains=query) |
             Q(excerpt__icontains=query) |
@@ -577,12 +607,23 @@ def search(request):
         ).distinct().order_by('-created_at')
         
         # --- ОНОВЛЕНО: Використання допоміжної функції ---
-        posts = annotate_post_queryset(posts, request.user)
+        posts = annotate_post_queryset(posts_qs, request.user)
+    
+    # --- ДОДАНО: Отримуємо дані для бічної панелі ЗАВЖДИ ---
+    popular_tags = Tag.objects.annotate(
+        post_count=Count('post')
+    ).order_by('-post_count')[:15]
+    
+    categories = Category.objects.annotate(
+        post_count=Count('post')
+    ).order_by('-post_count')[:10]
     
     context = {
         'query': query,
         'posts': posts,
         'results_count': len(posts),
+        'popular_tags': popular_tags,
+        'categories': categories,
     }
     
     return render(request, 'core/search.html', context)

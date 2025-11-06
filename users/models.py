@@ -11,6 +11,17 @@ class CustomUser(AbstractUser):
         ('admin', 'Адміністратор'),
     )
     role = models.CharField(max_length=10, choices=ROLE_CHOICES, default='user')
+    
+    # --- ОСЬ ТУТ ДОДАНО ПОЛЕ СЛІДКУВАННЯ ---
+    # `symmetrical=False` означає, що це не "дружба" (де обидва слідують), а одностороннє слідкування
+    following = models.ManyToManyField(
+        'self', 
+        symmetrical=False, 
+        related_name='followers',  # Дозволяє нам використовувати user.followers.all()
+        blank=True,
+        verbose_name='Слідкує за'
+    )
+    # --- КІНЕЦЬ ДОДАНОГО КОДУ ---
 
     class Meta:
         verbose_name = 'Користувач'

@@ -121,6 +121,9 @@ class Post(models.Model):
     is_pinned = models.BooleanField(default=False, verbose_name="Закріплений")
     allow_comments = models.BooleanField(default=True, verbose_name="Дозволити коментарі")
     
+    # --- ДОДАНО ПОЛЕ ВІДЕО ---
+    video_url = models.URLField(blank=True, null=True, verbose_name="Посилання на відео (YouTube, etc.)")
+    
     bookmarked_by = models.ManyToManyField(
         settings.AUTH_USER_MODEL, 
         related_name='bookmarked_posts', 
@@ -163,7 +166,7 @@ class Post(models.Model):
         super().save(*args, **kwargs)
     
     def get_absolute_url(self):
-        return reverse('post_detail', kwargs={'slug': self.slug})
+        return reverse('core:post_detail', kwargs={'slug': self.slug})
     
     def get_meta_title(self):
         return self.meta_title or self.title

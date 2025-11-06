@@ -5,11 +5,11 @@
 {% block content %}
 <div class="row">
     <div class="col-md-4">
-        <div class="card bg-black border-secondary">
+        <div class="card bg-black border-secondary mb-4">
             <div class="card-body text-center">
                 {% if profile_user.profile.avatar %}
                 <img src="{{ profile_user.profile.avatar.url }}" alt="Аватар" class="rounded-circle mb-3" width="150"
-                    height="150">
+                    height="150" style="object-fit: cover;">
                 {% else %}
                 <div class="bg-secondary rounded-circle d-inline-flex align-items-center justify-content-center mb-3"
                     style="width: 150px; height: 150px;">
@@ -17,131 +17,205 @@
                 </div>
                 {% endif %}
 
-                <h4 class="text-light">{{ profile_user.get_full_name|default:profile_user.username }}</h4>
+                <h4 class="text-light mb-1">{{ profile_user.get_full_name|default:profile_user.username }}</h4>
                 <p class="text-muted">@{{ profile_user.username }}</p>
 
-                <div
-                    class="badge bg-{% if profile_user.role == 'admin' %}danger{% elif profile_user.role == 'moderator' %}warning text-dark{% else %}primary{% endif %} mb-2">
+                <div class="badge bg-{% if profile_user.role == 'admin' %}danger{% elif profile_user.role == 'moderator' %}warning text-dark{% else %}primary{% endif %} mb-3">
+                    <i class="bi bi-{% if profile_user.role == 'admin' %}shield-lock{% elif profile_user.role == 'moderator' %}shield-check{% else %}person{% endif %} me-1"></i>
                     {{ profile_user.get_role_display }}
                 </div>
+                
+                <p class="text-light small mb-3">{{ profile_user.profile.bio|default:"Біографія відсутня" }}</p>
 
-                {% if user == profile_user %}
-                <div class="mt-3">
-                    <a href="{% url 'users:user_update' %}" class="btn btn-outline-warning btn-sm me-2">
+                <div class="d-grid gap-2">
+                    {% if user == profile_user %}
+                    <a href="{% url 'users:user_update' %}" class="btn btn-outline-warning">
                         <i class="bi bi-pencil"></i> Редагувати дані
                     </a>
-                    <a href="{% url 'users:profile_update' %}" class="btn btn-outline-light btn-sm">
+                    <a href="{% url 'users:profile_update' %}" class="btn btn-outline-light">
                         <i class="bi bi-gear"></i> Налаштування профілю
                     </a>
+                    {% else %}
+                    <button class="btn {% if is_following %}btn-outline-light{% else %}btn-warning{% endif %} profile-follow-btn" 
+                            data-username="{{ profile_user.username }}">
+                        {% if is_following %}
+                            <i class="bi bi-person-check-fill"></i> Відписатись
+                        {% else %}
+                            <i class="bi bi-person-plus"></i> Слідкувати
+                        {% endif %}
+                    </button>
+                    {% endif %}
                 </div>
-                {% endif %}
             </div>
         </div>
 
-        <div class="card bg-black border-secondary mt-3">
+        <div class="card bg-black border-secondary mb-4">
+            <div class="card-body">
+                <div class="row text-center">
+                    <div class="col-4">
+                        <h5 class="text-light mb-0">{{ post_count }}</h5>
+                        <small class="text-muted">Постів</small>
+                    </div>
+                    <div class="col-4">
+                        <h5 class="text-light mb-0" id="followers-count">{{ followers_count }}</h5>
+                        <small class="text-muted">Підписників</small>
+                    </div>
+                    <div class="col-4">
+                        <h5 class="text-light mb-0">{{ following_count }}</h5>
+                        <small class="text-muted">Слідкує</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card bg-black border-secondary">
             <div class="card-header bg-dark border-secondary">
                 <h6 class="mb-0 text-light">
                     <i class="bi bi-info-circle text-warning"></i> Інформація
                 </h6>
             </div>
-            <ul class="list-unstyled text-light">
-                {% if profile_user.profile.location %}
-                <li class="mb-2">
-                    <i class="bi bi-geo-alt text-warning me-2"></i>
-                    {{ profile_user.profile.location }}
-                </li>
-                {% endif %}
-                {% if profile_user.profile.website %}
-                <li class="mb-2">
-                    <i class="bi bi-globe text-warning me-2"></i>
-                    <a href="{{ profile_user.profile.website }}" target="_blank"
-                        class="text-light text-decoration-none">
-                        Вебсайт
-                    </a>
-                </li>
-                {% endif %}
-                {% if profile_user.profile.birth_date %}
-                <li class="mb-2">
-                    <i class="bi bi-calendar text-warning me-2"></i>
-                    {{ profile_user.profile.birth_date }}
-                </li>
-                {% endif %}
-
-                {% if profile_user.profile.social_telegram %}
-                <li class="mb-2">
-                    <i class="bi bi-telegram text-warning me-2"></i>
-                    {{ profile_user.profile.social_telegram }}
-                </li>
-                {% endif %}
-                {% if profile_user.profile.social_discord %}
-                <li class="mb-2">
-                    <i class="bi bi-discord text-warning me-2"></i>
-                    {{ profile_user.profile.social_discord }}
-                </li>
-                {% endif %}
-                {% if profile_user.profile.social_x %}
-                <li class="mb-2">
-                    <i class="bi bi-twitter-x text-warning me-2"></i>
-                    <a href="{{ profile_user.profile.social_x }}" target="_blank"
-                        class="text-light text-decoration-none">
-                        X (Twitter)
-                    </a>
-                </li>
-                {% endif %}
-            </ul>
+            <div class="card-body">
+                <ul class="list-unstyled text-light mb-0">
+                    <li class="mb-2">
+                        <i class="bi bi-calendar-event text-warning me-2" style="width: 16px;"></i>
+                        Приєднався: {{ profile_user.date_joined|date:"d.m.Y" }}
+                    </li>
+                    {% if profile_user.profile.location %}
+                    <li class="mb-2">
+                        <i class="bi bi-geo-alt text-warning me-2" style="width: 16px;"></i>
+                        {{ profile_user.profile.location }}
+                    </li>
+                    {% endif %}
+                    {% if profile_user.profile.website %}
+                    <li class="mb-2">
+                        <i class="bi bi-globe text-warning me-2" style="width: 16px;"></i>
+                        <a href="{{ profile_user.profile.website }}" target="_blank" class="text-light text-decoration-none">
+                            Вебсайт
+                        </a>
+                    </li>
+                    {% endif %}
+                    
+                    {% if profile_user.profile.social_x %}
+                    <li class="mb-2">
+                        <i class="bi bi-twitter-x text-warning me-2" style="width: 16px;"></i>
+                        <a href="{{ profile_user.profile.social_x }}" target="_blank" class="text-light text-decoration-none">
+                            X (Twitter)
+                        </a>
+                    </li>
+                    {% endif %}
+                    {% if profile_user.profile.social_telegram %}
+                    <li class="mb-2">
+                        <i class="bi bi-telegram text-warning me-2" style="width: 16px;"></i>
+                        {{ profile_user.profile.social_telegram }}
+                    </li>
+                    {% endif %}
+                    {% if profile_user.profile.social_discord %}
+                    <li class="mb-2">
+                        <i class="bi bi-discord text-warning me-2" style="width: 16px;"></i>
+                        {{ profile_user.profile.social_discord }}
+                    </li>
+                    {% endif %}
+                </ul>
+            </div>
         </div>
     </div>
     
-        <div class="col-md-8">
-            <div class="card bg-black border-secondary">
-                <div class="card-header bg-dark border-secondary">
-                    <h6 class="mb-0 text-light">
-                        <i class="bi bi-activity text-warning"></i> Активність
-                    </h6>
-                </div>
-                <div class="card-body">
-                    <div class="row text-center">
-                        <div class="col-md-4 mb-3">
-                            <div class="bg-dark rounded p-3">
-                                <h3 class="text-warning mb-1">0</h3>
-                                <p class="text-muted small mb-0">Постів</p>
-                            </div>
-                        </div>
-                        <div class="col-md-4 mb-3">
-                            <div class="bg-dark rounded p-3">
-                                <h3 class="text-warning mb-1">0</h3>
-                                <p class="text-muted small mb-0">Коментарів</p>
-                            </div>
-                        </div>
-                        <div class="col-md-4 mb-3">
-                            <div class="bg-dark rounded p-3">
-                                <h3 class="text-warning mb-1">0</h3>
-                                <p class="text-muted small mb-0">Лайків</p>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="mt-4">
-                        <h6 class="text-light mb-3">Остання активність</h6>
-                        <div class="alert alert-dark border-secondary text-muted">
-                            <i class="bi bi-info-circle me-2"></i>
-                            Активність поки що відсутня
-                        </div>
-                    </div>
-                </div>
+    <div class="col-md-8">
+        <div class="card bg-black border-secondary">
+            <div class="card-header bg-dark border-secondary">
+                <ul class="nav nav-tabs card-header-tabs" id="profileTabs" role="tablist">
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link active text-light bg-black border-secondary" id="posts-tab" data-bs-toggle="tab" data-bs-target="#posts" type="button" role="tab">
+                            <i class="bi bi-card-text"></i> Пости ({{ post_count }})
+                        </button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link text-light bg-black border-secondary" id="comments-tab" data-bs-toggle="tab" data-bs-target="#comments" type="button" role="tab">
+                            <i class="bi bi-chat-dots"></i> Коментарі ({{ comment_count }})
+                        </button>
+                    </li>
+                    {% if user == profile_user %}
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link text-light bg-black border-secondary" id="bookmarks-tab" data-bs-toggle="tab" data-bs-target="#bookmarks" type="button" role="tab">
+                            <i class="bi bi-bookmark"></i> Закладки
+                        </button>
+                    </li>
+                    {% endif %}
+                </ul>
             </div>
-
-            <!-- Додаткові картки для майбутнього контенту -->
-            <div class="card bg-black border-secondary mt-3">
-                <div class="card-header bg-dark border-secondary">
-                    <h6 class="mb-0 text-light">
-                        <i class="bi bi-heart text-warning"></i> Вподобання
-                    </h6>
-                </div>
-                <div class="card-body">
-                    <p class="text-muted">Список вподобаних постів буде тут...</p>
+            
+            <div class="card-body">
+                <div class="tab-content" id="profileTabsContent">
+                    
+                    <div class="tab-pane fade show active" id="posts" role="tabpanel">
+                        {% for post in user_posts %}
+                            <div class="d-flex mb-3 pb-3 border-bottom border-secondary">
+                                <div class="d-flex flex-column align-items-center me-3">
+                                    <i class="bi bi-arrow-up text-success"></i>
+                                    <span class="text-light fw-bold">{{ post.vote_score|default:0 }}</span>
+                                    <i class="bi bi-arrow-down text-danger"></i>
+                                </div>
+                                <div class="flex-grow-1">
+                                    <a href="{% url 'core:post_detail' post.slug %}" class="text-light text-decoration-none h6 d-block mb-1">
+                                        {{ post.title }}
+                                    </a>
+                                    <small class="text-muted">
+                                        в <a href="{% url 'core:category_detail' post.category.slug %}" class="text-warning text-decoration-none">/r/{{ post.category.name }}</a>
+                                        • {{ post.created_at|date:"d.m.Y H:i" }}
+                                    </small>
+                                </div>
+                            </div>
+                        {% empty %}
+                            <div class="text-center text-muted py-4">
+                                <i class="bi bi-card-text display-4"></i>
+                                <p class="mt-2">Користувач ще не створив жодного посту.</p>
+                            </div>
+                        {% endfor %}
+                    </div>
+                    
+                    <div class="tab-pane fade" id="comments" role="tabpanel">
+                        {% for comment in user_comments %}
+                            <div class="mb-3 pb-3 border-bottom border-secondary">
+                                <p class="text-light mb-1">{{ comment.content|truncatewords:30 }}</p>
+                                <small class="text-muted">
+                                    до посту <a href="{% url 'core:post_detail' comment.post.slug %}#comment-{{comment.id}}" class="text-warning text-decoration-none">{{ comment.post.title }}</a>
+                                    • {{ comment.created_at|date:"d.m.Y H:i" }}
+                                </small>
+                            </div>
+                        {% empty %}
+                            <div class="text-center text-muted py-4">
+                                <i class="bi bi-chat-dots display-4"></i>
+                                <p class="mt-2">Користувач ще не залишив жодного коментаря.</p>
+                            </div>
+                        {% endfor %}
+                    </div>
+                    
+                    {% if user == profile_user %}
+                    <div class="tab-pane fade" id="bookmarks" role="tabpanel">
+                        {% for post in bookmarked_posts %}
+                            <div class="d-flex mb-3 pb-3 border-bottom border-secondary">
+                                <div class="flex-grow-1">
+                                    <a href="{% url 'core:post_detail' post.slug %}" class="text-light text-decoration-none h6 d-block mb-1">
+                                        {{ post.title }}
+                                    </a>
+                                    <small class="text-muted">
+                                        в <a href="{% url 'core:category_detail' post.category.slug %}" class="text-warning text-decoration-none">/r/{{ post.category.name }}</a>
+                                        • автор: {{ post.author.username }}
+                                    </small>
+                                </div>
+                            </div>
+                        {% empty %}
+                            <div class="text-center text-muted py-4">
+                                <i class="bi bi-bookmark display-4"></i>
+                                <p class="mt-2">У вас ще немає збережених постів.</p>
+                            </div>
+                        {% endfor %}
+                    </div>
+                    {% endif %}
+                    
                 </div>
             </div>
         </div>
     </div>
-    {% endblock %}
+</div>
+{% endblock %}

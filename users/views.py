@@ -9,6 +9,9 @@ from .models import CustomUser, Profile
 from .forms import ProfileUpdateForm, UserUpdateForm, UserRegistrationForm
 from django.contrib.auth.views import LoginView
 from django.contrib.auth import login
+from django.http import JsonResponse, HttpResponseBadRequest
+from core.models import Post, PostComment
+# ---
 
 def register(request):
     if request.method == 'POST':
@@ -47,6 +50,39 @@ class ProfileDetailView(LoginRequiredMixin, DetailView):
         if not hasattr(user, 'profile'):
             Profile.objects.create(user=user)
         return user
+
+    # --- ОНОВЛЕНИЙ GET_CONTEXT_DATA ---
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        profile_user = self.get_object()
+        request_user = self.request.user
+        
+        # Отримуємо основну активність
+        context['user_posts'] = Post.objects.filter(
+            author=profile_user, status='published'
+        ).order_by('-created_at')
+        
+        context['user_comments'] = PostComment.objects.filter(
+            author=profile_user, is_active=True
+        ).select_related('post').order_by('-created_at')[:15]
+        
+        # Отримуємо закладки (тільки якщо це наш профіль)
+        if request_user == profile_user:
+            context['bookmarked_posts'] = profile_user.bookmarked_posts.all().order_by('-created_at')
+
+        # Статистика
+        context['post_count'] = context['user_posts'].count()
+        context['comment_count'] = context['user_comments'].count()
+        context['followers_count'] = profile_user.followers.count()
+        context['following_count'] = profile_user.following.count()
+        
+        # Перевіряємо, чи поточний юзер підписаний
+        context['is_following'] = False
+        if request_user.is_authenticated:
+            context['is_following'] = profile_user.followers.filter(id=request_user.id).exists()
+            
+        return context
+    # --- КІНЕЦЬ ОНОВЛЕННЯ ---
 
 class ProfileUpdateView(LoginRequiredMixin, UpdateView):
     model = Profile
@@ -171,3 +207,30 @@ class UserSearchView(LoginRequiredMixin, UserPassesTestMixin, ListView):
         context = super().get_context_data(**kwargs)
         context['query'] = self.request.GET.get('q', '')
         return context
+
+# --- ДОДАНО НОВУ VIEW-ФУНКЦІЮ ---
+@login_required
+def toggle_follow(request, username):
+    if request.method != 'POST' or request.headers.get('x-requested-with') != 'XMLHttpRequest':
+        return HttpResponseBadRequest("Invalid request")
+
+    user_to_follow = get_object_or_404(CustomUser, username=username)
+    request_user = request.user
+
+    if user_to_follow == request_user:
+        return JsonResponse({'error': 'Ви не можете підписатись на себе'}, status=400)
+
+    is_following = False
+    if user_to_follow.followers.filter(id=request_user.id).exists():
+        # Вже підписаний, відписуємось
+        user_to_follow.followers.remove(request_user)
+        is_following = False
+    else:
+        # Не підписаний, підписуємось
+        user_to_follow.followers.add(request_user)
+        is_following = True
+
+    return JsonResponse({
+        'is_following': is_following,
+        'followers_count': user_to_follow.followers.count()
+    })

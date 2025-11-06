@@ -39,6 +39,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'users',
     'core',
+    'core.templatetags', # <-- ДОДАЙТЕ ДЛЯ ФІЛЬТРІВ ВІДЕО
 ]
 
 MIDDLEWARE = [
@@ -64,6 +65,10 @@ TEMPLATES = [
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
             ],
+            # --- ДОДАНО ДЛЯ ФІЛЬТРІВ ВІДЕО ---
+            'libraries': {
+                'core_filters': 'core.templatetags.core_filters',
+            }
         },
     },
 ]
@@ -132,3 +137,7 @@ MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 AUTH_USER_MODEL = 'users.CustomUser'
+
+# --- ДОДАНО ДЛЯ РОЗСИЛКИ В КОНСОЛЬ ---
+EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+DEFAULT_FROM_EMAIL = 'noreply@myblog.com'

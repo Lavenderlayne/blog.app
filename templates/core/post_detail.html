@@ -1,10 +1,8 @@
 {% extends 'base.html' %}
-
-{% block title %}{{ post.title }} - Мій Блог{% endblock %}
+{% load core_filters %} {% block title %}{{ post.title }} - Мій Блог{% endblock %}
 
 {% block content %}
-<div class="row">
-    <div class="col-md-8">
+<div class="row g-4"> <div class="col-md-8">
         <div class="card bg-black border-secondary mb-4">
             <div class="card-body">
                 <div class="d-flex">
@@ -22,16 +20,16 @@
                     
                     <div class="flex-grow-1">
                         <div class="d-flex align-items-center mb-2">
-                            <small class="text-muted">
+                            <small class="text-body-secondary">
                                 Опубліковано в 
                                 <a href="{% url 'core:category_detail' post.category.slug %}" class="text-warning text-decoration-none">
                                     /r/{{ post.category.name }}
                                 </a>
                             </small>
-                            <span class="text-muted mx-1">•</span>
-                            <small class="text-muted">{{ post.created_at|date:"d.m.Y" }}</small>
-                            <span class="text-muted mx-1">•</span>
-                            <small class="text-muted">Автор: 
+                            <span class="text-body-secondary mx-1">•</span>
+                            <small class="text-body-secondary">{{ post.created_at|date:"d.m.Y" }}</small>
+                            <span class="text-body-secondary mx-1">•</span>
+                            <small class="text-body-secondary">Автор: 
                                 <a href="{% url 'users:profile_detail' post.author.username %}" class="text-warning text-decoration-none">
                                     {{ post.author.username }}
                                 </a>
@@ -43,6 +41,18 @@
                         {% if post.featured_image %}
                         <div class="mb-4">
                             <img src="{{ post.featured_image.url }}" alt="{{ post.title }}" class="img-fluid rounded">
+                        </div>
+                        {% endif %}
+
+                        {% if post.video_url %}
+                        <div class="mb-4">
+                            <div class="ratio ratio-16x9">
+                                <iframe src="{{ post.video_url|get_embed_url }}" 
+                                        title="Відео для посту" 
+                                        allowfullscreen
+                                        class="rounded">
+                                </iframe>
+                            </div>
                         </div>
                         {% endif %}
                         
@@ -58,7 +68,7 @@
                         </div>
                         {% endif %}
                         
-                        <div class="d-flex justify-content-between align-items-center text-muted small mb-3">
+                        <div class="d-flex justify-content-between align-items-center text-body-secondary small mb-3">
                             <div>
                                 <i class="bi bi-eye"></i> {{ post.view_count }} переглядів
                                 <span class="mx-2">•</span>
@@ -123,8 +133,8 @@
                     {% include 'core/_comment.html' with comment=comment post=post %}
                 {% empty %}
                 <div class="text-center py-4">
-                    <i class="bi bi-chat display-4 text-muted mb-3"></i>
-                    <p class="text-muted">Коментарів ще немає. Будьте першим!</p>
+                    <i class="bi bi-chat display-4 text-body-secondary mb-3"></i>
+                    <p class="text-body-secondary">Коментарів ще немає. Будьте першим!</p>
                 </div>
                 {% endfor %}
 
@@ -133,65 +143,69 @@
     </div>
     
     <div class="col-md-4">
-        <div class="card bg-black border-secondary mb-4">
-            <div class="card-body">
-                <h5 class="text-light mb-3">
-                    <i class="bi bi-reddit text-warning"></i> Про спільноту
-                </h5>
-                <p class="text-light small mb-3">{{ post.category.description|default:"Опис відсутній" }}</p>
-                <div class="d-grid gap-2">
-                    <a href="{% url 'core:category_detail' post.category.slug %}" class="btn btn-warning btn-sm">
-                        <i class="bi bi-eye"></i> Перейти до спільноти
-                    </a>
-                </div>
-            </div>
-        </div>
-        
-        {% if related_posts %}
-        <div class="card bg-black border-secondary mb-4">
-            <div class="card-body">
-                <h5 class="text-light mb-3">
-                    <i class="bi bi-collection text-warning"></i> Схожі пости
-                </h5>
-                {% for related_post in related_posts %}
-                <div class="mb-3 pb-2 {% if not forloop.last %}border-bottom border-secondary{% endif %}">
-                    <h6 class="mb-1">
-                        <a href="{% url 'core:post_detail' related_post.slug %}" class="text-light text-decoration-none">
-                            {{ related_post.title }}
+        <div style="position: sticky; top: 1.5rem;">
+            {% include 'core/_advertisement.html' %}
+
+            <div class="card bg-black border-secondary mb-4">
+                <div class="card-body">
+                    <h5 class="text-light mb-3">
+                        <i class="bi bi-reddit text-warning"></i> Про спільноту
+                    </h5>
+                    <p class="text-light small mb-3">{{ post.category.description|default:"Опис відсутній" }}</p>
+                    <div class="d-grid gap-2">
+                        <a href="{% url 'core:category_detail' post.category.slug %}" class="btn btn-warning btn-sm">
+                            <i class="bi bi-eye"></i> Перейти до спільноти
                         </a>
-                    </h6>
-                    <div class="d-flex justify-content-between align-items-center">
-                        <small class="text-muted">{{ related_post.created_at|date:"d.m.Y" }}</small>
-                        <small class="text-muted">
-                            <i class="bi bi-eye"></i> {{ related_post.view_count }}
-                        </small>
                     </div>
                 </div>
-                {% endfor %}
             </div>
-        </div>
-        {% endif %}
-        
-        <div class="card bg-black border-secondary">
-            <div class="card-body">
-                <h5 class="text-light mb-3">
-                    <i class="bi bi-graph-up text-warning"></i> Статистика
-                </h5>
-                <div class="d-flex justify-content-between text-light small mb-2">
-                    <span>Переглядів:</span>
-                    <strong>{{ post.view_count }}</strong>
+            
+            {% if related_posts %}
+            <div class="card bg-black border-secondary mb-4">
+                <div class="card-body">
+                    <h5 class="text-light mb-3">
+                        <i class="bi bi-collection text-warning"></i> Схожі пости
+                    </h5>
+                    {% for related_post in related_posts %}
+                    <div class="mb-3 pb-2 {% if not forloop.last %}border-bottom border-secondary{% endif %}">
+                        <h6 class="mb-1">
+                            <a href="{% url 'core:post_detail' related_post.slug %}" class="text-light text-decoration-none">
+                                {{ related_post.title }}
+                            </a>
+                        </h6>
+                        <div class="d-flex justify-content-between align-items-center">
+                            <small class="text-body-secondary">{{ related_post.created_at|date:"d.m.Y" }}</small>
+                            <small class="text-body-secondary">
+                                <i class="bi bi-eye"></i> {{ related_post.view_count }}
+                            </small>
+                        </div>
+                    </div>
+                    {% endfor %}
                 </div>
-                <div class="d-flex justify-content-between text-light small mb-2">
-                    <span>Рахунок:</span>
-                    <strong>{{ post.vote_score }}</strong>
-                </div>
-                <div class="d-flex justify-content-between text-light small mb-2">
-                    <span>Поділились:</span>
-                    <strong>{{ post.share_count }}</strong>
-                </div>
-                <div class="d-flex justify-content-between text-light small">
-                    <span>Час читання:</span>
-                    <strong>{{ post.reading_time }} хв</strong>
+            </div>
+            {% endif %}
+            
+            <div class="card bg-black border-secondary">
+                <div class="card-body">
+                    <h5 class="text-light mb-3">
+                        <i class="bi bi-graph-up text-warning"></i> Статистика
+                    </h5>
+                    <div class="d-flex justify-content-between text-light small mb-2">
+                        <span>Переглядів:</span>
+                        <strong>{{ post.view_count }}</strong>
+                    </div>
+                    <div class="d-flex justify-content-between text-light small mb-2">
+                        <span>Рахунок:</span>
+                        <strong>{{ post.vote_score }}</strong>
+                    </div>
+                    <div class="d-flex justify-content-between text-light small mb-2">
+                        <span>Поділились:</span>
+                        <strong>{{ post.share_count }}</strong>
+                    </div>
+                    <div class="d-flex justify-content-between text-light small">
+                        <span>Час читання:</span>
+                        <strong>{{ post.reading_time }} хв</strong>
+                    </div>
                 </div>
             </div>
         </div>

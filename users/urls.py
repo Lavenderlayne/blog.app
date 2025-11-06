@@ -19,6 +19,7 @@ urlpatterns = [
     path('profile/edit/', views.ProfileUpdateView.as_view(), name='profile_update'),
     path('user/edit/', views.UserUpdateView.as_view(), name='user_update'),
     path('profile/<str:username>/', views.ProfileDetailView.as_view(), name='profile_detail'),
+    path('profile/<str:username>/follow/', views.toggle_follow, name='toggle_follow'),
     
     # Адмін-функції
     path('', views.UserListView.as_view(), name='user_list'),

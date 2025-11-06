@@ -1,83 +1,108 @@
 {% extends 'base.html' %}
 
-{% block title %}Вхід - Мій Блог{% endblock %}
+{% block title %}Реєстрація - Мій Блог{% endblock %}
 
 {% block content %}
-<div class="row justify-content-center">
-    <div class="col-md-6">
-        <!-- Заголовок -->
-        <div class="card bg-black border-secondary mb-4">
-            <div class="card-body text-center">
-                <h4 class="text-light mb-0">
-                    <i class="bi bi-box-arrow-in-right text-warning"></i> Вхід до акаунту
-                </h4>
+<form method="post">
+    {% csrf_token %}
+    <div class="row g-4">
+        
+        <div class="col-lg-8">
+            <div class="card bg-black border-secondary">
+                <div class="card-header bg-dark border-secondary">
+                    <h4 class="text-light mb-0">
+                        <i class="bi bi-person-plus text-warning"></i> Створення акаунту
+                    </h4>
+                </div>
+                <div class="card-body p-4">
+                    {% if form.non_field_errors %}
+                    <div class="alert alert-dark border-warning mb-4">
+                        <i class="bi bi-exclamation-triangle text-warning"></i>
+                        {{ form.non_field_errors }}
+                    </div>
+                    {% endif %}
+
+                    <div class="mb-4">
+                        <label for="{{ form.username.id_for_label }}" class="form-label text-light fs-5">Ім'я користувача *</label>
+                        {{ form.username }}
+                        {% if form.username.errors %}
+                            <div class="text-warning small mt-1">{{ form.username.errors }}</div>
+                        {% else %}
+                            <div class="form-text text-muted">Оберіть унікальне ім'я (логін)</div>
+                        {% endif %}
+                    </div>
+
+                    <div class="mb-4">
+                        <label for="{{ form.email.id_for_label }}" class="form-label text-light fs-5">Email *</label>
+                        {{ form.email }}
+                        {% if form.email.errors %}
+                            <div class="text-warning small mt-1">{{ form.email.errors }}</div>
+                        {% else %}
+                             <div class="form-text text-muted">Введіть дійсну email адресу</div>
+                        {% endif %}
+                    </div>
+
+                    <hr class="border-secondary my-4">
+
+                    <div class="mb-4">
+                        <label for="{{ form.password1.id_for_label }}" class="form-label text-light fs-5">Пароль *</label>
+                        {{ form.password1 }}
+                        {% if form.password1.errors %}
+                            <div class="text-warning small mt-1">{{ form.password1.errors }}</div>
+                        {% else %}
+                            <div class="form-text text-muted">
+                                Пароль має містити щонайменше 8 символів і не бути надто простим.
+                            </div>
+                        {% endif %}
+                    </div>
+
+                    <div class="mb-4">
+                        <label for="{{ form.password2.id_for_label }}" class="form-label text-light fs-5">Підтвердження пароля *</label>
+                        {{ form.password2 }}
+                        {% if form.password2.errors %}
+                            <div class="text-warning small mt-1">{{ form.password2.errors }}</div>
+                        {% else %}
+                            <div class="form-text text-muted">Введіть той самий пароль ще раз</div>
+                        {% endif %}
+                    </div>
+                </div>
             </div>
         </div>
 
-        <!-- Форма входу -->
-        <div class="card bg-black border-secondary">
-            <div class="card-body">
-                {% if form.errors %}
-                <div class="alert alert-dark border-warning mb-4">
-                    <i class="bi bi-exclamation-triangle text-warning"></i>
-                    Невірне ім'я користувача або пароль. Спробуйте ще раз.
+        <div class="col-lg-4">
+            <div style="position: sticky; top: 1.5rem;">
+                
+                <div class="card bg-black border-secondary mb-4">
+                    <div class="card-header bg-dark border-secondary">
+                        <h5 class="mb-0 text-light">
+                            <i class="bi bi-check-circle text-warning"></i> Приєднатись
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <p class="text-muted small">
+                            Реєструючись, ви погоджуєтесь з нашими правилами та умовами.
+                        </p>
+                        <div class="d-grid gap-2">
+                            <button type="submit" class="btn btn-warning btn-lg">
+                                <i class="bi bi-person-plus"></i> Зареєструватися
+                            </button>
+                        </div>
+                    </div>
                 </div>
-                {% endif %}
-
-                <form method="post">
-                    {% csrf_token %}
-                    
-                    <!-- Ім'я користувача -->
-                    <div class="mb-4">
-                        <label class="form-label text-light">Ім'я користувача</label>
-                        <input type="text" name="username" class="form-control bg-dark border-secondary text-light" 
-                               placeholder="Введіть ваше ім'я користувача" required autofocus>
-                    </div>
-
-                    <!-- Пароль -->
-                    <div class="mb-4">
-                        <label class="form-label text-light">Пароль</label>
-                        <input type="password" name="password" class="form-control bg-dark border-secondary text-light" 
-                               placeholder="Введіть ваш пароль" required>
-                    </div>
-
-                    <!-- Запам'ятати мене -->
-                    <div class="form-check mb-4">
-                        <input class="form-check-input" type="checkbox" name="remember_me" id="remember_me">
-                        <label class="form-check-label text-light" for="remember_me">
-                            Запам'ятати мене
-                        </label>
-                    </div>
-
-                    <!-- Кнопка входу -->
-                    <div class="d-grid mb-4">
-                        <button type="submit" class="btn btn-warning btn-lg">
+                
+                <div class="card bg-black border-secondary">
+                    <div class="card-body text-center">
+                        <p class="text-light mb-2">Вже маєте акаунт?</p>
+                        <a href="{% url 'users:login' %}" class="btn btn-outline-light">
                             <i class="bi bi-box-arrow-in-right"></i> Увійти
-                        </button>
-                    </div>
-
-                    <!-- Додаткові посилання -->
-                    <div class="text-center">
-                        <p class="text-muted mb-2">Ще не маєте акаунту?</p>
-                        <a href="{% url 'register' %}" class="btn btn-outline-light btn-sm">
-                            <i class="bi bi-person-plus"></i> Зареєструватися
                         </a>
                     </div>
-                </form>
-            </div>
-        </div>
+                </div>
 
-        <!-- Додаткова інформація -->
-        <div class="card bg-black border-secondary mt-4">
-            <div class="card-body text-center">
-                <p class="text-muted small mb-0">
-                    <i class="bi bi-info-circle"></i>
-                    Якщо ви забули пароль, зверніться до адміністратора
-                </p>
             </div>
         </div>
     </div>
-</div>
+</form>
 {% endblock %}
 
 {% block extra_js %}
@@ -86,22 +111,26 @@ document.addEventListener('DOMContentLoaded', function() {
     // Додавання темних класів для всіх полів вводу
     const formControls = document.querySelectorAll('input');
     formControls.forEach(control => {
-        control.classList.add('bg-dark', 'border-secondary', 'text-light');
+        control.classList.add('bg-dark', 'border-secondary', 'text-light', 'form-control-lg');
     });
 });
 </script>
 
 <style>
+.form-control-lg {
+    font-size: 1.1rem;
+    padding: 0.75rem 1rem;
+}
+
 .form-control:focus {
     background-color: #1a1a1b !important;
-    border-color: #ff4500 !important;
-    box-shadow: 0 0 0 0.2rem rgba(255, 69, 0, 0.25) !important;
+    border-color: #ffc107 !important;
+    box-shadow: 0 0 0 0.2rem rgba(255, 193, 7, 0.25) !important;
     color: #ffffff !important;
 }
 
-.form-check-input:checked {
-    background-color: #ff4500;
-    border-color: #ff4500;
+.form-control.border-warning {
+    border-color: #ffc107 !important;
 }
 </style>
 {% endblock %}
