@@ -31,7 +31,7 @@ class ProfileUpdateForm(forms.ModelForm):
     class Meta:
         model = Profile
         fields = ['bio', 'avatar', 'phone', 'website', 'location', 'birth_date', 
-                 'social_facebook', 'social_x', 'social_instagram',
+                 'social_x', 'social_telegram', 'social_discord',
                  'email_notifications', 'email_subscriptions']
         widgets = {
             'bio': forms.Textarea(attrs={'class': 'form-control', 'rows': 4}),
@@ -39,9 +39,10 @@ class ProfileUpdateForm(forms.ModelForm):
             'website': forms.URLInput(attrs={'class': 'form-control'}),
             'location': forms.TextInput(attrs={'class': 'form-control'}),
             'birth_date': forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}),
-            'social_facebook': forms.URLInput(attrs={'class': 'form-control'}),
+            
             'social_x': forms.URLInput(attrs={'class': 'form-control'}),
-            'social_instagram': forms.URLInput(attrs={'class': 'form-control'}),
+            'social_telegram': forms.TextInput(attrs={'class': 'form-control'}),
+            'social_discord': forms.TextInput(attrs={'class': 'form-control'}),
         }
 
 class UserRoleForm(forms.ModelForm):

@@ -108,14 +108,6 @@
                         </div>
                         <div class="card-body">
                             <div class="mb-3">
-                                <label class="form-label text-light">Facebook</label>
-                                <input type="url" name="social_facebook" class="form-control bg-dark border-secondary text-light" 
-                                       value="{{ form.social_facebook.value|default:'' }}" placeholder="https://facebook.com/username">
-                                {% if form.social_facebook.errors %}
-                                    <div class="text-warning small mt-1">{{ form.social_facebook.errors }}</div>
-                                {% endif %}
-                            </div>
-                            <div class="mb-3">
                                 <label class="form-label text-light">X (Twitter)</label>
                                 <input type="url" name="social_x" class="form-control bg-dark border-secondary text-light" 
                                        value="{{ form.social_x.value|default:'' }}" placeholder="https://x.com/username">
@@ -124,11 +116,19 @@
                                 {% endif %}
                             </div>
                             <div class="mb-3">
-                                <label class="form-label text-light">Instagram</label>
-                                <input type="url" name="social_instagram" class="form-control bg-dark border-secondary text-light" 
-                                       value="{{ form.social_instagram.value|default:'' }}" placeholder="https://instagram.com/username">
-                                {% if form.social_instagram.errors %}
-                                    <div class="text-warning small mt-1">{{ form.social_instagram.errors }}</div>
+                                <label class="form-label text-light">Telegram</label>
+                                <input type="text" name="social_telegram" class="form-control bg-dark border-secondary text-light" 
+                                       value="{{ form.social_telegram.value|default:'' }}" placeholder="@username">
+                                {% if form.social_telegram.errors %}
+                                    <div class="text-warning small mt-1">{{ form.social_telegram.errors }}</div>
+                                {% endif %}
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label text-light">Discord</label>
+                                <input type="text" name="social_discord" class="form-control bg-dark border-secondary text-light" 
+                                       value="{{ form.social_discord.value|default:'' }}" placeholder="username#1234">
+                                {% if form.social_discord.errors %}
+                                    <div class="text-warning small mt-1">{{ form.social_discord.errors }}</div>
                                 {% endif %}
                             </div>
                         </div>

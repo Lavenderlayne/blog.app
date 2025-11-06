@@ -5,7 +5,6 @@
 {% block content %}
 <div class="row">
     <div class="col-md-8">
-        <!-- Заголовок категорії -->
         <div class="card bg-black border-secondary mb-4">
             <div class="card-body">
                 <div class="d-flex justify-content-between align-items-center">
@@ -27,23 +26,22 @@
             </div>
         </div>
 
-        <!-- Список постів категорії -->
         {% for post in posts %}
         <div class="card bg-black border-secondary mb-3">
             <div class="card-body">
                 <div class="d-flex">
-                    <!-- Блок голосування -->
                     <div class="d-flex flex-column align-items-center me-3">
-                        <button class="btn btn-sm btn-outline-success p-1 mb-1">
+                        <button class="btn btn-sm {% if post.user_vote == 1 %}btn-success{% else %}btn-outline-success{% endif %} p-1 mb-1 post-vote-btn" 
+                                data-slug="{{ post.slug }}" data-direction="up">
                             <i class="bi bi-arrow-up"></i>
                         </button>
-                        <span class="text-light fw-bold">{{ post.like_count|default:0 }}</span>
-                        <button class="btn btn-sm btn-outline-danger p-1 mt-1">
+                        <span class="text-light fw-bold" id="vote-score-{{ post.slug }}">{{ post.vote_score|default:0 }}</span>
+                        <button class="btn btn-sm {% if post.user_vote == -1 %}btn-danger{% else %}btn-outline-danger{% endif %} p-1 mt-1 post-vote-btn"
+                                data-slug="{{ post.slug }}" data-direction="down">
                             <i class="bi bi-arrow-down"></i>
                         </button>
                     </div>
                     
-                    <!-- Контент поста -->
                     <div class="flex-grow-1">
                         {% if post.featured_image %}
                         <img src="{{ post.featured_image.url }}" class="img-fluid rounded mb-2" alt="{{ post.title }}" style="max-height: 300px; width: 100%; object-fit: cover;">
@@ -70,7 +68,6 @@
                             {{ post.excerpt|default:post.content|truncatewords:40 }}
                         </p>
                         
-                        <!-- Теги та статистика -->
                         <div class="d-flex justify-content-between align-items-center">
                             <div>
                                 {% for tag in post.tags.all %}
@@ -84,15 +81,15 @@
                             </div>
                         </div>
                         
-                        <!-- Кнопки дій -->
                         <div class="d-flex mt-3">
                             <a href="/posts/{{ post.slug }}/" class="btn btn-outline-light btn-sm me-2">
                                 <i class="bi bi-chat"></i> Коментувати
                             </a>
-                            <button class="btn btn-outline-light btn-sm me-2">
+                            <button class="btn btn-outline-light btn-sm me-2 post-share-btn" data-slug="{{ post.slug }}">
                                 <i class="bi bi-share"></i> Поділитися
                             </button>
-                            <button class="btn btn-outline-light btn-sm">
+                            <button class="btn {% if post.is_bookmarked %}btn-success{% else %}btn-outline-light{% endif %} btn-sm post-save-btn" 
+                                    data-slug="{{ post.slug }}">
                                 <i class="bi bi-bookmark"></i> Зберегти
                             </button>
                         </div>
@@ -101,7 +98,6 @@
             </div>
         </div>
         {% empty %}
-        <!-- Повідомлення про відсутність постів -->
         <div class="card bg-black border-secondary">
             <div class="card-body text-center py-5">
                 <i class="bi bi-inbox display-4 text-muted mb-3"></i>
@@ -116,7 +112,6 @@
         </div>
         {% endfor %}
 
-        <!-- Пагінація у стилі Reddit -->
         {% if posts.paginator.num_pages > 1 %}
         <nav aria-label="Page navigation">
             <ul class="pagination justify-content-center">
@@ -152,9 +147,7 @@
         {% endif %}
     </div>
 
-    <!-- Бічна панель -->
     <div class="col-md-4">
-        <!-- Інформація про категорію -->
         <div class="card bg-black border-secondary mb-3">
             <div class="card-body">
                 <h5 class="text-light mb-3">
@@ -195,7 +188,6 @@
             </div>
         </div>
 
-        <!-- Інші категорії -->
         <div class="card bg-black border-secondary mb-3">
             <div class="card-body">
                 <h5 class="text-light mb-3">
@@ -225,7 +217,6 @@
             </div>
         </div>
 
-        <!-- Статистика -->
         <div class="card bg-black border-secondary">
             <div class="card-body">
                 <h5 class="text-light mb-3">

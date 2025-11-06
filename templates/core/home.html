@@ -18,11 +18,13 @@
             <div class="card-body">
                 <div class="d-flex">
                     <div class="d-flex flex-column align-items-center me-3">
-                        <button class="btn btn-sm btn-outline-success p-1 mb-1">
+                        <button class="btn btn-sm {% if post.user_vote == 1 %}btn-success{% else %}btn-outline-success{% endif %} p-1 mb-1 post-vote-btn" 
+                                data-slug="{{ post.slug }}" data-direction="up">
                             <i class="bi bi-arrow-up"></i>
                         </button>
-                        <span class="text-light fw-bold">{{ post.like_count|default:0 }}</span>
-                        <button class="btn btn-sm btn-outline-danger p-1 mt-1">
+                        <span class="text-light fw-bold" id="vote-score-{{ post.slug }}">{{ post.vote_score|default:0 }}</span>
+                        <button class="btn btn-sm {% if post.user_vote == -1 %}btn-danger{% else %}btn-outline-danger{% endif %} p-1 mt-1 post-vote-btn" 
+                                data-slug="{{ post.slug }}" data-direction="down">
                             <i class="bi bi-arrow-down"></i>
                         </button>
                     </div>
@@ -66,10 +68,11 @@
                                 <a href="{% url 'core:post_detail' post.slug %}" class="btn btn-outline-light btn-sm me-1">
                                     <i class="bi bi-chat"></i>
                                 </a>
-                                <button class="btn btn-outline-light btn-sm me-1">
+                                <button class="btn btn-outline-light btn-sm me-1 post-share-btn" data-slug="{{ post.slug }}">
                                     <i class="bi bi-share"></i>
                                 </button>
-                                <button class="btn {% if post.is_bookmarked %}btn-success{% else %}btn-outline-light{% endif %} btn-sm">
+                                <button class="btn {% if post.is_bookmarked %}btn-success{% else %}btn-outline-light{% endif %} btn-sm post-save-btn" 
+                                        data-slug="{{ post.slug }}">
                                     <i class="bi {% if post.is_bookmarked %}bi-bookmark-fill{% else %}bi-bookmark{% endif %}"></i>
                                 </button>
                             </div>

@@ -46,9 +46,10 @@ class Profile(models.Model):
     birth_date = models.DateField(null=True, blank=True, verbose_name='Дата народження')
 
     # Соціальні мережі
-    social_facebook = models.URLField(blank=True, verbose_name='Facebook')
+    # ... (інші поля моделі Profile) ...
     social_x = models.URLField(blank=True, verbose_name='X')
-    social_instagram = models.URLField(blank=True, verbose_name='Instagram')
+    social_telegram = models.CharField(max_length=100, blank=True, verbose_name='Telegram')
+    social_discord = models.CharField(max_length=100, blank=True, verbose_name='Discord')
 
     # Налаштування
     email_notifications = models.BooleanField(default=True, verbose_name='Email сповіщення')

@@ -18,7 +18,7 @@ urlpatterns = [
     path('posts/<slug:slug>/comment/', views.add_comment, name='add_comment'),
     path('comment/<int:pk>/delete/', views.delete_comment, name='delete_comment'),
     
-    # --- ДОДАНО: URL для лайка коментаря ---
+    # --- URL для лайка коментаря (залишається) ---
     path('comment/<int:pk>/like/', views.toggle_comment_like, name='toggle_comment_like'),
     
     path('categories/', views.CategoryListView.as_view(), name='category_list'),
@@ -30,7 +30,9 @@ urlpatterns = [
     path('tags/<slug:slug>/', views.TagDetailView.as_view(), name='tag_detail'),
     path('search/', views.search, name='search'),
     path('subscribe/', views.subscribe, name='subscribe'),
-    path('like/<slug:slug>/', views.toggle_like, name='toggle_like'),
+    
+    # --- ОНОВЛЕНО: 'toggle_like' замінено на 'post_vote' з напрямком ---
+    path('vote/<slug:slug>/<str:direction>/', views.post_vote, name='post_vote'),
     
     path('bookmark/<slug:slug>/', views.toggle_bookmark, name='toggle_bookmark'),
     

@@ -10,7 +10,7 @@
     
     {% block extra_css %}{% endblock %}
 </head>
-<body class="bg-dark text-light" data-bs-theme="dark">
+<body class="bg-dark text-light" data_bs_theme="dark">
     <nav class="navbar navbar-expand-lg navbar-dark bg-black border-bottom border-secondary">
         <div class="container">
             <a class="navbar-brand fw-bold text-warning" href="{% url 'core:home' %}">
@@ -129,144 +129,15 @@
 
     <main class="container my-4">
         {% block content %}
-        <div class="row">
-            <div class="col-md-8 mx-auto">
-                <div class="card bg-black border-secondary mb-3">
-                    <div class="card-body">
-                        <div class="d-flex">
-                            <div class="d-flex flex-column align-items-center me-3">
-                                <button class="btn btn-sm btn-outline-success p-1 mb-1">
-                                    <i class="bi bi-arrow-up"></i>
-                                </button>
-                                <span class="text-light fw-bold">42</span>
-                                <button class="btn btn-sm btn-outline-danger p-1 mt-1">
-                                    <i class="bi bi-arrow-down"></i>
-                                </button>
-                            </div>
-                            
-                            <div class="flex-grow-1">
-                                <div class="d-flex align-items-center mb-2">
-                                    <small class="text-muted">Опубліковано у <a href="#" class="text-warning">/r/категорія</a></small>
-                                    <span class="text-muted mx-1">•</span>
-                                    <small class="text-muted">5 годин тому</small>
-                                    <span class="text-muted mx-1">•</span>
-                                    <small class="text-muted">Автор: user123</small>
-                                </div>
-                                
-                                <h5 class="card-title text-light">Заголовок цікавого поста</h5>
-                                <p class="card-text text-light">Тут буде контент поста. Це може бути текст, зображення або посилання на зовнішній ресурс.</p>
-                                
-                                <div class="d-flex mt-3">
-                                    <button class="btn btn-sm btn-outline-secondary me-2">
-                                        <i class="bi bi-chat"></i> 12 коментарів
-                                    </button>
-                                    <button class="btn btn-sm btn-outline-secondary me-2">
-                                        <i class="bi bi-share"></i> Поділитися
-                                    </button>
-                                    <button class="btn btn-sm btn-outline-secondary">
-                                        <i class="bi bi-bookmark"></i> Зберегти
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                
-                <div class="card bg-black border-secondary mb-3">
-                    <div class="card-body">
-                        <div class="d-flex">
-                            <div class="d-flex flex-column align-items-center me-3">
-                                <button class="btn btn-sm btn-outline-success p-1 mb-1">
-                                    <i class="bi bi-arrow-up"></i>
-                                </button>
-                                <span class="text-light fw-bold">128</span>
-                                <button class="btn btn-sm btn-outline-danger p-1 mt-1">
-                                    <i class="bi bi-arrow-down"></i>
-                                </button>
-                            </div>
-                            
-                            <div class="flex-grow-1">
-                                <div class="d-flex align-items-center mb-2">
-                                    <small class="text-muted">Опубліковано у <a href="#" class="text-warning">/r/новини</a></small>
-                                    <span class="text-muted mx-1">•</span>
-                                    <small class="text-muted">1 день тому</small>
-                                    <span class="text-muted mx-1">•</span>
-                                    <small class="text-muted">Автор: news_editor</small>
-                                </div>
-                                
-                                <h5 class="card-title text-light">Важлива новина для спільноти</h5>
-                                <p class="card-text text-light">Короткий опис новини, яка може зацікавити учасників спільноти. Тут може бути довший текст з деталями.</p>
-                                
-                                <div class="d-flex mt-3">
-                                    <button class="btn btn-sm btn-outline-secondary me-2">
-                                        <i class="bi bi-chat"></i> 47 коментарів
-                                    </button>
-                                    <button class="btn btn-sm btn-outline-secondary me-2">
-                                        <i class="bi bi-share"></i> Поділитися
-                                    </button>
-                                    <button class="btn btn-sm btn-outline-secondary">
-                                        <i class="bi bi-bookmark"></i> Зберегти
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            
-            <div class="col-md-4">
-                <div class="card bg-black border-secondary mb-3">
-                    <div class="card-body">
-                        <h5 class="card-title text-light">Про спільноту</h5>
-                        <p class="card-text text-light">Ласкаво просимо до нашої спільноти! Тут ми ділимося цікавими думками, новинами та досвідом.</p>
-                        <div class="d-grid gap-2">
-                            <a href="{% url 'core:post_create' %}" class="btn btn-warning">
-                                <i class="bi bi-plus-circle"></i> Створити пост
-                            </a>
-                            <button class="btn btn-outline-light">
-                                <i class="bi bi-bell"></i> Слідкувати
-                            </button>
-                        </div>
-                    </div>
-                </div>
-                
-                <div class="card bg-black border-secondary">
-                    <div class="card-body">
-                        <h5 class="card-title text-light">Популярні категорії</h5>
-                        <ul class="list-group list-group-flush bg-black">
-                            <li class="list-group-item bg-black text-light border-secondary">
-                                <a href="#" class="text-light text-decoration-none">/r/новини</a>
-                                <span class="badge bg-secondary float-end">125</span>
-                            </li>
-                            <li class="list-group-item bg-black text-light border-secondary">
-                                <a href="#" class="text-light text-decoration-none">/r/технології</a>
-                                <span class="badge bg-secondary float-end">98</span>
-                            </li>
-                            <li class="list-group-item bg-black text-light border-secondary">
-                                <a href="#" class="text-light text-decoration-none">/r/мистецтво</a>
-                                <span class="badge bg-secondary float-end">76</span>
-                            </li>
-                            <li class="list-group-item bg-black text-light border-secondary">
-                                <a href="#" class="text-light text-decoration-none">/r/наука</a>
-                                <span class="badge bg-secondary float-end">64</span>
-                            </li>
-                            <li class="list-group-item bg-black text-light border-secondary">
-                                <a href="#" class="text-light text-decoration-none">/r/подорожі</a>
-                                <span class="badge bg-secondary float-end">52</span>
-                            </li>
-                        </ul>
-                    </div>
-                </div>
-            </div>
-        </div>
         {% endblock %}
     </main>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     
     {% block extra_js %}{% endblock %}
+    
 <script>
-// --- ОНОВЛЕНО: Функція для отримання CSRF токена ---
+// --- Функція для отримання CSRF токена ---
 function getCookie(name) {
     let cookieValue = null;
     if (document.cookie && document.cookie !== '') {
@@ -283,32 +154,25 @@ function getCookie(name) {
 }
 const csrftoken = getCookie('csrftoken');
 
-// Функція для поділитися
+
+// --- Функція для "Поділитися" (без змін) ---
 function sharePost(slug) {
     const url = `${window.location.origin}/posts/${slug}/`;
-    
     if (navigator.share) {
-        navigator.share({
-            title: 'Цікавий пост',
-            text: 'Переглянь цей пост',
-            url: url
-        });
+        navigator.share({ title: 'Цікавий пост', text: 'Переглянь цей пост', url: url });
     } else {
-        navigator.clipboard.writeText(url).then(() => {
-        });
+        navigator.clipboard.writeText(url);
     }
 }
 
-// --- ОНОВЛЕНО: Функція для збереження / видалення через Fetch ---
+// --- Функція для "Зберегти" (Закладки) (без змін) ---
 function savePost(slug, button) {
-    // Перевіряємо, чи користувач авторизований
     {% if not user.is_authenticated %}
         window.location.href = "{% url 'users:login' %}?next=" + window.location.pathname;
         return;
     {% endif %}
 
-    const url = `/bookmark/${slug}/`; // Використовуємо новий URL
-    
+    const url = `/bookmark/${slug}/`;
     fetch(url, {
         method: 'POST',
         headers: {
@@ -320,70 +184,107 @@ function savePost(slug, button) {
     .then(response => response.json())
     .then(data => {
         if (data.bookmarked) {
-            // Додано до закладок
             button.innerHTML = '<i class="bi bi-bookmark-fill"></i>';
             button.classList.remove('btn-outline-light');
             button.classList.add('btn-success');
         } else {
-            // Видалено з закладок
             button.innerHTML = '<i class="bi bi-bookmark"></i>';
             button.classList.remove('btn-success');
             button.classList.add('btn-outline-light');
         }
     })
-    .catch(error => {
-        console.error('Error toggling bookmark:', error);
-    });
+    .catch(error => console.error('Error toggling bookmark:', error));
 }
 
-// Додаємо обробники подій після завантаження сторінки
+
+// --- !!! ОНОВЛЕНА ФУНКЦІЯ: Обробка голосування (вгору/вниз) !!! ---
+function handlePostVote(slug, direction, button) {
+    {% if not user.is_authenticated %}
+        window.location.href = "{% url 'users:login' %}?next=" + window.location.pathname;
+        return;
+    {% endif %}
+
+    const url = `/vote/${slug}/${direction}/`; // Новий URL
+
+    fetch(url, {
+        method: 'POST',
+        headers: {
+            'X-Requested-With': 'XMLHttpRequest',
+            'X-CSRFToken': csrftoken,
+            'Content-Type': 'application/json'
+        },
+    })
+    .then(response => response.json())
+    .then(data => {
+        // Оновлюємо лічильник
+        const countSpan = document.getElementById(`vote-score-${slug}`);
+        if (countSpan) {
+            countSpan.textContent = data.vote_score;
+        }
+
+        // Знаходимо обидві кнопки для цього посту
+        const upButton = document.querySelector(`.post-vote-btn[data-slug="${slug}"][data-direction="up"]`);
+        const downButton = document.querySelector(`.post-vote-btn[data-slug="${slug}"][data-direction="down"]`);
+
+        // Скидаємо обидві кнопки до "outline" стану
+        if (upButton) {
+            upButton.classList.remove('btn-success');
+            upButton.classList.add('btn-outline-success');
+        }
+        if (downButton) {
+            downButton.classList.remove('btn-danger');
+            downButton.classList.add('btn-outline-danger');
+        }
+
+        // Встановлюємо активний стан на основі відповіді сервера
+        if (data.user_vote === 1) {
+            // Користувач проголосував "вгору"
+            upButton.classList.remove('btn-outline-success');
+            upButton.classList.add('btn-success');
+        } else if (data.user_vote === -1) {
+            // Користувач проголосував "вниз"
+            downButton.classList.remove('btn-outline-danger');
+            downButton.classList.add('btn-danger');
+        }
+        // Якщо data.user_vote == 0, обидві кнопки залишаться "outline"
+    })
+    .catch(error => console.error('Error handling post vote:', error));
+}
+
+
+// --- Загальний обробник подій (ОНОВЛЕНО) ---
 document.addEventListener('DOMContentLoaded', function() {
-    // Для головної сторінки (home.html)
-    document.querySelectorAll('.card .btn-outline-light, .card .btn-success').forEach(button => {
-        const icon = button.querySelector('i');
-        if (!icon) return;
+    
+    document.body.addEventListener('click', function(event) {
+        
+        // --- Обробка кнопок "Голосування" (вгору/вниз) ---
+        const voteButton = event.target.closest('.post-vote-btn');
+        if (voteButton) {
+            event.preventDefault();
+            const slug = voteButton.dataset.slug;
+            const direction = voteButton.dataset.direction; // "up" or "down"
+            handlePostVote(slug, direction, voteButton);
+            return;
+        }
 
-        const postLink = button.closest('.card')?.querySelector('a[href*="/posts/"]');
-        if (!postLink || !postLink.href) return;
+        // --- Обробка кнопки "Зберегти" ---
+        const saveButton = event.target.closest('.post-save-btn');
+        if (saveButton) {
+            event.preventDefault();
+            const slug = saveButton.dataset.slug;
+            savePost(slug, saveButton);
+            return;
+        }
 
-        const hrefParts = postLink.href.split('/posts/');
-        if (hrefParts.length > 1) {
-            const slug = hrefParts[1].replace('/', '');
-
-            if (icon.classList.contains('bi-share')) {
-                button.onclick = () => sharePost(slug);
-            }
-            else if (icon.classList.contains('bi-bookmark') || icon.classList.contains('bi-bookmark-fill')) {
-                button.onclick = (e) => {
-                    e.preventDefault();
-                    savePost(slug, button);
-                };
-            }
+        // --- Обробка кнопки "Поділитися" ---
+        const shareButton = event.target.closest('.post-share-btn');
+        if (shareButton) {
+            event.preventDefault();
+            const slug = shareButton.dataset.slug;
+            sharePost(slug);
+            return;
         }
     });
-
-    // Для сторінки поста (post_detail.html)
-    const shareBtn = document.querySelector('button .bi-share')?.closest('button');
-    const saveBtn = document.querySelector('button .bi-bookmark, button .bi-bookmark-fill')?.closest('button');
-    
-    if (shareBtn) {
-        const pathParts = window.location.pathname.split('/posts/');
-        if (pathParts.length > 1) {
-            const slug = pathParts[1].replace('/', '');
-            shareBtn.onclick = () => sharePost(slug);
-        }
-    }
-    
-    if (saveBtn) {
-        const pathParts = window.location.pathname.split('/posts/');
-        if (pathParts.length > 1) {
-            const slug = pathParts[1].replace('/', '');
-            saveBtn.onclick = (e) => {
-                e.preventDefault();
-                savePost(slug, saveBtn);
-            };
-        }
-    }
 });
 </script>
 </body>

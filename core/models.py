@@ -4,7 +4,6 @@ from django.urls import reverse
 from django.utils import timezone
 from django.utils.text import slugify
 
-
 class Category(models.Model):
     """Модель категорії для постів/статей"""
     name = models.CharField(max_length=100, verbose_name="Назва категорії")
@@ -112,7 +111,10 @@ class Post(models.Model):
     )
     
     view_count = models.PositiveIntegerField(default=0, verbose_name="Перегляди")
-    like_count = models.PositiveIntegerField(default=0, verbose_name="Лайки")
+    
+    # --- ОНОВЛЕНО: 'like_count' замінено на 'vote_score' ---
+    vote_score = models.IntegerField(default=0, verbose_name="Рахунок голосів")
+    
     share_count = models.PositiveIntegerField(default=0, verbose_name="Поділіться")
     
     is_featured = models.BooleanField(default=False, verbose_name="В обраному")
@@ -173,11 +175,6 @@ class Post(models.Model):
         """Збільшення лічильника переглядів"""
         self.view_count += 1
         self.save(update_fields=['view_count'])
-    
-    def increment_like_count(self):
-        """Збільшення лічильника лайків"""
-        self.like_count += 1
-        self.save(update_fields=['like_count'])
     
     def increment_share_count(self):
         """Збільшення лічильника поділів"""
@@ -241,7 +238,6 @@ class PostComment(models.Model):
         verbose_name="Відповідь на"
     )
     
-    # --- ОНОВЛЕНО: Додано лічильник лайків ---
     like_count = models.PositiveIntegerField(default=0, verbose_name="Лайки")
     
     class Meta:
@@ -258,31 +254,35 @@ class PostComment(models.Model):
         return self.parent is not None
 
 
-class PostLike(models.Model):
-    """Модель лайку для посту"""
+# --- ОНОВЛЕНО: 'PostLike' перейменовано на 'PostVote' і додано 'value' ---
+class PostVote(models.Model):
+    """Модель голосу (вгору/вниз) для посту"""
     post = models.ForeignKey(
         Post, 
         on_delete=models.CASCADE, 
-        related_name='likes',
+        related_name='votes', # 'likes' змінено на 'votes'
         verbose_name="Пост"
     )
     
-
     user = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         on_delete=models.CASCADE,
         verbose_name="Користувач"
     )
     
+    # 1 для лайка, -1 для дизлайка
+    value = models.SmallIntegerField(verbose_name="Значення")
+    
     created_at = models.DateTimeField(auto_now_add=True, verbose_name="Створено")
     
     class Meta:
-        verbose_name = "Лайк посту"
-        verbose_name_plural = "Лайки постів"
-        unique_together = ['post', 'user']
+        verbose_name = "Голос за пост"
+        verbose_name_plural = "Голоси за пости"
+        unique_together = ['post', 'user'] # Залишається
     
     def __str__(self):
-        return f"Лайк від {self.user} для {self.post}"
+        return f"Голос {self.value} від {self.user} для {self.post}"
+
 
 class CommentLike(models.Model):
     """Модель лайку для коментаря"""
@@ -304,7 +304,7 @@ class CommentLike(models.Model):
     class Meta:
         verbose_name = "Лайк коментаря"
         verbose_name_plural = "Лайки коментарів"
-        unique_together = ['comment', 'user'] # Гарантує, що юзер не лайкне двічі
+        unique_together = ['comment', 'user']
     
     def __str__(self):
         return f"Лайк від {self.user} для {self.comment_id}"
