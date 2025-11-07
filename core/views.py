@@ -103,7 +103,7 @@ class PostListView(ListView):
     
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context['categories'] = Category.objects.all()
+        # ВИПРАВЛЕНО: Видалено context['categories'] = Category.objects.all() (використовуємо глобальний контекст-процесор)
         context['popular_tags'] = Tag.objects.annotate(
             post_count=Count('post')
         ).order_by('-post_count')[:10]
@@ -158,6 +158,7 @@ class PostDetailView(DetailView):
             expires_at__gte=timezone.now()
         ).order_by('?')[:2]
         
+        # ВИПРАВЛЕНО: Видалено context['categories'] = Category.objects.all() (використовуємо глобальний контекст-процесор)
         return context
 
 
@@ -247,6 +248,7 @@ class UserPostListView(ListView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context['author'] = get_object_or_404(User, username=self.kwargs.get('username'))
+        # ВИПРАВЛЕНО: Видалено context['categories'] = Category.objects.all()
         return context
 
 
@@ -275,6 +277,7 @@ class CategoryListView(ListView):
             'most_popular_category': most_popular_category,
             'popular_categories': popular_categories,
         })
+        # ВИПРАВЛЕНО: Видалено context['categories'] = Category.objects.all()
         return context
 
 
@@ -300,7 +303,7 @@ class CategoryDetailView(DetailView):
         
         context['posts'] = page_obj
         context['post_count'] = posts_qs.count()
-        context['categories'] = Category.objects.annotate(post_count=Count('post'))
+        # ВИПРАВЛЕНО: Видалено context['categories'] = Category.objects.annotate(post_count=Count('post'))
         return context
 
 
@@ -344,6 +347,9 @@ class TagListView(ListView):
     def get_queryset(self):
         return Tag.objects.annotate(
             post_count=Count('post')
+        ).filter(
+            # --- ВИПРАВЛЕННЯ NoReverseMatch: Фільтруємо невалідні теги ---
+            Q(name__isnull=False) & Q(name__gt='') & Q(slug__isnull=False) & Q(slug__gt='')
         ).order_by('name')
 
 

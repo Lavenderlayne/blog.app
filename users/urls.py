@@ -1,3 +1,5 @@
+# lavenderlayne/blog_app/blog_app-dev/users/urls.py (ВИПРАВЛЕНО)
+
 from django.urls import path
 from . import views
 from django.conf import settings
@@ -10,9 +12,8 @@ app_name = 'users'
 urlpatterns = [
     # Аутентифікація
     path('login/', CustomLoginView.as_view(), name='login'),
-    path('logout/', auth_views.LogoutView.as_view(), name='logout'),
+    path('logout/', auth_views.LogoutView.as_view(), name='logout'), 
     path('register/', register, name='register'),
-    path('logout/', auth_views.LogoutView.as_view(http_method_names=['get', 'post']), name='logout'),
     
     # Профілі користувачів
     path('my-profile/', views.my_profile, name='my_profile'),

@@ -24,13 +24,12 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = os.environ.get('DJANGO_SECRET_KEY', 'your-fallback-key-here')
 
 # ВИМИКАЄМО РЕЖИМ ВІДЛАДКИ
-DEBUG = False
+DEBUG = True
 
 # ВКАЗУЄМО ДОЗВОЛЕНІ ХОСТИ (адреси, з яких можна заходити на сайт)
-ALLOWED_HOSTS = ['your_domain.com', 'www.your_domain.com', '127.0.0.1']
+ALLOWED_HOSTS = ['your_domain.com', 'www.your_domain.com', '127.0.0.1', 'localhost']
 
 # Application definition
-
 INSTALLED_APPS = [
     'django.contrib.admin',
     'django.contrib.auth',
@@ -40,9 +39,10 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'users',
     'core',
-    'core.templatetags', # <-- ДОДАЙТЕ ДЛЯ ФІЛЬТРІВ ВІДЕО
+    'core.templatetags', # <-- ДОДАНО ДЛЯ ФІЛЬТРІВ ВІДЕО
 ]
 
+# --- ВИПРАВЛЕНО: Відновлено обов'язковий список MIDDLEWARE ---
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
@@ -65,6 +65,8 @@ TEMPLATES = [
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
+                # --- ВИПРАВЛЕНО: Додано контекст-процесор для глобального доступу до 'categories' ---
+                'core.context_processors.global_context', 
             ],
             # --- ДОДАНО ДЛЯ ФІЛЬТРІВ ВІДЕО ---
             'libraries': {

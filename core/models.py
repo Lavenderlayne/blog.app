@@ -42,13 +42,14 @@ class Tag(models.Model):
         return self.name
     
     def save(self, *args, **kwargs):
-        if not self.slug:
+        # --- ВИПРАВЛЕННЯ NoReverseMatch: Гарантуємо, що slug існує ---
+        if not self.slug or not self.slug.strip():
             self.slug = slugify(self.name)
+        # ---
         super().save(*args, **kwargs)
     
     def get_absolute_url(self):
         return reverse('tag_detail', kwargs={'slug': self.slug})
-
 
 class Post(models.Model):
     """Модель посту"""
