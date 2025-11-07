@@ -4,8 +4,55 @@
 
 {% block content %}
 <div class="row">
-    <div class="col-md-12">
-        <!-- Заголовок -->
+
+    <div class="col-md-3">
+        <div class="card bg-black border-secondary mb-4">
+            <div class="card-header bg-dark border-secondary">
+                <h6 class="mb-0 text-light"><i class="bi bi-compass text-warning"></i> Навігація</h6>
+            </div>
+            <div class="card-body p-0">
+                <ul class="list-group list-group-flush">
+                    <li class="list-group-item bg-black text-light border-secondary">
+                        <a class="nav-link text-light" href="{% url 'core:home' %}"><i class="bi bi-house-door"></i> Головна</a>
+                    </li>
+                    <li class="list-group-item bg-black text-light border-secondary">
+                        <a class="nav-link text-light" href="{% url 'core:post_list' %}"><i class="bi bi-card-text"></i> Всі пости</a>
+                    </li>
+                    <li class="list-group-item bg-black text-light border-secondary">
+                        <a class="nav-link text-light" href="{% url 'core:category_list' %}"><i class="bi bi-reddit"></i> Спільноти</a>
+                    </li>
+                    <li class="list-group-item bg-black text-light border-secondary">
+                        <a class="nav-link text-light" href="{% url 'core:tag_list' %}"><i class="bi bi-tags"></i> Теги</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+        
+        {% if user.is_moderator or user.is_admin %}
+        <div class="card bg-black border-secondary mb-4">
+            <div class="card-header bg-dark border-secondary">
+                <h6 class="mb-0 text-light"><i class="bi bi-shield-lock text-warning"></i> Адмін. панель</h6>
+            </div>
+            <div class="card-body p-0">
+                <ul class="list-group list-group-flush">
+                    <li class="list-group-item bg-black text-light border-secondary">
+                        <a class="nav-link text-light" href="{% url 'users:user_list' %}"><i class="bi bi-people"></i> Всі користувачі</a>
+                    </li>
+                    <li class="list-group-item bg-black text-light border-secondary">
+                        <a class="nav-link text-light" href="{% url 'users:user_search' %}"><i class="bi bi-search"></i> Пошук</a>
+                    </li>
+                    {% if user.is_admin %}
+                    <li class="list-group-item bg-black text-light border-secondary">
+                        <a class="nav-link text-light" href="{% url 'users:user_statistics' %}"><i class="bi bi-graph-up"></i> Статистика</a>
+                    </li>
+                    {% endif %}
+                </ul>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+
+    <div class="col-md-6">
         <div class="card bg-black border-secondary mb-4">
             <div class="card-body">
                 <h4 class="text-light mb-0">
@@ -14,10 +61,8 @@
             </div>
         </div>
 
-        <!-- Основна картка -->
         <div class="card bg-black border-secondary">
             <div class="card-body">
-                <!-- Форма пошуку -->
                 <form method="get" class="mb-4">
                     <div class="input-group input-group-lg">
                         <input type="text" name="q" class="form-control bg-dark border-secondary text-light" 
@@ -26,13 +71,9 @@
                             <i class="bi bi-search"></i> Пошук
                         </button>
                     </div>
-                    <div class="form-text text-muted mt-2">
-                        <i class="bi bi-info-circle"></i> Пошук здійснюється за іменем користувача, email, іменем та прізвищем
-                    </div>
                 </form>
                 
                 {% if query %}
-                    <!-- Результати пошуку -->
                     <div class="card bg-dark border-secondary mb-4">
                         <div class="card-body">
                             <div class="d-flex justify-content-between align-items-center">
@@ -51,7 +92,6 @@
                                         <th class="text-light">Email</th>
                                         <th class="text-light">Роль</th>
                                         <th class="text-light">Статус</th>
-                                        <th class="text-light">Дата реєстрації</th>
                                         <th class="text-light">Дії</th>
                                     </tr>
                                 </thead>
@@ -85,17 +125,11 @@
                                                 <span class="badge bg-danger">Заблокований</span>
                                             {% endif %}
                                         </td>
-                                        <td class="text-light">{{ user_obj.date_joined|date:"d.m.Y" }}</td>
                                         <td>
                                             <div class="btn-group btn-group-sm">
                                                 <a href="{% url 'users:profile_detail' username=user_obj.username %}" class="btn btn-outline-light">
                                                     <i class="bi bi-eye"></i>
                                                 </a>
-                                                {% if request.user.is_admin %}
-                                                <a href="#" class="btn btn-outline-warning">
-                                                    <i class="bi bi-gear"></i>
-                                                </a>
-                                                {% endif %}
                                             </div>
                                         </td>
                                     </tr>
@@ -104,80 +138,36 @@
                             </table>
                         </div>
                     {% else %}
-                        <!-- Повідомлення про відсутність результатів -->
                         <div class="card bg-black border-warning">
                             <div class="card-body text-center py-5">
                                 <i class="bi bi-search display-4 text-warning mb-3"></i>
                                 <h4 class="text-light">Користувачів не знайдено</h4>
-                                <p class="text-muted mb-4">Спробуйте змінити запит або використати інші ключові слова.</p>
-                                
-                                <!-- Поради щодо пошуку -->
-                                <div class="card bg-dark border-secondary mt-4">
-                                    <div class="card-body">
-                                        <h6 class="text-light mb-3">
-                                            <i class="bi bi-lightbulb text-warning"></i> Поради щодо пошуку
-                                        </h6>
-                                        <div class="row text-light">
-                                            <div class="col-md-6">
-                                                <ul class="mb-0">
-                                                    <li>Переконайтеся, що всі слова написані правильно</li>
-                                                    <li>Спробуйте інші ключові слова</li>
-                                                </ul>
-                                            </div>
-                                            <div class="col-md-6">
-                                                <ul class="mb-0">
-                                                    <li>Спробуйте більш загальні запити</li>
-                                                    <li>Використовуйте часткові збіги</li>
-                                                </ul>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
+                                <p class="text-muted mb-4">Спробуйте змінити запит.</p>
                             </div>
                         </div>
                     {% endif %}
                 {% else %}
-                    <!-- Початковий стан пошуку -->
                     <div class="text-center py-5">
                         <i class="bi bi-search display-4 text-muted mb-3"></i>
                         <h4 class="text-light">Знайдіть користувачів</h4>
-                        <p class="text-muted">Введіть запит у поле вище, щоб знайти користувачів за іменем, email або прізвищем</p>
-                        
-                        <!-- Популярні пошукові запити -->
-                        <div class="card bg-dark border-secondary mt-4">
-                            <div class="card-body">
-                                <h6 class="text-light mb-3">
-                                    <i class="bi bi-stars text-warning"></i> Популярні запити
-                                </h6>
-                                <div class="d-flex flex-wrap gap-2">
-                                    <a href="?q=admin" class="btn btn-outline-light btn-sm">Адміністратори</a>
-                                    <a href="?q=moderator" class="btn btn-outline-light btn-sm">Модератори</a>
-                                    <a href="?q=@gmail.com" class="btn btn-outline-light btn-sm">Gmail</a>
-                                    <a href="?q=" class="btn btn-outline-warning btn-sm">Всі користувачі</a>
-                                </div>
-                            </div>
-                        </div>
+                        <p class="text-muted">Введіть запит у поле вище</p>
                     </div>
                 {% endif %}
             </div>
         </div>
-
-        <!-- Додаткові дії -->
-        {% if query and users %}
-        <div class="card bg-black border-secondary mt-4">
-            <div class="card-body text-center">
-                <p class="text-light mb-3">Потрібні додаткові дії?</p>
-                <div class="d-flex justify-content-center gap-2 flex-wrap">
-                    <a href="{% url 'users:user_list' %}" class="btn btn-outline-light">
-                        <i class="bi bi-people"></i> Всі користувачі
-                    </a>
-                    <a href="{% url 'users:user_statistics' %}" class="btn btn-outline-warning">
-                        <i class="bi bi-graph-up"></i> Статистика
-                    </a>
-                </div>
+    </div>
+    
+    <div class="col-md-3">
+        <div class="card bg-dark border-secondary mt-4">
+            <div class="card-body">
+                <h6 class="text-light mb-3">
+                    <i class="bi bi-lightbulb text-warning"></i> Поради
+                </h6>
+                <p class="text-muted small">
+                    Пошук здійснюється за іменем користувача, email, іменем та прізвищем.
+                </p>
             </div>
         </div>
-        {% endif %}
     </div>
 </div>
 {% endblock %}

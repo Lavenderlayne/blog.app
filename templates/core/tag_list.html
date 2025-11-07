@@ -4,67 +4,85 @@
 
 {% block content %}
 <div class="row">
-    <div class="col-md-12">
+
+    <div class="col-md-3">
         <div class="card bg-black border-secondary mb-4">
-            <div class="card-body">
-                <div class="d-flex justify-content-between align-items-center">
-                    <div>
-                        <h1 class="text-light mb-2">
-                            <i class="bi bi-tags text-warning"></i> Всі теги
-                        </h1>
-                        <p class="text-body-secondary mb-0">
-                            <i class="bi bi-hash"></i> Знайдено {{ tags|length }} тегів
-                        </p>
-                    </div>
-                    {% if user.is_authenticated and user.is_admin %}
+            <div class="card-header bg-dark border-secondary">
+                <h6 class="mb-0 text-light"><i class="bi bi-compass text-warning"></i> Навігація</h6>
+            </div>
+            <div class="card-body p-0">
+                <ul class="list-group list-group-flush">
+                    <li class="list-group-item bg-black text-light border-secondary">
+                        <a class="nav-link text-light" href="{% url 'core:home' %}">
+                            <i class="bi bi-house-door"></i> Головна
+                        </a>
+                    </li>
+                    <li class="list-group-item bg-black text-light border-secondary">
+                        <a class="nav-link text-light" href="{% url 'core:post_list' %}">
+                            <i class="bi bi-card-text"></i> Всі пости
+                        </a>
+                    </li>
+                    <li class="list-group-item bg-black text-light border-secondary">
+                        <a class="nav-link text-light" href="{% url 'core:category_list' %}">
+                            <i class="bi bi-reddit"></i> Спільноти
+                        </a>
+                    </li>
+                    <li class="list-group-item bg-black text-light border-secondary">
+                        <a class="nav-link text-light" href="{% url 'core:tag_list' %}">
+                            <i class="bi bi-tags"></i> Теги
+                        </a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-6">
+        
+        <div class="card bg-black border-secondary mb-4">
+            <div class="card-body d-flex justify-content-between align-items-center">
+                <div>
+                    <h1 class="text-light mb-0">
+                        <i class="bi bi-tags text-warning"></i> Всі теги
+                    </h1>
+                    <p class="text-muted mb-0">Знайдено {{ tags|length }} тегів</p>
+                </div>
+                <div>
                     <a href="{% url 'core:tag_create' %}" class="btn btn-warning">
-                        <i class="bi bi-plus-circle"></i> Новий тег
+                        <i class="bi bi-plus"></i> Новий тег
                     </a>
-                    {% endif %}
                 </div>
             </div>
         </div>
 
         <div class="card bg-black border-secondary">
-            <div class="card-body">
-                {% if tags %}
-                    <div class="d-flex flex-wrap gap-2">
-                        {% for tag in tags %}
-                        <div class="card bg-dark border-secondary">
-                            <div class="card-body d-flex align-items-center">
-                                <a href="{% url 'core:tag_detail' tag.slug %}" class="text-light text-decoration-none h5 mb-0 me-3">
-                                   #{{ tag.name }}
-                                </a>
-                                <span class="badge bg-secondary me-3">{{ tag.post_count }} постів</span>
-                                
-                                {% if user.is_authenticated and user.is_admin %}
-                                <div class="btn-group btn-group-sm">
-                                    <a href="{% url 'core:tag_update' tag.slug %}" class="btn btn-outline-warning">
-                                        <i class="bi bi-pencil"></i>
-                                    </a>
-                                    <a href="{% url 'core:tag_delete' tag.slug %}" class="btn btn-outline-danger">
-                                        <i class="bi bi-trash"></i>
-                                    </a>
-                                </div>
-                                {% endif %}
-                            </div>
-                        </div>
-                        {% endfor %}
-                    </div>
-                {% else %}
-                    <div class="text-center py-5">
-                        <i class="bi bi-tags display-4 text-body-secondary mb-3"></i>
-                        <h4 class="text-light">Теги відсутні</h4>
-                        <p class="text-body-secondary mb-4">Ще не було створено жодного тегу.</p>
-                        {% if user.is_authenticated and user.is_admin %}
-                        <a href="{% url 'core:tag_create' %}" class="btn btn-warning">
-                            <i class="bi bi-plus-circle"></i> Створити перший тег
+            <div class="list-group list-group-flush">
+                
+                {% for tag in tags %}
+                <div class="list-group-item bg-black text-light border-secondary d-flex justify-content-between align-items-center">
+                    <div>
+                        <a href="{% url 'core:tag_detail' tag.slug %}" class="text-light text-decoration-none fs-5">
+                            #{{ tag.name }}
                         </a>
-                        {% endif %}
                     </div>
-                {% endif %}
+                    <div class="d-flex align-items-center gap-2">
+                        <a href="{% url 'core:tag_update' tag.slug %}" class="btn btn-sm btn-outline-secondary">
+                            <i class="bi bi-pencil"></i>
+                        </a>
+                        <a href="{% url 'core:tag_delete' tag.slug %}" class="btn btn-sm btn-outline-danger">
+                            <i class="bi bi-trash"></i>
+                        </a>
+                        <span class="badge bg-warning text-dark ms-2">{{ tag.post_count }}</span>
+                    </div>
+                </div>
+                {% empty %}
+                <div class="list-group-item bg-black text-muted border-secondary">
+                    Тегів ще не створено.
+                </div>
+                {% endfor %}
+
             </div>
         </div>
     </div>
-</div>
-{% endblock %}
+
+    </div> {% endblock %}

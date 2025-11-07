@@ -4,7 +4,79 @@
 
 {% block content %}
 <div class="row">
-    <div class="col-md-8">
+
+    <div class="col-md-3">
+        <div class="card bg-black border-secondary mb-3">
+            <div class="card-body">
+                <h5 class="text-light mb-3">
+                    <i class="bi bi-info-circle text-warning"></i> Про спільноту
+                </h5>
+
+                {% if category.description %}
+                <p class="text-light small mb-3">{{ category.description }}</p>
+                {% else %}
+                <p class="text-muted small mb-3">Опис відсутній</p>
+                {% endif %}
+
+                <div class="d-flex justify-content-between text-light small mb-2">
+                    <span><i class="bi bi-file-post text-warning"></i> Постів:</span>
+                    <strong>{{ post_count }}</strong>
+                </div>
+                <div class="d-flex justify-content-between text-light small">
+                    <span><i class="bi bi-calendar text-warning"></i> Створено:</span>
+                    <strong>{{ category.created_at|date:"d.m.Y" }}</strong>
+                </div>
+
+                <hr class="bg-secondary my-3">
+
+                {% if user.is_authenticated %}
+                <div class="d-grid gap-2">
+                    <a href="/posts/create/" class="btn btn-warning">
+                        <i class="bi bi-plus-circle"></i> Створити пост
+                    </a>
+                    <button class="btn btn-outline-light">
+                        <i class="bi bi-bell"></i> Слідкувати
+                    </button>
+                </div>
+                {% else %}
+                <div class="d-grid gap-2">
+                    <a href="/login/" class="btn btn-warning">Увійти для публікації</a>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <div class="card bg-black border-secondary mb-3">
+            <div class="card-body">
+                <h5 class="text-light mb-3">
+                    <i class="bi bi-collection text-warning"></i> Інші спільноти
+                </h5>
+
+                {% for cat in categories %}
+                    {% if cat.id != category.id %}
+                    <div class="d-flex justify-content-between align-items-center mb-2 pb-2 border-bottom border-secondary">
+                        <div>
+                            <a href="/categories/{{ cat.slug }}/" class="text-light text-decoration-none">
+                                <i class="bi bi-record-circle text-warning me-1"></i> /r/{{ cat.name }}
+                            </a>
+                        </div>
+                        <span class="badge bg-secondary">{{ cat.post_count }}</span>
+                    </div>
+                    {% endif %}
+                {% empty %}
+                <p class="text-muted small">Інших категорій немає</p>
+                {% endfor %}
+
+                <div class="text-center mt-3">
+                    <a href="/categories/" class="btn btn-outline-light btn-sm">
+                        <i class="bi bi-eye"></i> Переглянути всі
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-6">
         <div class="card bg-black border-secondary mb-4">
             <div class="card-body">
                 <div class="d-flex justify-content-between align-items-center">
@@ -12,16 +84,10 @@
                         <h1 class="text-light mb-1">
                             <i class="bi bi-collection-fill text-warning"></i> /r/{{ category.name }}
                         </h1>
-                        {% if category.description %}
-                        <p class="text-light mb-2">{{ category.description }}</p>
-                        {% endif %}
                         <p class="text-muted mb-0">
                             <i class="bi bi-file-post"></i> {{ post_count }} постів у цій категорії
                         </p>
                     </div>
-                    <a href="/categories/" class="btn btn-outline-light btn-sm">
-                        <i class="bi bi-arrow-left"></i> Всі категорії
-                    </a>
                 </div>
             </div>
         </div>
@@ -41,33 +107,31 @@
                             <i class="bi bi-arrow-down"></i>
                         </button>
                     </div>
-                    
+
                     <div class="flex-grow-1">
                         {% if post.featured_image %}
                         <img src="{{ post.featured_image.url }}" class="img-fluid rounded mb-2" alt="{{ post.title }}" style="max-height: 300px; width: 100%; object-fit: cover;">
                         {% endif %}
-                        
+
                         <div class="d-flex align-items-center mb-2">
-                            <small class="text-muted">
-                                Опубліковано в <a href="/categories/{{ category.slug }}/" class="text-warning text-decoration-none">/r/{{ category.name }}</a>
-                            </small>
-                            <span class="text-muted mx-1">•</span>
                             <small class="text-muted">{{ post.created_at|date:"d.m.Y" }}</small>
                             <span class="text-muted mx-1">•</span>
                             <small class="text-muted">Автор: {{ post.author.username }}</small>
                         </div>
-                        
+
                         <h5 class="card-title text-light mb-2">
-                            {{ post.title }}
+                            <a href="{% url 'core:post_detail' post.slug %}" class="text-light text-decoration-none">
+                                {{ post.title }}
+                            </a>
                             {% if post.is_featured %}
                             <span class="badge bg-warning ms-2">Обраний</span>
                             {% endif %}
                         </h5>
-                        
+
                         <p class="card-text text-light mb-3">
                             {{ post.excerpt|default:post.content|truncatewords:40 }}
                         </p>
-                        
+
                         <div class="d-flex justify-content-between align-items-center">
                             <div>
                                 {% for tag in post.tags.all %}
@@ -80,7 +144,7 @@
                                 <i class="bi bi-chat"></i> {{ post.comment_count|default:0 }}
                             </div>
                         </div>
-                        
+
                         <div class="d-flex mt-3">
                             <a href="/posts/{{ post.slug }}/" class="btn btn-outline-light btn-sm me-2">
                                 <i class="bi bi-chat"></i> Коментувати
@@ -122,7 +186,7 @@
                         </a>
                     </li>
                 {% endif %}
-                
+
                 {% for num in posts.paginator.page_range %}
                     {% if posts.number == num %}
                         <li class="page-item active">
@@ -134,7 +198,7 @@
                         </li>
                     {% endif %}
                 {% endfor %}
-                
+
                 {% if posts.has_next %}
                     <li class="page-item">
                         <a class="page-link bg-black border-secondary text-light" href="?page={{ posts.next_page_number }}">
@@ -147,82 +211,13 @@
         {% endif %}
     </div>
 
-    <div class="col-md-4">
-        <div class="card bg-black border-secondary mb-3">
-            <div class="card-body">
-                <h5 class="text-light mb-3">
-                    <i class="bi bi-info-circle text-warning"></i> Про спільноту
-                </h5>
-                
-                {% if category.description %}
-                <p class="text-light small mb-3">{{ category.description }}</p>
-                {% else %}
-                <p class="text-muted small mb-3">Опис відсутній</p>
-                {% endif %}
-                
-                <div class="d-flex justify-content-between text-light small mb-2">
-                    <span><i class="bi bi-file-post text-warning"></i> Постів:</span>
-                    <strong>{{ post_count }}</strong>
-                </div>
-                <div class="d-flex justify-content-between text-light small">
-                    <span><i class="bi bi-calendar text-warning"></i> Створено:</span>
-                    <strong>{{ category.created_at|date:"d.m.Y" }}</strong>
-                </div>
-                
-                <hr class="bg-secondary my-3">
-                
-                {% if user.is_authenticated %}
-                <div class="d-grid gap-2">
-                    <a href="/posts/create/" class="btn btn-warning">
-                        <i class="bi bi-plus-circle"></i> Створити пост
-                    </a>
-                    <button class="btn btn-outline-light">
-                        <i class="bi bi-bell"></i> Слідкувати
-                    </button>
-                </div>
-                {% else %}
-                <div class="d-grid gap-2">
-                    <a href="/login/" class="btn btn-warning">Увійти для публікації</a>
-                </div>
-                {% endif %}
-            </div>
-        </div>
-
-        <div class="card bg-black border-secondary mb-3">
-            <div class="card-body">
-                <h5 class="text-light mb-3">
-                    <i class="bi bi-collection text-warning"></i> Інші спільноти
-                </h5>
-                
-                {% for cat in categories %}
-                {% if cat.id != category.id %}
-                <div class="d-flex justify-content-between align-items-center mb-2 pb-2 border-bottom border-secondary">
-                    <div>
-                        <a href="/categories/{{ cat.slug }}/" class="text-light text-decoration-none">
-                            <i class="bi bi-record-circle text-warning me-1"></i> /r/{{ cat.name }}
-                        </a>
-                    </div>
-                    <span class="badge bg-secondary">{{ cat.post_count }}</span>
-                </div>
-                {% endif %}
-                {% empty %}
-                <p class="text-muted small">Інших категорій немає</p>
-                {% endfor %}
-                
-                <div class="text-center mt-3">
-                    <a href="/categories/" class="btn btn-outline-light btn-sm">
-                        <i class="bi bi-eye"></i> Переглянути всі категорії
-                    </a>
-                </div>
-            </div>
-        </div>
-
+    <div class="col-md-3">
         <div class="card bg-black border-secondary">
             <div class="card-body">
                 <h5 class="text-light mb-3">
                     <i class="bi bi-graph-up text-warning"></i> Статистика
                 </h5>
-                
+
                 <div class="d-flex justify-content-between text-light small mb-2">
                     <span>Активних користувачів:</span>
                     <strong>{{ active_users|default:"0" }}</strong>
@@ -240,3 +235,4 @@
     </div>
 </div>
 {% endblock %}
+    

@@ -4,8 +4,55 @@
 
 {% block content %}
 <div class="row">
-    <div class="col-md-12">
-        <!-- Заголовок -->
+
+    <div class="col-md-3">
+        <div class="card bg-black border-secondary mb-4">
+            <div class="card-header bg-dark border-secondary">
+                <h6 class="mb-0 text-light"><i class="bi bi-compass text-warning"></i> Навігація</h6>
+            </div>
+            <div class="card-body p-0">
+                <ul class="list-group list-group-flush">
+                    <li class="list-group-item bg-black text-light border-secondary">
+                        <a class="nav-link text-light" href="{% url 'core:home' %}"><i class="bi bi-house-door"></i> Головна</a>
+                    </li>
+                    <li class="list-group-item bg-black text-light border-secondary">
+                        <a class="nav-link text-light" href="{% url 'core:post_list' %}"><i class="bi bi-card-text"></i> Всі пости</a>
+                    </li>
+                    <li class="list-group-item bg-black text-light border-secondary">
+                        <a class="nav-link text-light" href="{% url 'core:category_list' %}"><i class="bi bi-reddit"></i> Спільноти</a>
+                    </li>
+                    <li class="list-group-item bg-black text-light border-secondary">
+                        <a class="nav-link text-light" href="{% url 'core:tag_list' %}"><i class="bi bi-tags"></i> Теги</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+        
+        {% if user.is_moderator or user.is_admin %}
+        <div class="card bg-black border-secondary mb-4">
+            <div class="card-header bg-dark border-secondary">
+                <h6 class="mb-0 text-light"><i class="bi bi-shield-lock text-warning"></i> Адмін. панель</h6>
+            </div>
+            <div class="card-body p-0">
+                <ul class="list-group list-group-flush">
+                    <li class="list-group-item bg-black text-light border-secondary">
+                        <a class="nav-link text-light" href="{% url 'users:user_list' %}"><i class="bi bi-people"></i> Всі користувачі</a>
+                    </li>
+                    <li class="list-group-item bg-black text-light border-secondary">
+                        <a class="nav-link text-light" href="{% url 'users:user_search' %}"><i class="bi bi-search"></i> Пошук</a>
+                    </li>
+                    {% if user.is_admin %}
+                    <li class="list-group-item bg-black text-light border-secondary">
+                        <a class="nav-link text-light" href="{% url 'users:user_statistics' %}"><i class="bi bi-graph-up"></i> Статистика</a>
+                    </li>
+                    {% endif %}
+                </ul>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+
+    <div class="col-md-6">
         <div class="card bg-black border-secondary mb-4">
             <div class="card-body">
                 <div class="d-flex justify-content-between align-items-center">
@@ -17,19 +64,10 @@
                             <i class="bi bi-info-circle"></i> Загальна кількість: {{ users.paginator.count|default:"0" }}
                         </p>
                     </div>
-                    <div>
-                        <a href="{% url 'users:user_search' %}" class="btn btn-outline-warning me-2">
-                            <i class="bi bi-search"></i> Пошук
-                        </a>
-                        <a href="{% url 'users:user_statistics' %}" class="btn btn-outline-light">
-                            <i class="bi bi-graph-up"></i> Статистика
-                        </a>
-                    </div>
                 </div>
             </div>
         </div>
 
-        <!-- Фільтри та пошук -->
         <div class="card bg-black border-secondary mb-4">
             <div class="card-body">
                 <div class="row">
@@ -63,7 +101,6 @@
             </div>
         </div>
 
-        <!-- Таблиця користувачів -->
         <div class="card bg-black border-secondary">
             <div class="card-body">
                 <div class="table-responsive">
@@ -75,7 +112,6 @@
                                 <th class="text-light">Роль</th>
                                 <th class="text-light">Статус</th>
                                 <th class="text-light">Реєстрація</th>
-                                <th class="text-light">Останній вхід</th>
                                 <th class="text-light">Дії</th>
                             </tr>
                         </thead>
@@ -95,10 +131,6 @@
                                             <a href="{% url 'users:profile_detail' username=user_obj.username %}" class="text-light text-decoration-none fw-bold">
                                                 {{ user_obj.username }}
                                             </a>
-                                            {% if user_obj.get_full_name %}
-                                            <br>
-                                            <small class="text-muted">{{ user_obj.get_full_name }}</small>
-                                            {% endif %}
                                         </div>
                                     </div>
                                 </td>
@@ -122,9 +154,6 @@
                                 </td>
                                 <td class="text-light">
                                     <small>{{ user_obj.date_joined|date:"d.m.Y" }}</small>
-                                </td>
-                                <td class="text-light">
-                                    <small>{{ user_obj.last_login|date:"d.m.Y H:i"|default:"Ніколи" }}</small>
                                 </td>
                                 <td>
                                     <div class="btn-group btn-group-sm">
@@ -170,7 +199,6 @@
             </div>
         </div>
 
-        <!-- Пагінація -->
         {% if is_paginated %}
         <nav aria-label="Page navigation" class="mt-4">
             <ul class="pagination justify-content-center">
@@ -208,6 +236,24 @@
             </ul>
         </nav>
         {% endif %}
+    </div>
+
+    <div class="col-md-3">
+        <div class="card bg-black border-secondary mb-4">
+            <div class="card-header bg-dark border-secondary">
+                <h5 class="text-light mb-0"><i class="bi bi-lightning text-warning"></i> Швидкі дії</h5>
+            </div>
+            <div class="card-body">
+                <div class="d-grid gap-2">
+                    <a href="{% url 'users:user_search' %}" class="btn btn-outline-warning">
+                        <i class="bi bi-search"></i> Пошук
+                    </a>
+                    <a href="{% url 'users:user_statistics' %}" class="btn btn-outline-light">
+                        <i class="bi bi-graph-up"></i> Статистика
+                    </a>
+                </div>
+            </div>
+        </div>
     </div>
 </div>
 {% endblock %}
