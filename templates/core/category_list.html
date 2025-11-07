@@ -4,8 +4,7 @@
 
 {% block content %}
 <div class="row">
-    <div class="col-md-12">
-        <!-- Заголовок -->
+    <div class="col-md-8">
         <div class="card bg-black border-secondary mb-4">
             <div class="card-body">
                 <div class="d-flex justify-content-between align-items-center">
@@ -26,10 +25,9 @@
             </div>
         </div>
 
-        <!-- Список спільнот -->
         <div class="row">
             {% for category in categories %}
-            <div class="col-md-6 col-lg-4 mb-4">
+            <div class="col-md-6 mb-4">
                 <div class="card bg-black border-secondary h-100">
                     <div class="card-body">
                         <div class="d-flex align-items-center mb-3">
@@ -73,7 +71,6 @@
                 </div>
             </div>
             {% empty %}
-            <!-- Повідомлення про відсутність спільнот -->
             <div class="col-12">
                 <div class="card bg-black border-secondary">
                     <div class="card-body text-center py-5">
@@ -90,71 +87,10 @@
             </div>
             {% endfor %}
         </div>
-
-        <!-- Статистика спільнот -->
-        {% if categories %}
-        <div class="card bg-black border-secondary mt-4">
-            <div class="card-body">
-                <h5 class="text-light mb-4">
-                    <i class="bi bi-graph-up text-warning"></i> Статистика спільнот
-                </h5>
-                <div class="row text-center">
-                    <div class="col-md-3 mb-3">
-                        <div class="bg-dark rounded p-3">
-                            <h3 class="text-warning mb-1">{{ categories|length }}</h3>
-                            <p class="text-muted small mb-0">Всього спільнот</p>
-                        </div>
-                    </div>
-                    <div class="col-md-3 mb-3">
-                        <div class="bg-dark rounded p-3">
-                            <h3 class="text-warning mb-1">{{ total_posts }}</h3>
-                            <p class="text-muted small mb-0">Всього постів</p>
-                        </div>
-                    </div>
-                    <div class="col-md-3 mb-3">
-                        <div class="bg-dark rounded p-3">
-                            <h3 class="text-warning mb-1">{{ avg_posts_per_category }}</h3>
-                            <p class="text-muted small mb-0">Постів в середньому</p>
-                        </div>
-                    </div>
-                    <div class="col-md-3 mb-3">
-                        <div class="bg-dark rounded p-3">
-                            <h3 class="text-warning mb-1">{{ most_popular_category.post_count }}</h3>
-                            <p class="text-muted small mb-0">Найпопулярніша</p>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Популярні спільноти -->
-        <div class="card bg-black border-secondary mt-4">
-            <div class="card-body">
-                <h5 class="text-light mb-3">
-                    <i class="bi bi-fire text-warning"></i> Популярні спільноти
-                </h5>
-                <div class="list-group list-group-flush bg-black">
-                    {% for category in popular_categories %}
-                    <a href="/categories/{{ category.slug }}/" 
-                       class="list-group-item list-group-item-action bg-black border-secondary text-light d-flex justify-content-between align-items-center">
-                        <div class="d-flex align-items-center">
-                            <i class="bi bi-reddit text-warning me-2"></i>
-                            <span>/r/{{ category.name }}</span>
-                        </div>
-                        <span class="badge bg-warning text-dark">{{ category.post_count }} постів</span>
-                    </a>
-                    {% endfor %}
-                </div>
-            </div>
-        </div>
-        {% endif %}
     </div>
-</div>
 
-<!-- Додаткові дії -->
-<div class="row mt-4">
-    <div class="col-md-6 mb-4">
-        <div class="card bg-black border-secondary">
+    <div class="col-md-4">
+        <div class="card bg-black border-secondary mb-4">
             <div class="card-body">
                 <h5 class="text-light mb-3">
                     <i class="bi bi-lightning text-warning"></i> Швидкі дії
@@ -174,10 +110,8 @@
                 </div>
             </div>
         </div>
-    </div>
-    
-    <div class="col-md-6 mb-4">
-        <div class="card bg-black border-secondary">
+        
+        <div class="card bg-black border-secondary mb-4">
             <div class="card-body">
                 <h5 class="text-light mb-3">
                     <i class="bi bi-info-circle text-warning"></i> Про спільноти
@@ -194,6 +128,65 @@
                 {% endif %}
             </div>
         </div>
+
+        {% if categories %}
+        <div class="card bg-black border-secondary mb-4">
+            <div class="card-body">
+                <h5 class="text-light mb-3">
+                    <i class="bi bi-fire text-warning"></i> Популярні спільноти
+                </h5>
+                <div class="list-group list-group-flush bg-black">
+                    {% for category in popular_categories %}
+                    <a href="/categories/{{ category.slug }}/" 
+                       class="list-group-item list-group-item-action bg-black border-secondary text-light d-flex justify-content-between align-items-center">
+                        <div class="d-flex align-items-center">
+                            <i class="bi bi-reddit text-warning me-2"></i>
+                            <span>/r/{{ category.name }}</span>
+                        </div>
+                        <span class="badge bg-warning text-dark">{{ category.post_count }} постів</span>
+                    </a>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        {% if categories %}
+        <div class="card bg-black border-secondary mb-4">
+            <div class="card-body">
+                <h5 class="text-light mb-4">
+                    <i class="bi bi-graph-up text-warning"></i> Статистика спільнот
+                </h5>
+                <div class="row text-center">
+                    <div class="col-6 mb-3">
+                        <div class="bg-dark rounded p-3">
+                            <h4 class="text-warning mb-1">{{ categories|length }}</h4>
+                            <p class="text-muted small mb-0">Спільнот</p>
+                        </div>
+                    </div>
+                    <div class="col-6 mb-3">
+                        <div class="bg-dark rounded p-3">
+                            <h4 class="text-warning mb-1">{{ total_posts }}</h4>
+                            <p class="text-muted small mb-0">Постів</p>
+                        </div>
+                    </div>
+                    <div class="col-6 mb-3">
+                        <div class="bg-dark rounded p-3">
+                            <h4 class="text-warning mb-1">{{ avg_posts_per_category }}</h4>
+                            <p class="text-muted small mb-0">В середньому</p>
+                        </div>
+                    </div>
+                    <div class="col-6 mb-3">
+                        <div class="bg-dark rounded p-3">
+                            <h4 class="text-warning mb-1">{{ most_popular_category.post_count }}</h4>
+                            <p class="text-muted small mb-0">Топ спільнота</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
     </div>
 </div>
 {% endblock %}

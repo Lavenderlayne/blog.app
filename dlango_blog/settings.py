@@ -20,13 +20,14 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-7hdwz2+m60hf(o3j=e!9&#)q0l4p5_hhg_x$i58rd+o33%!0#1'
+# Цей ключ потрібно згенерувати новий і заховати у змінну оточення
+SECRET_KEY = os.environ.get('DJANGO_SECRET_KEY', 'your-fallback-key-here')
 
-# SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+# ВИМИКАЄМО РЕЖИМ ВІДЛАДКИ
+DEBUG = False
 
-ALLOWED_HOSTS = []
-
+# ВКАЗУЄМО ДОЗВОЛЕНІ ХОСТИ (адреси, з яких можна заходити на сайт)
+ALLOWED_HOSTS = ['your_domain.com', 'www.your_domain.com', '127.0.0.1']
 
 # Application definition
 
