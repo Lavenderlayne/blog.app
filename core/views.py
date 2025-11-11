@@ -17,7 +17,12 @@ User = get_user_model()
 
 
 def annotate_post_queryset(queryset, user):
-    """Додає анотації is_bookmarked та user_vote до queryset"""
+    """Додає анотації is_bookmarked, user_vote та comment_count до queryset"""
+    
+    queryset = queryset.annotate(
+        comment_count=Count('comments', filter=Q(comments__is_active=True))
+    )
+
     if user.is_authenticated:
         bookmarked_subquery = Exists(
             user.bookmarked_posts.filter(pk=OuterRef('pk'))
@@ -197,7 +202,8 @@ class PostUpdateView(LoginRequiredMixin, UserPassesTestMixin, UpdateView):
     
     def test_func(self):
         post = self.get_object()
-        return self.request.user == post.author or self.request.user.is_staff
+        user = self.request.user
+        return user == post.author or user.is_moderator or user.is_admin
     
     def get_success_url(self):
         return reverse_lazy('core:post_detail', kwargs={'slug': self.object.slug})
@@ -206,11 +212,12 @@ class PostUpdateView(LoginRequiredMixin, UserPassesTestMixin, UpdateView):
 class PostDeleteView(LoginRequiredMixin, UserPassesTestMixin, DeleteView):
     model = Post
     template_name = 'core/post_confirm_delete.html'
-    success_url = reverse_lazy('post_list')
+    success_url = reverse_lazy('core:post_list')
     
     def test_func(self):
         post = self.get_object()
-        return self.request.user == post.author or self.request.user.is_staff
+        user = self.request.user
+        return user == post.author or user.is_moderator or user.is_admin
     
     def delete(self, request, *args, **kwargs):
         messages.success(request, 'Пост успішно видалено!')
@@ -290,7 +297,15 @@ class CategoryDetailView(DetailView):
         
         context['posts'] = page_obj
         context['post_count'] = posts_qs.count()
-        # ВИПРАВЛЕНО: Видалено context['categories'] = Category.objects.annotate(post_count=Count('post'))
+        
+        followers_count = category.followers.count()
+        is_following = False
+        if self.request.user.is_authenticated:
+            is_following = category.followers.filter(id=self.request.user.id).exists()
+        
+        context['followers_count'] = followers_count
+        context['is_following'] = is_following
+        
         return context
 
 
@@ -393,6 +408,26 @@ class TagDeleteView(LoginRequiredMixin, DeleteView):
         messages.success(request, 'Тег успішно видалено!')
         return super().delete(request, *args, **kwargs)
 
+@login_required
+def toggle_category_follow(request, slug):
+    if request.method != 'POST' or request.headers.get('x-requested-with') != 'XMLHttpRequest':
+        return HttpResponseBadRequest("Invalid request")
+
+    category = get_object_or_404(Category, slug=slug)
+    user = request.user
+    
+    is_following = False
+    if category.followers.filter(id=user.id).exists():
+        category.followers.remove(user)
+        is_following = False
+    else:
+        category.followers.add(user)
+        is_following = True
+
+    return JsonResponse({
+        'is_following': is_following,
+        'followers_count': category.followers.count()
+    })
 
 @login_required
 def add_comment(request, slug):

@@ -6,7 +6,6 @@
 {% block content %}
 <div class="row g-4">
 
-    <!-- ЛІВА КОЛОНКА -->
     <div class="col-md-3">
         <div class="card bg-black border-secondary mb-4">
             <div class="card-header bg-dark border-secondary">
@@ -39,30 +38,30 @@
         </div>
     </div>
 
-    <!-- ЦЕНТРАЛЬНА КОЛОНКА -->
     <div class="col-md-6">
         <div class="card bg-black border-secondary mb-4">
             <div class="card-body">
                 <div class="d-flex">
-                    <!-- Голосування -->
                     <div class="d-flex flex-column align-items-center me-3">
-                        <button class="btn btn-sm {% if user_vote == 1 %}btn-success{% else %}btn-outline-success{% endif %} p-1 mb-1 post-vote-btn"
-                                data-slug="{{ post.slug }}" data-direction="up">
+                        <button
+                            class="btn btn-sm {% if user_vote == 1 %}btn-success{% else %}btn-outline-success{% endif %} p-1 mb-1 post-vote-btn"
+                            data-slug="{{ post.slug }}" data-direction="up">
                             <i class="bi bi-arrow-up"></i>
                         </button>
                         <span class="text-light fw-bold" id="vote-score-{{ post.slug }}">{{ post.vote_score }}</span>
-                        <button class="btn btn-sm {% if user_vote == -1 %}btn-danger{% else %}btn-outline-danger{% endif %} p-1 mt-1 post-vote-btn"
-                                data-slug="{{ post.slug }}" data-direction="down">
+                        <button
+                            class="btn btn-sm {% if user_vote == -1 %}btn-danger{% else %}btn-outline-danger{% endif %} p-1 mt-1 post-vote-btn"
+                            data-slug="{{ post.slug }}" data-direction="down">
                             <i class="bi bi-arrow-down"></i>
                         </button>
                     </div>
 
-                    <!-- Вміст посту -->
                     <div class="flex-grow-1">
                         <div class="d-flex align-items-center mb-2">
                             <small class="text-body-secondary">
                                 Опубліковано в
-                                <a href="{% url 'core:category_detail' post.category.slug %}" class="text-warning text-decoration-none">
+                                <a href="{% url 'core:category_detail' post.category.slug %}"
+                                    class="text-warning text-decoration-none">
                                     /r/{{ post.category.name }}
                                 </a>
                             </small>
@@ -70,7 +69,8 @@
                             <small class="text-body-secondary">{{ post.created_at|date:"d.m.Y" }}</small>
                             <span class="text-body-secondary mx-1">•</span>
                             <small class="text-body-secondary">Автор:
-                                <a href="{% url 'users:profile_detail' post.author.username %}" class="text-warning text-decoration-none">
+                                <a href="{% url 'users:profile_detail' post.author.username %}"
+                                    class="text-warning text-decoration-none">
                                     {{ post.author.username }}
                                 </a>
                             </small>
@@ -87,14 +87,14 @@
                         {% if post.video_url %}
                         <div class="mb-4">
                             <div class="ratio ratio-16x9">
-                                <iframe src="{{ post.video_url|get_embed_url }}"
-                                        title="Відео для посту" allowfullscreen class="rounded"></iframe>
+                                <iframe src="{{ post.video_url|get_embed_url }}" title="Відео для посту" allowfullscreen
+                                    class="rounded"></iframe>
                             </div>
                         </div>
                         {% endif %}
 
                         <div class="post-content text-light mb-4">
-                            {{ post.content|linebreaks }}
+                            {{ post.content|safe }}
                         </div>
 
                         {% if post.tags.all %}
@@ -125,16 +125,25 @@
                             <button class="btn btn-outline-light btn-sm me-2">
                                 <i class="bi bi-chat"></i> {{ comment_count }} коментарів
                             </button>
-                            <button class="btn btn-outline-light btn-sm me-2 post-share-btn" data-slug="{{ post.slug }}">
+                            <button class="btn btn-outline-light btn-sm me-2 post-share-btn"
+                                data-slug="{{ post.slug }}">
                                 <i class="bi bi-share"></i> Поділитися
                             </button>
-                            <button class="btn {% if user_bookmarked %}btn-success{% else %}btn-outline-light{% endif %} btn-sm me-2 post-save-btn"
-                                    data-slug="{{ post.slug }}">
-                                <i class="bi {% if user_bookmarked %}bi-bookmark-fill{% else %}bi-bookmark{% endif %}"></i> Зберегти
+                            <button
+                                class="btn {% if user_bookmarked %}btn-success{% else %}btn-outline-light{% endif %} btn-sm me-2 post-save-btn"
+                                data-slug="{{ post.slug }}">
+                                <i
+                                    class="bi {% if user_bookmarked %}bi-bookmark-fill{% else %}bi-bookmark{% endif %}"></i>
+                                Зберегти
                             </button>
-                            {% if user == post.author or user.is_staff %}
-                            <a href="{% url 'core:post_update' post.slug %}" class="btn btn-outline-warning btn-sm me-2">
+
+                            {% if user == post.author or user.is_moderator or user.is_admin %}
+                            <a href="{% url 'core:post_update' post.slug %}"
+                                class="btn btn-outline-warning btn-sm me-2">
                                 <i class="bi bi-pencil"></i> Редагувати
+                            </a>
+                            <a href="{% url 'core:post_delete' post.slug %}" class="btn btn-outline-danger btn-sm me-2">
+                                <i class="bi bi-trash"></i> Видалити
                             </a>
                             {% endif %}
                         </div>
@@ -143,7 +152,6 @@
             </div>
         </div>
 
-        <!-- Коментарі -->
         <div class="card bg-black border-secondary">
             <div class="card-body">
                 <h5 class="text-light mb-4">
@@ -166,7 +174,7 @@
                 {% endif %}
 
                 {% for comment in comments %}
-                    {% include 'core/_comment.html' with comment=comment post=post %}
+                {% include 'core/_comment.html' with comment=comment post=post %}
                 {% empty %}
                 <div class="text-center py-4">
                     <i class="bi bi-chat display-4 text-body-secondary mb-3"></i>
@@ -177,7 +185,6 @@
         </div>
     </div>
 
-    <!-- ПРАВА КОЛОНКА -->
     <div class="col-md-3">
         <div style="position: sticky; top: 1.5rem;">
             {% include 'core/_advertisement.html' %}
@@ -205,7 +212,8 @@
                     {% for related_post in related_posts %}
                     <div class="mb-3 pb-2 {% if not forloop.last %}border-bottom border-secondary{% endif %}">
                         <h6 class="mb-1">
-                            <a href="{% url 'core:post_detail' related_post.slug %}" class="text-light text-decoration-none">
+                            <a href="{% url 'core:post_detail' related_post.slug %}"
+                                class="text-light text-decoration-none">
                                 {{ related_post.title }}
                             </a>
                         </h6>
@@ -252,72 +260,72 @@
 
 {% block extra_js %}
 <script>
-document.addEventListener('DOMContentLoaded', function() {
+    document.addEventListener('DOMContentLoaded', function () {
 
-    // --- Відповіді на коментарі ---
-    document.querySelectorAll('.reply-btn').forEach(button => {
-        button.addEventListener('click', function() {
-            const commentId = this.getAttribute('data-comment-id');
-            const formContainer = document.getElementById('reply-form-container-' + commentId);
-            document.querySelectorAll('[id^="reply-form-container-"]').forEach(f => f.style.display = 'none');
-            formContainer.style.display = (formContainer.style.display === 'none') ? 'block' : 'none';
+        // --- Відповіді на коментарі ---
+        document.querySelectorAll('.reply-btn').forEach(button => {
+            button.addEventListener('click', function () {
+                const commentId = this.getAttribute('data-comment-id');
+                const formContainer = document.getElementById('reply-form-container-' + commentId);
+                document.querySelectorAll('[id^="reply-form-container-"]').forEach(f => f.style.display = 'none');
+                formContainer.style.display = (formContainer.style.display === 'none') ? 'block' : 'none';
+            });
         });
-    });
 
-    function hideReplyForm(commentId) {
-        const formContainer = document.getElementById('reply-form-container-' + commentId);
-        if (formContainer) formContainer.style.display = 'none';
-    }
+        function hideReplyForm(commentId) {
+            const formContainer = document.getElementById('reply-form-container-' + commentId);
+            if (formContainer) formContainer.style.display = 'none';
+        }
 
-    // --- Лайки коментарів ---
-    function getCookie(name) {
-        let cookieValue = null;
-        if (document.cookie && document.cookie !== '') {
-            const cookies = document.cookie.split(';');
-            for (let i = 0; i < cookies.length; i++) {
-                const cookie = cookies[i].trim();
-                if (cookie.substring(0, name.length + 1) === (name + '=')) {
-                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
-                    break;
+        // --- Лайки коментарів ---
+        function getCookie(name) {
+            let cookieValue = null;
+            if (document.cookie && document.cookie !== '') {
+                const cookies = document.cookie.split(';');
+                for (let i = 0; i < cookies.length; i++) {
+                    const cookie = cookies[i].trim();
+                    if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                        break;
+                    }
                 }
             }
+            return cookieValue;
         }
-        return cookieValue;
-    }
-    const csrftoken = getCookie('csrftoken');
+        const csrftoken = getCookie('csrftoken');
 
-    function handleCommentLike(commentId, button) {
-        fetch(`/comment/${commentId}/like/`, {
-            method: 'POST',
-            headers: {
-                'X-Requested-With': 'XMLHttpRequest',
-                'X-CSRFToken': csrftoken,
-                'Content-Type': 'application/json'
-            },
-        })
-        .then(response => response.json())
-        .then(data => {
-            const likeCounter = document.getElementById('comment-likes-' + commentId);
-            if (likeCounter) likeCounter.textContent = data.like_count;
-            if (data.liked) {
-                button.classList.replace('btn-outline-danger', 'btn-danger');
-                button.innerHTML = '<i class="bi bi-heart-fill"></i>';
-            } else {
-                button.classList.replace('btn-danger', 'btn-outline-danger');
-                button.innerHTML = '<i class="bi bi-heart"></i>';
+        function handleCommentLike(commentId, button) {
+            fetch(`/comment/${commentId}/like/`, {
+                method: 'POST',
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'X-CSRFToken': csrftoken,
+                    'Content-Type': 'application/json'
+                },
+            })
+                .then(response => response.json())
+                .then(data => {
+                    const likeCounter = document.getElementById('comment-likes-' + commentId);
+                    if (likeCounter) likeCounter.textContent = data.like_count;
+                    if (data.liked) {
+                        button.classList.replace('btn-outline-danger', 'btn-danger');
+                        button.innerHTML = '<i class="bi bi-heart-fill"></i>';
+                    } else {
+                        button.classList.replace('btn-danger', 'btn-outline-danger');
+                        button.innerHTML = '<i class="bi bi-heart"></i>';
+                    }
+                })
+                .catch(error => console.error('Error toggling comment like:', error));
+        }
+
+        document.body.addEventListener('click', function (event) {
+            const button = event.target.closest('.comment-like-btn');
+            if (button) {
+                event.preventDefault();
+                const commentId = button.getAttribute('data-comment-id');
+                handleCommentLike(commentId, button);
             }
-        })
-        .catch(error => console.error('Error toggling comment like:', error));
-    }
-
-    document.body.addEventListener('click', function(event) {
-        const button = event.target.closest('.comment-like-btn');
-        if (button) {
-            event.preventDefault();
-            const commentId = button.getAttribute('data-comment-id');
-            handleCommentLike(commentId, button);
-        }
+        });
     });
-});
 </script>
 {% endblock %}

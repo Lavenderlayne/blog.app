@@ -3,6 +3,7 @@ from django.conf import settings
 from django.urls import reverse
 from django.utils import timezone
 from django.utils.text import slugify
+from ckeditor_uploader.fields import RichTextUploadingField
 
 class Category(models.Model):
     """Модель категорії для постів/статей"""
@@ -11,21 +12,17 @@ class Category(models.Model):
     description = models.TextField(blank=True, verbose_name="Опис")
     created_at = models.DateTimeField(auto_now_add=True, verbose_name="Створено")
     
+    followers = models.ManyToManyField(
+        settings.AUTH_USER_MODEL,
+        related_name='followed_categories',
+        blank=True,
+        verbose_name="Підписники"
+    )
+
     class Meta:
         verbose_name = "Категорія"
         verbose_name_plural = "Категорії"
         ordering = ['name']
-    
-    def __str__(self):
-        return self.name
-    
-    def save(self, *args, **kwargs):
-        if not self.slug:
-            self.slug = slugify(self.name)
-        super().save(*args, **kwargs)
-    
-    def get_absolute_url(self):
-        return reverse('category_detail', kwargs={'slug': self.slug})
 
 
 class Tag(models.Model):
@@ -68,7 +65,7 @@ class Post(models.Model):
     
     title = models.CharField(max_length=200, verbose_name="Заголовок")
     slug = models.SlugField(max_length=200, unique=True, verbose_name="URL")
-    content = models.TextField(verbose_name="Зміст")
+    content = RichTextUploadingField(verbose_name="Зміст")
     excerpt = models.TextField(max_length=300, blank=True, verbose_name="Короткий опис")
     
     post_type = models.CharField(

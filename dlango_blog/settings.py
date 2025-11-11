@@ -88,6 +88,22 @@ JAZZMIN_SETTINGS = {
     "default_icon_children": "fas fa-circle",
 }
 
+CKEDITOR_UPLOAD_PATH = "uploads/"
+CKEDITOR_CONFIGS = {
+    'default': {
+        'toolbar': 'Custom',
+        'toolbar_Custom': [
+            ['Bold', 'Italic', 'Underline'],
+            ['NumberedList', 'BulletedList', '-', 'Outdent', 'Indent', '-', 'JustifyLeft', 'JustifyCenter', 'JustifyRight', 'JustifyBlock'],
+            ['Link', 'Unlink'],
+            ['RemoveFormat', 'Source'],
+            ['Image', 'Blockquote', 'Table']
+        ],
+        'skin': 'moono-dark', # Темна тема
+        'width': '100%',
+    },
+}
+
 # Application definition
 INSTALLED_APPS = [
     'jazzmin',
@@ -100,6 +116,8 @@ INSTALLED_APPS = [
     'users',
     'core',
     'core.templatetags',
+    'ckeditor',
+    'ckeditor_uploader',
 ]
 
 # --- ВИПРАВЛЕНО: Відновлено обов'язковий список MIDDLEWARE ---
@@ -204,3 +222,5 @@ AUTH_USER_MODEL = 'users.CustomUser'
 # --- ДОДАНО ДЛЯ РОЗСИЛКИ В КОНСОЛЬ ---
 EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 DEFAULT_FROM_EMAIL = 'noreply@myblog.com'
+
+SITE_URL = 'http://127.0.0.1:8000'

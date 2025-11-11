@@ -2,6 +2,7 @@ from django.contrib import admin
 from django.utils import timezone
 from django.db.models import Count
 from .models import Category, Tag, Post, PostComment, PostVote, Subscription, Advertisement
+from django.contrib.auth.models import Group
 
 @admin.action(description='Опублікувати обрані пости')
 def make_published(modeladmin, request, queryset):
@@ -111,3 +112,5 @@ class AdvertisementAdmin(admin.ModelAdmin):
     search_fields = ('title', 'content')
     list_editable = ('is_active',)
     prepopulated_fields = {'slug': ('title',)}
+
+admin.site.unregister(Group)

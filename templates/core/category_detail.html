@@ -22,6 +22,12 @@
                     <span><i class="bi bi-file-post text-warning"></i> Постів:</span>
                     <strong>{{ post_count }}</strong>
                 </div>
+
+                <div class="d-flex justify-content-between text-light small mb-2">
+                    <span><i class="bi bi-people text-warning"></i> Підписників:</span>
+                    <strong id="category-followers-count">{{ followers_count }}</strong>
+                </div>
+                
                 <div class="d-flex justify-content-between text-light small">
                     <span><i class="bi bi-calendar text-warning"></i> Створено:</span>
                     <strong>{{ category.created_at|date:"d.m.Y" }}</strong>
@@ -34,8 +40,12 @@
                     <a href="/posts/create/" class="btn btn-warning">
                         <i class="bi bi-plus-circle"></i> Створити пост
                     </a>
-                    <button class="btn btn-outline-light">
-                        <i class="bi bi-bell"></i> Слідкувати
+
+                    <button
+                        class="btn {% if is_following %}btn-outline-light{% else %}btn-warning{% endif %} category-follow-btn"
+                        data-slug="{{ category.slug }}">
+                        <i class="bi {% if is_following %}bi-bell-slash{% else %}bi-bell{% endif %}"></i>
+                        {% if is_following %} Відписатись {% else %} Слідкувати {% endif %}
                     </button>
                 </div>
                 {% else %}
@@ -54,7 +64,8 @@
 
                 {% for cat in categories %}
                     {% if cat.id != category.id %}
-                    <div class="d-flex justify-content-between align-items-center mb-2 pb-2 border-bottom border-secondary">
+                    <div
+                        class="d-flex justify-content-between align-items-center mb-2 pb-2 border-bottom border-secondary">
                         <div>
                             <a href="/categories/{{ cat.slug }}/" class="text-light text-decoration-none">
                                 <i class="bi bi-record-circle text-warning me-1"></i> /r/{{ cat.name }}
@@ -74,9 +85,7 @@
                 </div>
             </div>
         </div>
-    </div>
-
-    <div class="col-md-6">
+    </div> <div class="col-md-6">
         <div class="card bg-black border-secondary mb-4">
             <div class="card-body">
                 <div class="d-flex justify-content-between align-items-center">
@@ -97,20 +106,25 @@
             <div class="card-body">
                 <div class="d-flex">
                     <div class="d-flex flex-column align-items-center me-3">
-                        <button class="btn btn-sm {% if post.user_vote == 1 %}btn-success{% else %}btn-outline-success{% endif %} p-1 mb-1 post-vote-btn" 
-                                data-slug="{{ post.slug }}" data-direction="up">
+                        <button
+                            class="btn btn-sm {% if post.user_vote == 1 %}btn-success{% else %}btn-outline-success{% endif %} p-1 mb-1 post-vote-btn"
+                            data-slug="{{ post.slug }}" data-direction="up">
                             <i class="bi bi-arrow-up"></i>
                         </button>
+                        
                         <span class="text-light fw-bold" id="vote-score-{{ post.slug }}">{{ post.vote_score|default:0 }}</span>
-                        <button class="btn btn-sm {% if post.user_vote == -1 %}btn-danger{% else %}btn-outline-danger{% endif %} p-1 mt-1 post-vote-btn"
-                                data-slug="{{ post.slug }}" data-direction="down">
+                        
+                        <button
+                            class="btn btn-sm {% if post.user_vote == -1 %}btn-danger{% else %}btn-outline-danger{% endif %} p-1 mt-1 post-vote-btn"
+                            data-slug="{{ post.slug }}" data-direction="down">
                             <i class="bi bi-arrow-down"></i>
                         </button>
                     </div>
 
                     <div class="flex-grow-1">
                         {% if post.featured_image %}
-                        <img src="{{ post.featured_image.url }}" class="img-fluid rounded mb-2" alt="{{ post.title }}" style="max-height: 300px; width: 100%; object-fit: cover;">
+                        <img src="{{ post.featured_image.url }}" class="img-fluid rounded mb-2"
+                            alt="{{ post.title }}" style="max-height: 300px; width: 100%; object-fit: cover;">
                         {% endif %}
 
                         <div class="d-flex align-items-center mb-2">
@@ -120,7 +134,8 @@
                         </div>
 
                         <h5 class="card-title text-light mb-2">
-                            <a href="{% url 'core:post_detail' post.slug %}" class="text-light text-decoration-none">
+                            <a href="{% url 'core:post_detail' post.slug %}"
+                                class="text-light text-decoration-none">
                                 {{ post.title }}
                             </a>
                             {% if post.is_featured %}
@@ -149,11 +164,13 @@
                             <a href="/posts/{{ post.slug }}/" class="btn btn-outline-light btn-sm me-2">
                                 <i class="bi bi-chat"></i> Коментувати
                             </a>
-                            <button class="btn btn-outline-light btn-sm me-2 post-share-btn" data-slug="{{ post.slug }}">
+                            <button class="btn btn-outline-light btn-sm me-2 post-share-btn"
+                                data-slug="{{ post.slug }}">
                                 <i class="bi bi-share"></i> Поділитися
                             </button>
-                            <button class="btn {% if post.is_bookmarked %}btn-success{% else %}btn-outline-light{% endif %} btn-sm post-save-btn" 
-                                    data-slug="{{ post.slug }}">
+                            <button
+                                class="btn {% if post.is_bookmarked %}btn-success{% else %}btn-outline-light{% endif %} btn-sm post-save-btn"
+                                data-slug="{{ post.slug }}">
                                 <i class="bi bi-bookmark"></i> Зберегти
                             </button>
                         </div>
@@ -181,7 +198,8 @@
             <ul class="pagination justify-content-center">
                 {% if posts.has_previous %}
                     <li class="page-item">
-                        <a class="page-link bg-black border-secondary text-light" href="?page={{ posts.previous_page_number }}">
+                        <a class="page-link bg-black border-secondary text-light"
+                            href="?page={{ posts.previous_page_number }}">
                             <i class="bi bi-chevron-left"></i> Попередня
                         </a>
                     </li>
@@ -194,14 +212,16 @@
                         </li>
                     {% else %}
                         <li class="page-item">
-                            <a class="page-link bg-black border-secondary text-light" href="?page={{ num }}">{{ num }}</a>
+                            <a class="page-link bg-black border-secondary text-light" href="?page={{ num }}">{{ num
+                                }}</a>
                         </li>
                     {% endif %}
                 {% endfor %}
 
                 {% if posts.has_next %}
                     <li class="page-item">
-                        <a class="page-link bg-black border-secondary text-light" href="?page={{ posts.next_page_number }}">
+                        <a class="page-link bg-black border-secondary text-light"
+                            href="?page={{ posts.next_page_number }}">
                             Наступна <i class="bi bi-chevron-right"></i>
                         </a>
                     </li>
@@ -209,9 +229,7 @@
             </ul>
         </nav>
         {% endif %}
-    </div>
-
-    <div class="col-md-3">
+    </div> <div class="col-md-3">
         <div class="card bg-black border-secondary">
             <div class="card-body">
                 <h5 class="text-light mb-3">
@@ -232,7 +250,5 @@
                 </div>
             </div>
         </div>
-    </div>
-</div>
+    </div> </div>
 {% endblock %}
-    

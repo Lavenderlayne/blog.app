@@ -25,6 +25,7 @@ urlpatterns = [
     path('categories/<slug:slug>/update/', views.CategoryUpdateView.as_view(), name='category_update'),
     path('categories/<slug:slug>/delete/', views.CategoryDeleteView.as_view(), name='category_delete'),
     path('categories/<slug:slug>/', views.CategoryDetailView.as_view(), name='category_detail'),
+    path('categories/<slug:slug>/follow/', views.toggle_category_follow, name='toggle_category_follow'),
     
     # --- ОНОВЛЕНО: Додано CRUD для Тегів ---
     path('tags/', views.TagListView.as_view(), name='tag_list'),
@@ -45,6 +46,3 @@ urlpatterns = [
     path('api/posts/<slug:slug>/', views.api_post_detail, name='api_post_detail'),
     path('users/', include('users.urls')),
 ]
-
-if settings.DEBUG:
-    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

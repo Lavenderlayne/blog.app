@@ -312,6 +312,63 @@ function handleProfileFollow(username, button) {
     })
     .catch(error => console.error('Error handling follow:', error));
 }
+// --- Функція для "Слідкувати за Користувачем" ---
+function handleProfileFollow(username, button) {
+    // ... (ваш існуючий код)
+}
+
+// === ДОДАЙТЕ ЦЮ НОВУ ФУНКЦІЮ ===
+function handleCategoryFollow(slug, button) {
+    {% if not user.is_authenticated %}
+        window.location.href = "{% url 'users:login' %}?next=" + window.location.pathname;
+        return;
+    {% endif %}
+
+    const url = `/categories/${slug}/follow/`;
+    fetch(url, {
+        method: 'POST',
+        headers: {
+            'X-Requested-With': 'XMLHttpRequest',
+            'X-CSRFToken': csrftoken,
+            'Content-Type': 'application/json'
+        },
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.is_following) {
+            button.innerHTML = '<i class="bi bi-bell-slash"></i> Відписатись';
+            button.classList.remove('btn-warning');
+            button.classList.add('btn-outline-light');
+        } else {
+            button.innerHTML = '<i class="bi bi-bell"></i> Слідкувати';
+            button.classList.remove('btn-outline-light');
+            button.classList.add('btn-warning');
+        }
+
+        const countSpan = document.getElementById('category-followers-count');
+        if (countSpan) {
+            countSpan.textContent = data.followers_count;
+        }
+    })
+    .catch(error => console.error('Error handling category follow:', error));
+}
+
+document.body.addEventListener('click', function(event) {
+
+    const followButton = event.target.closest('.profile-follow-btn');
+    if (followButton) {
+        return;
+    }
+
+    const categoryFollowButton = event.target.closest('.category-follow-btn');
+    if (categoryFollowButton) {
+        event.preventDefault();
+        const slug = categoryFollowButton.dataset.slug;
+        handleCategoryFollow(slug, categoryFollowButton);
+        return;
+    }
+});
+
 </script>
 </body>
 </html>

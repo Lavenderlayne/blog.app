@@ -2,6 +2,18 @@
 
 {% block title %}{% if form.instance.pk %}Редагування посту{% else %}Створення посту{% endif %}{% endblock %}
 
+{% block extra_css %}
+    {{ block.super }} {{ form.media.css }} <style>
+    .form-check-input:checked {
+        background-color: #ffc107; /* warning color */
+        border-color: #ffc107;
+    }
+    .form-check-input:focus {
+        border-color: #ffc107;
+        box-shadow: 0 0 0 0.25rem rgba(255, 193, 7, 0.25);
+    }
+    </style>
+{% endblock %}
 {% block content %}
 <form method="post" enctype="multipart/form-data">
     {% csrf_token %}
@@ -26,7 +38,7 @@
                     </h6>
                 </div>
                 <div class="card-body">
-                    {{ form.content }}
+                    {{ form.content }} 
                     {% if form.content.errors %}
                         <div class="text-warning small mt-1">{{ form.content.errors }}</div>
                     {% endif %}
@@ -47,7 +59,7 @@
                     {% endif %}
                 </div>
             </div>
-
+            
             <div class="card bg-black border-secondary mb-4">
                 <div class="card-header bg-dark border-secondary">
                     <h6 class="mb-0 text-light">
@@ -58,18 +70,12 @@
                     <div class="mb-3">
                         <label for="{{ form.meta_title.id_for_label }}" class="form-label text-light">Мета-заголовок</label>
                         {{ form.meta_title }}
-                        <div class="form-text text-body-secondary">Заголовок для пошукових систем (якщо не вказано, використовується заголовок посту)</div>
-                        {% if form.meta_title.errors %}
-                            <div class="text-warning small mt-1">{{ form.meta_title.errors }}</div>
-                        {% endif %}
+                        <div class="form-text text-body-secondary">Заголовок для пошукових систем</div>
                     </div>
                     <div>
                         <label for="{{ form.meta_description.id_for_label }}" class="form-label text-light">Мета-опис</label>
                         {{ form.meta_description }}
-                        <div class="form-text text-body-secondary">Опис для пошукових систем (якщо не вказано, використовується короткий опис)</div>
-                        {% if form.meta_description.errors %}
-                            <div class="text-warning small mt-1">{{ form.meta_description.errors }}</div>
-                        {% endif %}
+                        <div class="form-text text-body-secondary">Опис для пошукових систем</div>
                     </div>
                 </div>
             </div>
@@ -205,39 +211,28 @@
 </form>
 {% endblock %}
 
+
 {% block extra_js %}
-<script>
-document.addEventListener('DOMContentLoaded', function() {
-    // Автоматичне заповнення мета-полів
-    const titleField = document.querySelector('[name="title"]');
-    const excerptField = document.querySelector('[name="excerpt"]');
-    const metaTitleField = document.querySelector('[name="meta_title"]');
-    const metaDescriptionField = document.querySelector('[name="meta_description"]');
-    
-    function updateMetaFields() {
-        if (!metaTitleField.value) {
-            metaTitleField.value = titleField.value;
+    {{ block.super }} {{ form.media.js }} <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Автоматичне заповнення мета-полів
+        const titleField = document.querySelector('[name="title"]');
+        const excerptField = document.querySelector('[name="excerpt"]');
+        const metaTitleField = document.querySelector('[name="meta_title"]');
+        const metaDescriptionField = document.querySelector('[name="meta_description"]');
+        
+        function updateMetaFields() {
+            if (!metaTitleField.value) {
+                metaTitleField.value = titleField.value;
+            }
+            if (!metaDescriptionField.value && excerptField.value) {
+                metaDescriptionField.value = excerptField.value.substring(0, 300);
+            }
         }
-        if (!metaDescriptionField.value && excerptField.value) {
-            metaDescriptionField.value = excerptField.value.substring(0, 300);
-        }
-    }
-    
-    if (titleField) titleField.addEventListener('blur', updateMetaFields);
-    if (excerptField) excerptField.addEventListener('blur', updateMetaFields);
-});
-</script>
+        
+        if (titleField) titleField.addEventListener('blur', updateMetaFields);
+        if (excerptField) excerptField.addEventListener('blur', updateMetaFields);
+    });
+    </script>
 
-<style>
-/* Стилі для чекбоксів (якщо вони ще не визначені) */
-.form-check-input:checked {
-    background-color: #ffc107; /* warning color */
-    border-color: #ffc107;
-}
-
-.form-check-input:focus {
-    border-color: #ffc107;
-    box-shadow: 0 0 0 0.25rem rgba(255, 193, 7, 0.25);
-}
-</style>
-{% endblock %}
+    {% endblock %}
