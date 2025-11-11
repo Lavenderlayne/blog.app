@@ -16,13 +16,11 @@ class TagAdmin(admin.ModelAdmin):
 
 @admin.register(Post)
 class PostAdmin(admin.ModelAdmin):
-    # 2. Виправлено: 'like_count' замінено на 'vote_score'
     list_display = ('title', 'author', 'category', 'post_type', 'status', 'created_at', 'view_count', 'is_featured', 'vote_score')
     list_filter = ('status', 'post_type', 'category', 'created_at', 'is_featured')
     search_fields = ('title', 'content', 'excerpt')
     list_editable = ('status', 'is_featured')
     prepopulated_fields = {'slug': ('title',)}
-    # 3. Виправлено: 'like_count' замінено на 'vote_score'
     readonly_fields = ('view_count', 'vote_score', 'share_count', 'created_at', 'updated_at')
     fieldsets = (
         ('Основна інформація', {
@@ -36,7 +34,6 @@ class PostAdmin(admin.ModelAdmin):
             'classes': ('collapse',)
         }),
         ('Статистика', {
-            # 4. Виправлено: 'like_count' замінено на 'vote_score'
             'fields': ('view_count', 'vote_score', 'share_count', 'created_at', 'updated_at', 'published_at'),
             'classes': ('collapse',)
         }),
@@ -50,10 +47,8 @@ class PostCommentAdmin(admin.ModelAdmin):
     list_editable = ('is_active',)
     readonly_fields = ('created_at', 'updated_at')
 
-# 5. Виправлено: 'PostLike' замінено на 'PostVote'
 @admin.register(PostVote)
 class PostVoteAdmin(admin.ModelAdmin):
-    # 6. Додано 'value' для відображення лайка/дизлайка
     list_display = ('user', 'post', 'value', 'created_at')
     list_filter = ('created_at', 'value')
     search_fields = ('user__username', 'post__title')

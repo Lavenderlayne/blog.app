@@ -29,6 +29,10 @@ def get_embed_url(video_url):
             
             elif parsed_url.path.startswith('/embed/'):
                 # Посилання ВЖЕ у правильному форматі
+                # --- Додано перевірку, щоб ID не був порожнім ---
+                video_id = parsed_url.path.split('/embed/')[1]
+                if not video_id:
+                    return ""
                 return video_url
             
             elif parsed_url.path.startswith('/shorts/'):
@@ -38,6 +42,14 @@ def get_embed_url(video_url):
         if video_id:
             # Очищуємо ID від зайвих параметрів, якщо вони є
             video_id = video_id.split('?')[0]
+            
+            # --- ГОЛОВНЕ ВИПРАВЛЕННЯ ---
+            # Якщо ID все одно порожній (напр. URL був 'youtu.be/'), 
+            # повертаємо порожній рядок, щоб не ламати iframe
+            if not video_id:
+                return ""
+            # --- КІНЕЦЬ ВИПРАВЛЕННЯ ---
+
             return f"https://www.youtube.com/embed/{video_id}"
             
     except Exception:

@@ -9,10 +9,8 @@ from django.http import JsonResponse, HttpResponseBadRequest
 from django.core.paginator import Paginator
 from django.utils import timezone
 from .models import Post, Category, Tag, PostComment, PostVote, Subscription, CommentLike, Advertisement
-# --- ОНОВЛЕНО: Додано TagForm та slugify ---
 from .forms import PostForm, CommentForm, SubscriptionForm, TagForm
 from django.utils.text import slugify
-# ---
 from django.contrib.auth import get_user_model
 
 User = get_user_model()
@@ -41,22 +39,16 @@ def annotate_post_queryset(queryset, user):
         user_vote=Value(0, output_field=IntegerField())
     )
 
-
-# --- ЛОГІКА ОБРОБКИ ТЕГІВ ---
 def handle_tags(post_object, tag_string):
     """Допоміжна функція для очищення та додавання тегів до посту."""
     post_object.tags.clear()
     tag_names = [name.strip() for name in tag_string.split(',') if name.strip()]
     for name in tag_names:
-        # Використовуємо iexact для уникнення дублікатів (Python, python)
-        # Створюємо слаг під час створення
         tag, created = Tag.objects.get_or_create(
             name__iexact=name, 
             defaults={'name': name, 'slug': slugify(name)}
         )
         post_object.tags.add(tag)
-# --- КІНЕЦЬ ---
-
 
 class PostListView(ListView):
     model = Post
@@ -65,10 +57,25 @@ class PostListView(ListView):
     paginate_by = 10
     
     def get_queryset(self):
-        queryset = Post.objects.filter(status='published').select_related(
-            'author', 'category'
-        ).prefetch_related('tags', 'votes')
+        # --- ПЕРЕМІСТІТЬ ЦЕ НА ПОЧАТОК ---
+        sort = self.request.GET.get('sort', 'newest')
         
+        # --- ПОЧАТОК ЗМІНИ ---
+        if sort == 'drafts' and self.request.user.is_authenticated:
+            # Якщо запитують чернетки, беремо пости автора зі статусом 'draft'
+            queryset = Post.objects.filter(
+                author=self.request.user, 
+                status='draft'
+            ).select_related(
+                'author', 'category'
+            ).prefetch_related('tags', 'votes')
+        else:
+            # Інакше, беремо опубліковані пости, як і раніше
+            queryset = Post.objects.filter(status='published').select_related(
+                'author', 'category'
+            ).prefetch_related('tags', 'votes')
+        # --- КІНЕЦЬ ЗМІНИ ---
+
         queryset = annotate_post_queryset(queryset, self.request.user)
         
         category_slug = self.kwargs.get('category_slug')
@@ -87,7 +94,7 @@ class PostListView(ListView):
                 Q(excerpt__icontains=search_query)
             )
         
-        sort = self.request.GET.get('sort', 'newest')
+        # 'sort' вже визначено вище
         if sort == 'popular':
             queryset = queryset.order_by('-view_count')
         elif sort == 'top': 
@@ -96,25 +103,15 @@ class PostListView(ListView):
             queryset = queryset.filter(is_featured=True).order_by('-created_at')
         elif sort == 'bookmarked' and self.request.user.is_authenticated:
             queryset = queryset.filter(bookmarked_by=self.request.user).order_by('-created_at')
-        else:
-            queryset = queryset.order_by('-created_at')
+        # --- ОНОВЛЕНО ---
+        elif sort == 'drafts':
+             queryset = queryset.order_by('-updated_at') # Чернетки сортуємо за оновленням
+        # --- КІНЕЦЬ ОНОВЛЕННЯ ---
+        elif sort == 'newest': # 'drafts' вже відсортовані за оновленням
+             queryset = queryset.order_by('-created_at')
         
         return queryset
     
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        # ВИПРАВЛЕНО: Видалено context['categories'] = Category.objects.all() (використовуємо глобальний контекст-процесор)
-        context['popular_tags'] = Tag.objects.annotate(
-            post_count=Count('post')
-        ).order_by('-post_count')[:10]
-        context['featured_posts'] = Post.get_featured_posts()[:5]
-        context['active_ads'] = Advertisement.objects.filter(
-            is_active=True, 
-            expires_at__gte=timezone.now()
-        ).order_by('?')[:2]
-        return context
-
-
 class PostDetailView(DetailView):
     model = Post
     template_name = 'core/post_detail.html'
@@ -158,7 +155,6 @@ class PostDetailView(DetailView):
             expires_at__gte=timezone.now()
         ).order_by('?')[:2]
         
-        # ВИПРАВЛЕНО: Видалено context['categories'] = Category.objects.all() (використовуємо глобальний контекст-процесор)
         return context
 
 
@@ -167,21 +163,15 @@ class PostCreateView(LoginRequiredMixin, CreateView):
     form_class = PostForm
     template_name = 'core/post_form.html'
     
-    # --- ОНОВЛЕНО: Додано form_valid для обробки тегів ---
     def form_valid(self, form):
         form.instance.author = self.request.user
-        # Зберігаємо пост, щоб отримати ID
-        self.object = form.save() 
-        
-        # Отримуємо рядок тегів з форми
+        self.object = form.save(commit=False)
+        self.object.save() 
         tag_string = form.cleaned_data.get('tags', '')
         handle_tags(self.object, tag_string)
         
         messages.success(self.request, 'Пост успішно створено!')
-        return redirect(self.get_success_url()) # Викликаємо redirect замість super().form_valid
-
-    def get_success_url(self):
-        return reverse_lazy('core:post_detail', kwargs={'slug': self.object.slug})
+        return redirect(self.get_success_url())
 
 
 class PostUpdateView(LoginRequiredMixin, UserPassesTestMixin, UpdateView):
@@ -189,24 +179,21 @@ class PostUpdateView(LoginRequiredMixin, UserPassesTestMixin, UpdateView):
     form_class = PostForm
     template_name = 'core/post_form.html'
     
-    # --- ДОДАНО: Заповнюємо поле тегів початковими даними ---
     def get_initial(self):
         initial = super().get_initial()
         if self.object.tags.exists():
             initial['tags'] = ', '.join(tag.name for tag in self.object.tags.all())
         return initial
     
-    # --- ОНОВЛЕНО: Додано form_valid для обробки тегів ---
     def form_valid(self, form):
-        # Зберігаємо пост
-        self.object = form.save() 
-        
-        # Отримуємо рядок тегів з форми
+        self.object = form.save(commit=False) 
+        self.object.save() 
         tag_string = form.cleaned_data.get('tags', '')
         handle_tags(self.object, tag_string)
         
-        messages.success(self.request, 'Пост успішно оновлено!')
-        return redirect(self.get_success_url()) # Викликаємо redirect замість super().form_valid
+        messages.success(self.request, 'Пост збережено в Чернетку!')
+        return redirect(self.get_success_url())
+
     
     def test_func(self):
         post = self.get_object()

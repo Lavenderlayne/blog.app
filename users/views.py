@@ -10,12 +10,9 @@ from .forms import ProfileUpdateForm, UserUpdateForm, UserRegistrationForm
 from django.contrib.auth.views import LoginView
 from django.contrib.auth import login
 from django.http import JsonResponse, HttpResponseBadRequest
-
-# --- ДОДАНО ІМПОРТИ ДЛЯ ПОСТІВ, КОМЕНТАРІВ ТА ЧАСУ ---
-from core.models import Post, PostComment
+from core.models import Post, PostComment  # Імпортуємо Post, PostComment
 from django.utils import timezone
 from datetime import timedelta
-# ---
 
 def register(request):
     if request.method == 'POST':
@@ -54,6 +51,17 @@ class ProfileDetailView(LoginRequiredMixin, DetailView):
             Profile.objects.create(user=user)
         return user
     
+class ProfileDetailView(LoginRequiredMixin, DetailView):
+    model = CustomUser
+    template_name = 'users/profile_detail.html'
+    context_object_name = 'profile_user'
+    
+    def get_object(self):
+        user = get_object_or_404(CustomUser, username=self.kwargs['username'])
+        if not hasattr(user, 'profile'):
+            Profile.objects.create(user=user)
+        return user
+    
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         profile_user = self.get_object()
@@ -69,6 +77,12 @@ class ProfileDetailView(LoginRequiredMixin, DetailView):
         
         if request_user == profile_user:
             context['bookmarked_posts'] = profile_user.bookmarked_posts.all().order_by('-created_at')
+            
+            # --- ОСЬ ВАЖЛИВИЙ РЯДОК ---
+            context['user_drafts'] = Post.objects.filter(
+                author=profile_user, status='draft'
+            ).order_by('-updated_at')
+            # --- КІНЕЦЬ ---
 
         context['post_count'] = context['user_posts'].count()
         context['comment_count'] = context['user_comments'].count()
@@ -160,7 +174,7 @@ def my_profile(request):
     return redirect('users:profile_detail', username=request.user.username)
 
 # ---
-# --- ПОВНІСТЮ ЗАМІНІТЬ ЦЮ ФУНКЦІЮ ---
+# --- (Ця функція user_statistics вже коректна) ---
 # ---
 @login_required
 @user_passes_test(is_admin)
@@ -168,8 +182,7 @@ def user_statistics(request):
     total_users = CustomUser.objects.count()
     active_users = CustomUser.objects.filter(is_active=True).count()
     moderators_count = CustomUser.objects.filter(role='moderator').count()
-    admins_count = CustomUser.objects.filter(role='admin').count()
-    
+    admins_count = CustomUser.objects.filter(role='admin').count()    
     recent_users = CustomUser.objects.order_by('-date_joined')[:10]
     
     # --- ДОДАНО ОБЧИСЛЕННЯ ---

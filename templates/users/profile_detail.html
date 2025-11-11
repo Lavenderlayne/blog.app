@@ -5,9 +5,7 @@
 {% block content %}
 <div class="row g-4">
 
-    <!-- ====== ЛІВА КОЛОНКА (ПРОФІЛЬ) ====== -->
     <div class="col-md-3">
-        <!-- Аватар -->
         <div class="card bg-black border-secondary mb-4">
             <div class="card-body text-center">
                 {% if profile_user.profile.avatar %}
@@ -50,7 +48,6 @@
             </div>
         </div>
 
-        <!-- Лічильники -->
         <div class="card bg-black border-secondary mb-4">
             <div class="card-body">
                 <div class="row text-center">
@@ -70,7 +67,6 @@
             </div>
         </div>
 
-        <!-- Інформація -->
         <div class="card bg-black border-secondary">
             <div class="card-header bg-dark border-secondary">
                 <h6 class="mb-0 text-warning"><i class="bi bi-info-circle"></i> Інформація</h6>
@@ -121,7 +117,6 @@
         </div>
     </div>
 
-    <!-- ====== СЕРЕДНЯ КОЛОНКА (Пости, Коментарі, Закладки) ====== -->
     <div class="col-md-6">
         <div class="card bg-black border-secondary">
             <div class="card-header bg-dark border-secondary">
@@ -136,10 +131,17 @@
                             <i class="bi bi-chat-dots"></i> Коментарі ({{ comment_count }})
                         </button>
                     </li>
+                    
                     {% if user == profile_user %}
                     <li class="nav-item">
                         <button class="nav-link text-light bg-black border-secondary" data-bs-toggle="tab" data-bs-target="#bookmarks" type="button">
                             <i class="bi bi-bookmark"></i> Закладки
+                        </button>
+                    </li>
+                    
+                    <li class="nav-item">
+                        <button class="nav-link text-light bg-black border-secondary" data-bs-toggle="tab" data-bs-target="#drafts" type="button">
+                            <i class="bi bi-file-earmark-text"></i> Чернетки
                         </button>
                     </li>
                     {% endif %}
@@ -149,7 +151,6 @@
             <div class="card-body">
                 <div class="tab-content" id="profileTabsContent">
 
-                    <!-- Пости -->
                     <div class="tab-pane fade show active" id="posts">
                         {% for post in user_posts %}
                         <div class="d-flex mb-3 pb-3 border-bottom border-secondary">
@@ -174,7 +175,6 @@
                         {% endfor %}
                     </div>
 
-                    <!-- Коментарі -->
                     <div class="tab-pane fade" id="comments">
                         {% for comment in user_comments %}
                         <div class="mb-3 pb-3 border-bottom border-secondary">
@@ -192,7 +192,6 @@
                         {% endfor %}
                     </div>
 
-                    <!-- Закладки -->
                     {% if user == profile_user %}
                     <div class="tab-pane fade" id="bookmarks">
                         {% for post in bookmarked_posts %}
@@ -213,12 +212,35 @@
                         {% endfor %}
                     </div>
                     {% endif %}
-                </div>
+
+                    {% if user == profile_user %}
+                    <div class="tab-pane fade" id="drafts">
+                        {% for post in user_drafts %}
+                        <div class="d-flex justify-content-between align-items-center mb-3 pb-3 border-bottom border-secondary">
+                            <div class="flex-grow-1">
+                                <a href="{% url 'core:post_detail' post.slug %}" class="text-light h6 text-decoration-none d-block mb-1">{{ post.title }}</a>
+                                <small class="text-body-secondary">
+                                    в <a href="{% url 'core:category_detail' post.category.slug %}" class="text-warning text-decoration-none">/r/{{ post.category.name }}</a>
+                                    • Останнє оновлення: {{ post.updated_at|date:"d.m.Y H:i" }}
+                                </small>
+                            </div>
+                            <a href="{% url 'core:post_update' post.slug %}" class="btn btn-outline-warning btn-sm ms-2">
+                                <i class="bi bi-pencil"></i> Редагувати
+                            </a>
+                        </div>
+                        {% empty %}
+                        <div class="text-center text-muted py-4">
+                            <i class="bi bi-file-earmark-text display-4"></i>
+                            <p class="mt-2">У вас немає збережених чернеток.</p>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% endif %}
+                    </div>
             </div>
         </div>
     </div>
 
-    <!-- ====== ПРАВА КОЛОНКА (Навігація + Спільноти) ====== -->
     <div class="col-md-3">
         <div class="card bg-black border-secondary mb-3">
             <div class="card-header bg-dark border-secondary">
@@ -258,3 +280,202 @@
 
 </div>
 {% endblock %}
+<script>
+// --- Функція для отримання CSRF токена ---
+function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+        const cookies = document.cookie.split(';');
+        for (let i = 0; i < cookies.length; i++) {
+            const cookie = cookies[i].trim();
+            if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                break;
+            }
+        }
+    }
+    return cookieValue;
+}
+const csrftoken = getCookie('csrftoken');
+
+
+// --- Функція для "Поділитися" ---
+function sharePost(slug) {
+    const url = `${window.location.origin}/posts/${slug}/`;
+    if (navigator.share) {
+        navigator.share({ title: 'Цікавий пост', text: 'Переглянь цей пост', url: url });
+    } else {
+        navigator.clipboard.writeText(url);
+    }
+}
+
+// --- Функція для "Зберегти" (Закладки) ---
+function savePost(slug, button) {
+    {% if not user.is_authenticated %}
+        window.location.href = "{% url 'users:login' %}?next=" + window.location.pathname;
+        return;
+    {% endif %}
+
+    const url = `/bookmark/${slug}/`;
+    fetch(url, {
+        method: 'POST',
+        headers: {
+            'X-Requested-With': 'XMLHttpRequest',
+            'X-CSRFToken': csrftoken,
+            'Content-Type': 'application/json'
+        },
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.bookmarked) {
+            button.innerHTML = '<i class="bi bi-bookmark-fill"></i>';
+            button.classList.remove('btn-outline-light');
+            button.classList.add('btn-success');
+        } else {
+            button.innerHTML = '<i class="bi bi-bookmark"></i>';
+            button.classList.remove('btn-success');
+            button.classList.add('btn-outline-light');
+        }
+    })
+    .catch(error => console.error('Error toggling bookmark:', error));
+}
+
+
+// --- Функція: Обробка голосування (вгору/вниз) ---
+function handlePostVote(slug, direction, button) {
+    {% if not user.is_authenticated %}
+        window.location.href = "{% url 'users:login' %}?next=" + window.location.pathname;
+        return;
+    {% endif %}
+
+    const url = `/vote/${slug}/${direction}/`; // Новий URL
+
+    fetch(url, {
+        method: 'POST',
+        headers: {
+            'X-Requested-With': 'XMLHttpRequest',
+            'X-CSRFToken': csrftoken,
+            'Content-Type': 'application/json'
+        },
+    })
+    .then(response => response.json())
+    .then(data => {
+        // Оновлюємо лічильник
+        const countSpan = document.getElementById(`vote-score-${slug}`);
+        if (countSpan) {
+            countSpan.textContent = data.vote_score;
+        }
+
+        // Знаходимо обидві кнопки для цього посту
+        const upButton = document.querySelector(`.post-vote-btn[data-slug="${slug}"][data-direction="up"]`);
+        const downButton = document.querySelector(`.post-vote-btn[data-slug="${slug}"][data-direction="down"]`);
+
+        // Скидаємо обидві кнопки до "outline" стану
+        if (upButton) {
+            upButton.classList.remove('btn-success');
+            upButton.classList.add('btn-outline-success');
+        }
+        if (downButton) {
+            downButton.classList.remove('btn-danger');
+            downButton.classList.add('btn-outline-danger');
+        }
+
+        // Встановлюємо активний стан на основі відповіді сервера
+        if (data.user_vote === 1) {
+            // Користувач проголосував "вгору"
+            upButton.classList.remove('btn-outline-success');
+            upButton.classList.add('btn-success');
+        } else if (data.user_vote === -1) {
+            // Користувач проголосував "вниз"
+            downButton.classList.remove('btn-outline-danger');
+            downButton.classList.add('btn-danger');
+        }
+        // Якщо data.user_vote == 0, обидві кнопки залишаться "outline"
+    })
+    .catch(error => console.error('Error handling post vote:', error));
+}
+
+
+// --- Загальний обробник подій ---
+document.addEventListener('DOMContentLoaded', function() {
+    
+    document.body.addEventListener('click', function(event) {
+        
+        // --- Обробка кнопок "Голосування" (вгору/вниз) ---
+        const voteButton = event.target.closest('.post-vote-btn');
+        if (voteButton) {
+            event.preventDefault();
+            const slug = voteButton.dataset.slug;
+            const direction = voteButton.dataset.direction; // "up" or "down"
+            handlePostVote(slug, direction, voteButton);
+            return;
+        }
+
+        // --- Обробка кнопки "Зберегти" ---
+        const saveButton = event.target.closest('.post-save-btn');
+        if (saveButton) {
+            event.preventDefault();
+            const slug = saveButton.dataset.slug;
+            savePost(slug, saveButton);
+            return;
+        }
+
+        // --- Обробка кнопки "Поділитися" ---
+        const shareButton = event.target.closest('.post-share-btn');
+        if (shareButton) {
+            event.preventDefault();
+            const slug = shareButton.dataset.slug;
+            sharePost(slug);
+            return;
+        }
+
+        // --- Обробник кнопки "Слідкувати" ---
+        const followButton = event.target.closest('.profile-follow-btn');
+        if (followButton) {
+            event.preventDefault();
+            const username = followButton.dataset.username;
+            handleProfileFollow(username, followButton);
+            return;
+        }
+    });
+});
+
+// --- Функція для "Слідкувати" ---
+function handleProfileFollow(username, button) {
+    {% if not user.is_authenticated %}
+        window.location.href = "{% url 'users:login' %}?next=" + window.location.pathname;
+        return;
+    {% endif %}
+
+    const url = `/users/profile/${username}/follow/`;
+    fetch(url, {
+        method: 'POST',
+        headers: {
+            'X-Requested-With': 'XMLHttpRequest',
+            'X-CSRFToken': csrftoken,
+            'Content-Type': 'application/json'
+        },
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.is_following) {
+            // Користувач тепер слідкує
+            button.innerHTML = '<i class="bi bi-person-check-fill"></i> Відписатись';
+            button.classList.remove('btn-warning');
+            button.classList.add('btn-outline-light');
+        } else {
+            // Користувач відписався
+            button.innerHTML = '<i class="bi bi-person-plus"></i> Слідкувати';
+            button.classList.remove('btn-outline-light');
+            button.classList.add('btn-warning');
+        }
+        
+        // Оновлюємо лічильник підписників на сторінці
+        const countSpan = document.getElementById('followers-count');
+        if (countSpan) {
+            countSpan.textContent = data.followers_count;
+        }
+    })
+    .catch(error => console.error('Error handling follow:', error));
+}
+</script>
