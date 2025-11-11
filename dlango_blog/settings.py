@@ -29,8 +29,68 @@ DEBUG = True
 # ВКАЗУЄМО ДОЗВОЛЕНІ ХОСТИ (адреси, з яких можна заходити на сайт)
 ALLOWED_HOSTS = ['your_domain.com', 'www.your_domain.com', '127.0.0.1', 'localhost']
 
+JAZZMIN_SETTINGS = {
+    "site_title": "Мій Блог Admin",
+    "site_header": "Мій Блог",
+    "site_brand": "Панель Керування",
+    "welcome_sign": "Ласкаво просимо! Увійдіть для керування блогом.",
+    "favicon": "images/favicon.png",
+    "search_model": ["users.CustomUser", "core.Post"],
+
+    # Тема (використовуємо темну, як на вашому сайті)
+    "theme": "darkly",
+
+    # Налаштування UI
+    "topmenu_links": [
+        {"name": "Головна (Сайт)", "url": "core:home", "permissions": ["auth.view_user"]},
+        {"model": "users.CustomUser"},
+        {"model": "core.Post"},
+    ],
+
+    # === Ось ця частина робить магію "Reddit" ===
+    "ui_tweaks": {
+        "brand_colour": "#FF4500",      # Reddit Orange
+        "accent": "#FF4500",
+        "primary": "#FF4500",
+        "secondary": "#343A40",
+        "warning": "#FF4500",
+        
+        "navbar": "navbar-dark-primary", # Використовує primary колір
+        "sidebar": "sidebar-dark-primary", # Використовує primary колір
+        
+        "navbar_small_text": False,
+        "footer_small_text": False,
+        "body_small_text": False,
+        "brand_small_text": False,
+        "sidebar_nav_small_text": False,
+        "accent_colour": "#FF4500",
+        "primary_colour": "#FF4500",
+        "secondary_colour": "#343A40",
+        "success_colour": "#28A745",
+        "info_colour": "#17A2B8",
+        "warning_colour": "#FF4500",
+        "danger_colour": "#DC3545",
+        "light_colour": "#F8F9FA",
+        "dark_colour": "#343A40"
+    },
+    # === Кінець магії ===
+
+    "icons": {
+        "auth": "fas fa-users-cog",
+        "users.CustomUser": "fas fa-user",
+        "users.Profile": "fas fa-id-card",
+        "core.Post": "fas fa-newspaper",
+        "core.Category": "fas fa-tags",
+        "core.Tag": "fas fa-hashtag",
+        "core.PostComment": "fas fa-comments",
+    },
+    "default_icon_parents": "fas fa-chevron-circle-right",
+    "default_icon_children": "fas fa-circle",
+}
+
 # Application definition
 INSTALLED_APPS = [
+    'jazzmin',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -39,7 +99,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'users',
     'core',
-    'core.templatetags', # <-- ДОДАНО ДЛЯ ФІЛЬТРІВ ВІДЕО
+    'core.templatetags',
 ]
 
 # --- ВИПРАВЛЕНО: Відновлено обов'язковий список MIDDLEWARE ---

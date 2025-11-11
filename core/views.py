@@ -363,44 +363,35 @@ class TagDetailView(DetailView):
 # ---
 # --- ДОДАНО НОВІ VIEWS ДЛЯ КЕРУВАННЯ ТЕГАМИ (ДЛЯ АДМІНІВ) ---
 # ---
-class TagCreateView(LoginRequiredMixin, UserPassesTestMixin, CreateView):
+class TagCreateView(LoginRequiredMixin, CreateView):
     model = Tag
     form_class = TagForm
     template_name = 'core/tag_form.html'
     success_url = reverse_lazy('core:tag_list')
-    
-    def test_func(self):
-        return self.request.user.is_admin
-        
+       
     def form_valid(self, form):
         messages.success(self.request, 'Тег успішно створено!')
         return super().form_valid(form)
 
-class TagUpdateView(LoginRequiredMixin, UserPassesTestMixin, UpdateView):
+class TagUpdateView(LoginRequiredMixin, UpdateView):
     model = Tag
     form_class = TagForm
     template_name = 'core/tag_form.html'
     success_url = reverse_lazy('core:tag_list')
-    
-    def test_func(self):
-        return self.request.user.is_admin
-        
+          
     def form_valid(self, form):
         messages.success(self.request, 'Тег успішно оновлено!')
         return super().form_valid(form)
 
-class TagDeleteView(LoginRequiredMixin, UserPassesTestMixin, DeleteView):
+class TagDeleteView(LoginRequiredMixin, DeleteView):
     model = Tag
     template_name = 'core/tag_confirm_delete.html'
     success_url = reverse_lazy('core:tag_list')
     
-    def test_func(self):
-        return self.request.user.is_admin
         
     def delete(self, request, *args, **kwargs):
         messages.success(request, 'Тег успішно видалено!')
         return super().delete(request, *args, **kwargs)
-# --- КІНЕЦЬ НОВИХ VIEWS ---
 
 
 @login_required
