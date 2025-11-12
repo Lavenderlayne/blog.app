@@ -24,6 +24,11 @@ class Category(models.Model):
         verbose_name_plural = "Категорії"
         ordering = ['name']
 
+    # === ОСЬ ВИПРАВЛЕННЯ (додано цей метод) ===
+    def __str__(self):
+        return self.name
+    # === КІНЕЦЬ ===
+
 
 class Tag(models.Model):
     """Модель тегу для постів"""
@@ -39,10 +44,8 @@ class Tag(models.Model):
         return self.name
     
     def save(self, *args, **kwargs):
-        # --- ВИПРАВЛЕННЯ NoReverseMatch: Гарантуємо, що slug існує ---
         if not self.slug or not self.slug.strip():
             self.slug = slugify(self.name)
-        # ---
         super().save(*args, **kwargs)
     
     def get_absolute_url(self):
@@ -110,7 +113,6 @@ class Post(models.Model):
     
     view_count = models.PositiveIntegerField(default=0, verbose_name="Перегляди")
     
-    # --- ОНОВЛЕНО: 'like_count' замінено на 'vote_score' ---
     vote_score = models.IntegerField(default=0, verbose_name="Рахунок голосів")
     
     share_count = models.PositiveIntegerField(default=0, verbose_name="Поділіться")
@@ -119,7 +121,6 @@ class Post(models.Model):
     is_pinned = models.BooleanField(default=False, verbose_name="Закріплений")
     allow_comments = models.BooleanField(default=True, verbose_name="Дозволити коментарі")
     
-    # --- ДОДАНО ПОЛЕ ВІДЕО ---
     video_url = models.URLField(blank=True, null=True, verbose_name="Посилання на відео (YouTube, etc.)")
     
     bookmarked_by = models.ManyToManyField(
@@ -173,63 +174,52 @@ class Post(models.Model):
         return self.meta_description or self.excerpt or self.content[:300]
     
     def increment_view_count(self):
-        """Збільшення лічильника переглядів"""
         self.view_count += 1
         self.save(update_fields=['view_count'])
     
     def increment_share_count(self):
-        """Збільшення лічильника поділів"""
         self.share_count += 1
         self.save(update_fields=['share_count'])
     
     @property
     def reading_time(self):
-        """Розрахунок часу читання посту"""
         words_per_minute = 200
         word_count = len(self.content.split())
         return max(1, round(word_count / words_per_minute))
     
     @classmethod
     def get_published_posts(cls):
-        """Отримання опублікованих постів"""
         return cls.objects.filter(status='published')
     
     @classmethod
     def get_featured_posts(cls):
-        """Отримання обраних постів"""
         return cls.get_published_posts().filter(is_featured=True)
     
     @classmethod
     def get_posts_by_category(cls, category_slug):
-        """Отримання постів за категорією"""
         return cls.get_published_posts().filter(category__slug=category_slug)
     
     @classmethod
     def get_posts_by_tag(cls, tag_slug):
-        """Отримання постів за тегом"""
         return cls.get_published_posts().filter(tags__slug=tag_slug)
 
 
 class PostComment(models.Model):
-    """Модель коментаря до посту"""
     post = models.ForeignKey(
         Post, 
         on_delete=models.CASCADE, 
         related_name='comments',
         verbose_name="Пост"
     )
-    
     author = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         on_delete=models.CASCADE,
         verbose_name="Автор"
     )
-    
     content = models.TextField(verbose_name="Коментар")
     created_at = models.DateTimeField(auto_now_add=True, verbose_name="Створено")
     updated_at = models.DateTimeField(auto_now=True, verbose_name="Оновлено")
     is_active = models.BooleanField(default=True, verbose_name="Активний")
-    
     parent = models.ForeignKey(
         'self',
         on_delete=models.CASCADE,
@@ -238,7 +228,6 @@ class PostComment(models.Model):
         related_name='replies',
         verbose_name="Відповідь на"
     )
-    
     like_count = models.PositiveIntegerField(default=0, verbose_name="Лайки")
     
     class Meta:
@@ -251,55 +240,44 @@ class PostComment(models.Model):
     
     @property
     def is_reply(self):
-        """Чи є коментар відповіддю"""
         return self.parent is not None
 
-
-# --- ОНОВЛЕНО: 'PostLike' перейменовано на 'PostVote' і додано 'value' ---
 class PostVote(models.Model):
-    """Модель голосу (вгору/вниз) для посту"""
     post = models.ForeignKey(
         Post, 
         on_delete=models.CASCADE, 
-        related_name='votes', # 'likes' змінено на 'votes'
+        related_name='votes', 
         verbose_name="Пост"
     )
-    
     user = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         on_delete=models.CASCADE,
         verbose_name="Користувач"
     )
-    
-    # 1 для лайка, -1 для дизлайка
     value = models.SmallIntegerField(verbose_name="Значення")
-    
     created_at = models.DateTimeField(auto_now_add=True, verbose_name="Створено")
     
     class Meta:
         verbose_name = "Голос за пост"
         verbose_name_plural = "Голоси за пости"
-        unique_together = ['post', 'user'] # Залишається
+        unique_together = ['post', 'user'] 
     
     def __str__(self):
         return f"Голос {self.value} від {self.user} для {self.post}"
 
 
 class CommentLike(models.Model):
-    """Модель лайку для коментаря"""
     comment = models.ForeignKey(
         PostComment, 
         on_delete=models.CASCADE, 
         related_name='likes',
         verbose_name="Коментар"
     )
-    
     user = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         on_delete=models.CASCADE,
         verbose_name="Користувач"
     )
-    
     created_at = models.DateTimeField(auto_now_add=True, verbose_name="Створено")
     
     class Meta:
@@ -312,9 +290,7 @@ class CommentLike(models.Model):
 
 
 class Subscription(models.Model):
-    """Модель підписки на новини"""
     email = models.EmailField(unique=True, verbose_name="Email")
-    
     user = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         on_delete=models.CASCADE, 
@@ -322,7 +298,6 @@ class Subscription(models.Model):
         blank=True,
         verbose_name="Користувач"
     )
-    
     is_active = models.BooleanField(default=True, verbose_name="Активна")
     subscribed_at = models.DateTimeField(auto_now_add=True, verbose_name="Підписано")
     
@@ -335,7 +310,6 @@ class Subscription(models.Model):
 
 
 class Advertisement(models.Model):
-    """Модель оголошення"""
     title = models.CharField(max_length=200, verbose_name="Заголовок")
     slug = models.SlugField(max_length=200, unique=True, verbose_name="URL")
     content = models.TextField(verbose_name="Зміст")
