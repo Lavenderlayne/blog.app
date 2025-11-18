@@ -113,11 +113,9 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'django_ckeditor_5',
     'users',
     'core',
-    'core.templatetags',
-    'ckeditor',
-    'ckeditor_uploader',
 ]
 
 # --- ВИПРАВЛЕНО: Відновлено обов'язковий список MIDDLEWARE ---

@@ -24,10 +24,8 @@ from django.conf.urls.static import static
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('', include('core.urls')),
-    path('users/', include('users.urls')),
-    
-    path('ckeditor/', include('ckeditor_uploader.urls')),
-    
+    path('users/', include('users.urls')), 
+    path("ckeditor5/", include('django_ckeditor_5.urls')),   
     path('login/', CustomLoginView.as_view(), name='login'),
     path('logout/', auth_views.LogoutView.as_view(), name='logout'),
     path('register/', register, name='register'),

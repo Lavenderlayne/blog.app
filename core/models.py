@@ -3,7 +3,7 @@ from django.conf import settings
 from django.urls import reverse
 from django.utils import timezone
 from django.utils.text import slugify
-from ckeditor_uploader.fields import RichTextUploadingField
+from ckeditor_5.fields import CKEditor5Field
 
 class Category(models.Model):
     """Модель категорії для постів/статей"""
@@ -24,10 +24,8 @@ class Category(models.Model):
         verbose_name_plural = "Категорії"
         ordering = ['name']
 
-    # === ОСЬ ВИПРАВЛЕННЯ (додано цей метод) ===
     def __str__(self):
         return self.name
-    # === КІНЕЦЬ ===
 
 
 class Tag(models.Model):
@@ -68,7 +66,7 @@ class Post(models.Model):
     
     title = models.CharField(max_length=200, verbose_name="Заголовок")
     slug = models.SlugField(max_length=200, unique=True, verbose_name="URL")
-    content = RichTextUploadingField(verbose_name="Зміст")
+    content = CKEditor5Field(verbose_name="Зміст", config_name='default')
     excerpt = models.TextField(max_length=300, blank=True, verbose_name="Короткий опис")
     
     post_type = models.CharField(
@@ -184,6 +182,8 @@ class Post(models.Model):
     @property
     def reading_time(self):
         words_per_minute = 200
+        # Оскільки content тепер може бути CKEditor5Field, 
+        # припускаємо, що він повертає рядок для обробки
         word_count = len(self.content.split())
         return max(1, round(word_count / words_per_minute))
     
