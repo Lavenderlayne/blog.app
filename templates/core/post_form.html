@@ -3,16 +3,25 @@
 {% block title %}{% if form.instance.pk %}Редагування посту{% else %}Створення посту{% endif %}{% endblock %}
 
 {% block extra_css %}
-    {{ block.super }} {{ form.media.css }} <style>
+    {{ block.super }} {{ form.media.css }} 
+<style>
     .form-check-input:checked {
-        background-color: #ffc107; /* warning color */
+        background-color: #ffc107;
         border-color: #ffc107;
     }
     .form-check-input:focus {
         border-color: #ffc107;
         box-shadow: 0 0 0 0.25rem rgba(255, 193, 7, 0.25);
     }
-    </style>
+    
+    .cke_contents {
+        height: 750px !important; 
+    }
+    
+    .ck-editor__editable {
+        min-height: 750px !important;
+    }
+</style>
 {% endblock %}
 {% block content %}
 <form method="post" enctype="multipart/form-data">
@@ -45,7 +54,7 @@
                 </div>
             </div>
 
-            <div class="card bg-black border-secondary mb-4">
+<!--             <div class="card bg-black border-secondary mb-4">
                 <div class="card-header bg-dark border-secondary">
                     <h6 class="mb-0 text-light">
                         <i class="bi bi-justify-left text-warning"></i> Короткий опис (Ексцерпт)
@@ -58,9 +67,9 @@
                         <div class="text-warning small mt-1">{{ form.excerpt.errors }}</div>
                     {% endif %}
                 </div>
-            </div>
+            </div> -->
             
-            <div class="card bg-black border-secondary mb-4">
+<!--             <div class="card bg-black border-secondary mb-4">
                 <div class="card-header bg-dark border-secondary">
                     <h6 class="mb-0 text-light">
                         <i class="bi bi-search text-warning"></i> SEO налаштування
@@ -78,7 +87,7 @@
                         <div class="form-text text-body-secondary">Опис для пошукових систем</div>
                     </div>
                 </div>
-            </div>
+            </div> -->
 
         </div>
 
@@ -152,7 +161,7 @@
                     </div>
                     <div class="card-body">
                         <div class="mb-3">
-                            <label for="id_featured_image" class="form-label text-light">Головне зображення</label>
+<!--                             <label for="id_featured_image" class="form-label text-light">Головне зображення</label>
                             {% if form.instance.featured_image %}
                                 <img src="{{ form.instance.featured_image.url }}" alt="Поточне зображення" class="img-fluid rounded mb-2">
                                 <div class="form-check">
@@ -165,9 +174,9 @@
                             <input type="file" name="featured_image" class="form-control bg-dark border-secondary text-light mt-2" accept="image/*" id="id_featured_image">
                             {% if form.featured_image.errors %}
                                 <div class="text-warning small mt-1">{{ form.featured_image.errors }}</div>
-                            {% endif %}
-                        </div>
-                        <hr class="border-secondary">
+                            {% endif %} -->
+<!--                         </div>
+                        <hr class="border-secondary"> -->
                         <div>
                             <label for="{{ form.video_url.id_for_label }}" class="form-label text-light">Посилання на відео (YouTube)</label>
                             {{ form.video_url }}
@@ -177,6 +186,7 @@
                         </div>
                     </div>
                 </div>
+            </div>
 
                 <div class="card bg-black border-secondary mb-4">
                     <div class="card-header bg-dark border-secondary">
