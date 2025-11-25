@@ -59,9 +59,8 @@ class Post(models.Model):
     ]
     
     STATUS_CHOICES = [
-        ('draft', 'Чернетка'),
         ('published', 'Опублікована'),
-        ('archived', 'В архіві'),
+        ('draft', 'Чернетка'),
     ]
     
     title = models.CharField(max_length=200, verbose_name="Заголовок")

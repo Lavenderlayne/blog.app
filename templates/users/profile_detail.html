@@ -153,7 +153,7 @@
 
                     <div class="tab-pane fade show active" id="posts">
                         {% for post in user_posts %}
-                        <div class="d-flex mb-3 pb-3 border-bottom border-secondary">
+                        {% if post.slug %} <div class="d-flex mb-3 pb-3 border-bottom border-secondary">
                             <div class="d-flex flex-column align-items-center me-3">
                                 <i class="bi bi-arrow-up text-success"></i>
                                 <span class="text-light fw-bold">{{ post.vote_score|default:0 }}</span>
@@ -167,6 +167,7 @@
                                 </small>
                             </div>
                         </div>
+                        {% endif %}
                         {% empty %}
                         <div class="text-center text-muted py-4">
                             <i class="bi bi-card-text display-4"></i>
@@ -177,13 +178,14 @@
 
                     <div class="tab-pane fade" id="comments">
                         {% for comment in user_comments %}
-                        <div class="mb-3 pb-3 border-bottom border-secondary">
+                        {% if comment.post.slug %} <div class="mb-3 pb-3 border-bottom border-secondary">
                             <p class="text-light mb-1">{{ comment.content|truncatewords:30 }}</p>
                             <small class="text-body-secondary">
                                 до <a href="{% url 'core:post_detail' comment.post.slug %}#comment-{{comment.id}}" class="text-warning text-decoration-none">{{ comment.post.title }}</a>
                                 • {{ comment.created_at|date:"d.m.Y H:i" }}
                             </small>
                         </div>
+                        {% endif %}
                         {% empty %}
                         <div class="text-center text-muted py-4">
                             <i class="bi bi-chat-dots display-4"></i>
@@ -195,7 +197,7 @@
                     {% if user == profile_user %}
                     <div class="tab-pane fade" id="bookmarks">
                         {% for post in bookmarked_posts %}
-                        <div class="d-flex mb-3 pb-3 border-bottom border-secondary">
+                        {% if post.slug %} <div class="d-flex mb-3 pb-3 border-bottom border-secondary">
                             <div class="flex-grow-1">
                                 <a href="{% url 'core:post_detail' post.slug %}" class="text-light h6 text-decoration-none d-block mb-1">{{ post.title }}</a>
                                 <small class="text-body-secondary">
@@ -204,6 +206,7 @@
                                 </small>
                             </div>
                         </div>
+                        {% endif %}
                         {% empty %}
                         <div class="text-center text-muted py-4">
                             <i class="bi bi-bookmark display-4"></i>
@@ -216,7 +219,7 @@
                     {% if user == profile_user %}
                     <div class="tab-pane fade" id="drafts">
                         {% for post in user_drafts %}
-                        <div class="d-flex justify-content-between align-items-center mb-3 pb-3 border-bottom border-secondary">
+                        {% if post.slug %} <div class="d-flex justify-content-between align-items-center mb-3 pb-3 border-bottom border-secondary">
                             <div class="flex-grow-1">
                                 <a href="{% url 'core:post_detail' post.slug %}" class="text-light h6 text-decoration-none d-block mb-1">{{ post.title }}</a>
                                 <small class="text-body-secondary">
@@ -228,6 +231,7 @@
                                 <i class="bi bi-pencil"></i> Редагувати
                             </a>
                         </div>
+                        {% endif %}
                         {% empty %}
                         <div class="text-center text-muted py-4">
                             <i class="bi bi-file-earmark-text display-4"></i>
@@ -280,7 +284,9 @@
 
 </div>
 {% endblock %}
+
 <script>
+// (Скрипти залишаються без змін, вони тут не винні)
 // --- Функція для отримання CSRF токена ---
 function getCookie(name) {
     let cookieValue = null;
@@ -348,7 +354,7 @@ function handlePostVote(slug, direction, button) {
         return;
     {% endif %}
 
-    const url = `/vote/${slug}/${direction}/`; // Новий URL
+    const url = `/vote/${slug}/${direction}/`; 
 
     fetch(url, {
         method: 'POST',
@@ -382,15 +388,12 @@ function handlePostVote(slug, direction, button) {
 
         // Встановлюємо активний стан на основі відповіді сервера
         if (data.user_vote === 1) {
-            // Користувач проголосував "вгору"
             upButton.classList.remove('btn-outline-success');
             upButton.classList.add('btn-success');
         } else if (data.user_vote === -1) {
-            // Користувач проголосував "вниз"
             downButton.classList.remove('btn-outline-danger');
             downButton.classList.add('btn-danger');
         }
-        // Якщо data.user_vote == 0, обидві кнопки залишаться "outline"
     })
     .catch(error => console.error('Error handling post vote:', error));
 }
@@ -401,12 +404,12 @@ document.addEventListener('DOMContentLoaded', function() {
     
     document.body.addEventListener('click', function(event) {
         
-        // --- Обробка кнопок "Голосування" (вгору/вниз) ---
+        // --- Обробка кнопок "Голосування" ---
         const voteButton = event.target.closest('.post-vote-btn');
         if (voteButton) {
             event.preventDefault();
             const slug = voteButton.dataset.slug;
-            const direction = voteButton.dataset.direction; // "up" or "down"
+            const direction = voteButton.dataset.direction;
             handlePostVote(slug, direction, voteButton);
             return;
         }
@@ -459,18 +462,15 @@ function handleProfileFollow(username, button) {
     .then(response => response.json())
     .then(data => {
         if (data.is_following) {
-            // Користувач тепер слідкує
             button.innerHTML = '<i class="bi bi-person-check-fill"></i> Відписатись';
             button.classList.remove('btn-warning');
             button.classList.add('btn-outline-light');
         } else {
-            // Користувач відписався
             button.innerHTML = '<i class="bi bi-person-plus"></i> Слідкувати';
             button.classList.remove('btn-outline-light');
             button.classList.add('btn-warning');
         }
         
-        // Оновлюємо лічильник підписників на сторінці
         const countSpan = document.getElementById('followers-count');
         if (countSpan) {
             countSpan.textContent = data.followers_count;

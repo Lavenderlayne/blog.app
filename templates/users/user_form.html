@@ -21,13 +21,13 @@
                         Будь ласка, виправте помилки нижче.
                     </div>
                     {% endif %}
-                    
+
                     <div class="mb-4">
                         <label for="{{ form.first_name.id_for_label }}" class="form-label text-light">Ім'я</label>
                         {{ form.first_name }}
                         <div class="form-text text-muted">Ваше справжнє ім'я</div>
                         {% if form.first_name.errors %}
-                            <div class="text-warning small mt-1">{{ form.first_name.errors }}</div>
+                        <div class="text-warning small mt-1">{{ form.first_name.errors }}</div>
                         {% endif %}
                     </div>
 
@@ -36,7 +36,7 @@
                         {{ form.last_name }}
                         <div class="form-text text-muted">Ваше справжнє прізвище</div>
                         {% if form.last_name.errors %}
-                            <div class="text-warning small mt-1">{{ form.last_name.errors }}</div>
+                        <div class="text-warning small mt-1">{{ form.last_name.errors }}</div>
                         {% endif %}
                     </div>
 
@@ -45,7 +45,7 @@
                         {{ form.email }}
                         <div class="form-text text-muted">Ваша дійсна email адреса</div>
                         {% if form.email.errors %}
-                            <div class="text-warning small mt-1">{{ form.email.errors }}</div>
+                        <div class="text-warning small mt-1">{{ form.email.errors }}</div>
                         {% endif %}
                     </div>
                 </div>
@@ -54,7 +54,7 @@
 
         <div class="col-lg-4">
             <div style="position: sticky; top: 1.5rem;">
-                
+
                 <div class="card bg-black border-secondary mb-4">
                     <div class="card-header bg-dark border-secondary">
                         <h5 class="mb-0 text-light">
@@ -69,12 +69,13 @@
                         </div>
                     </div>
                     <div class="card-footer bg-dark border-secondary text-center">
-                        <a href="{% url 'users:profile_detail' username=user.username %}" class="btn btn-sm btn-outline-secondary">
+                        <a href="{% url 'users:profile_detail' username=user.username %}"
+                            class="btn btn-sm btn-outline-secondary">
                             <i class="bi bi-x"></i> Скасувати
                         </a>
                     </div>
                 </div>
-                
+
                 <div class="card bg-black border-secondary">
                     <div class="card-header bg-dark border-secondary">
                         <h6 class="mb-0 text-light">
@@ -93,8 +94,9 @@
                             </li>
                             <li class="mb-2">
                                 <i class="bi bi-shield text-warning me-2" style="width: 16px;"></i>
-                                <strong>Роль:</strong> 
-                                <span class="badge bg-{% if user.role == 'admin' %}danger{% elif user.role == 'moderator' %}warning text-dark{% else %}primary{% endif %}">
+                                <strong>Роль:</strong>
+                                <span
+                                    class="badge bg-{% if user.role == 'admin' %}danger{% elif user.role == 'moderator' %}warning text-dark{% else %}primary{% endif %}">
                                     {{ user.get_role_display }}
                                 </span>
                             </li>
@@ -116,34 +118,40 @@
 
 {% block extra_js %}
 <script>
-document.addEventListener('DOMContentLoaded', function() {
-    // Додавання темних класів для всіх полів вводу
-    document.querySelectorAll('input, select, textarea').forEach(control => {
-        if (!control.classList.contains('form-check-input')) {
-            control.classList.add('bg-dark', 'border-secondary', 'text-light');
+    document.addEventListener('DOMContentLoaded', function () {
+        const statusSelect = document.querySelector('select[name="status"]');
+        if (statusSelect) {
+            for (let i = 0; i < statusSelect.options.length; i++) {
+                if (statusSelect.options[i].value === 'archived') {
+                    statusSelect.remove(i);
+                    break;
+                }
+            }
         }
-    });
 
-    // Підсвічування помилкових полів
-    document.querySelectorAll('.text-warning').forEach(error => {
-        const field = error.closest('.mb-4').querySelector('input');
-        if (field) {
-            field.classList.add('border-warning');
-        }
+        document.querySelectorAll('.text-warning').forEach(error => {
+            const parent = error.closest('.mb-4, .mb-3');
+            if (parent) {
+                const field = parent.querySelector('input, textarea, select');
+                if (field) {
+                    field.classList.add('border-warning');
+                }
+            }
+        });
     });
-});
 </script>
 
 <style>
-.form-control:focus, .form-select:focus {
-    background-color: #1a1a1b !important;
-    border-color: #ffc107 !important;
-    box-shadow: 0 0 0 0.2rem rgba(255, 193, 7, 0.25) !important;
-    color: #ffffff !important;
-}
+    .form-control:focus,
+    .form-select:focus {
+        background-color: #1a1a1b !important;
+        border-color: #ffc107 !important;
+        box-shadow: 0 0 0 0.2rem rgba(255, 193, 7, 0.25) !important;
+        color: #ffffff !important;
+    }
 
-.form-control.border-warning {
-    border-color: #ffc107 !important;
-}
+    .form-control.border-warning {
+        border-color: #ffc107 !important;
+    }
 </style>
 {% endblock %}

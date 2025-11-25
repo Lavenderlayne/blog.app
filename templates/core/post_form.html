@@ -5,21 +5,59 @@
 {% block extra_css %}
     {{ block.super }} {{ form.media.css }} 
 <style>
-    .form-check-input:checked {
+.form-check-input:checked {
         background-color: #ffc107;
         border-color: #ffc107;
     }
-    .form-check-input:focus {
-        border-color: #ffc107;
-        box-shadow: 0 0 0 0.25rem rgba(255, 193, 7, 0.25);
-    }
-    
-    .cke_contents {
-        height: 750px !important; 
-    }
-    
+
     .ck-editor__editable {
         min-height: 750px !important;
+        background-color: #212529 !important;
+        color: #e0e0e0 !important;
+        border: 1px solid #444 !important;
+    }
+
+    .ck.ck-toolbar {
+        background-color: #1c1f23 !important;
+        border-color: #444 !important;
+    }
+
+    .ck.ck-dropdown__panel, .ck.ck-list {
+        background-color: #212529 !important;
+        border-color: #444 !important;
+    }
+
+    .ck.ck-button, .ck.ck-dropdown__button {
+        color: #e0e0e0 !important;
+        background: transparent !important;
+        cursor: pointer !important;
+    }
+
+    .ck.ck-icon, .ck.ck-icon * {
+        fill: currentColor !important;
+        color: inherit !important;
+    }
+
+    .ck.ck-button:hover, 
+    .ck.ck-button.ck-on, 
+    .ck.ck-button.ck-on:hover,
+    .ck.ck-button[aria-pressed="true"] {
+        background-color: #333 !important;
+        color: #ffc107 !important;
+    }
+
+    .ck.ck-list__item .ck-button:hover,
+    .ck.ck-list__item .ck-button.ck-on {
+        background-color: #333 !important;
+        color: #ffc107 !important;
+    }
+
+    .ck.ck-content {
+        caret-color: #e0e0e0;
+    }
+
+    .ck.ck-powered-by {
+        display: none !important;
     }
 </style>
 {% endblock %}
