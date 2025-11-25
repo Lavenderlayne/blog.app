@@ -1,5 +1,3 @@
-# lavenderlayne/blog_app/blog_app-dev/users/urls.py (ВИПРАВЛЕНО)
-
 from django.urls import path
 from . import views
 from django.conf import settings

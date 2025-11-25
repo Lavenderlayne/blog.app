@@ -62,12 +62,8 @@ class PostListView(ListView):
     paginate_by = 10
     
     def get_queryset(self):
-        # --- ПЕРЕМІСТІТЬ ЦЕ НА ПОЧАТОК ---
         sort = self.request.GET.get('sort', 'newest')
-        
-        # --- ПОЧАТОК ЗМІНИ ---
         if sort == 'drafts' and self.request.user.is_authenticated:
-            # Якщо запитують чернетки, беремо пости автора зі статусом 'draft'
             queryset = Post.objects.filter(
                 author=self.request.user, 
                 status='draft'
@@ -75,11 +71,9 @@ class PostListView(ListView):
                 'author', 'category'
             ).prefetch_related('tags', 'votes')
         else:
-            # Інакше, беремо опубліковані пости, як і раніше
             queryset = Post.objects.filter(status='published').select_related(
                 'author', 'category'
             ).prefetch_related('tags', 'votes')
-        # --- КІНЕЦЬ ЗМІНИ ---
 
         queryset = annotate_post_queryset(queryset, self.request.user)
         
@@ -99,7 +93,6 @@ class PostListView(ListView):
                 Q(excerpt__icontains=search_query)
             )
         
-        # 'sort' вже визначено вище
         if sort == 'popular':
             queryset = queryset.order_by('-view_count')
         elif sort == 'top': 
@@ -108,11 +101,9 @@ class PostListView(ListView):
             queryset = queryset.filter(is_featured=True).order_by('-created_at')
         elif sort == 'bookmarked' and self.request.user.is_authenticated:
             queryset = queryset.filter(bookmarked_by=self.request.user).order_by('-created_at')
-        # --- ОНОВЛЕНО ---
         elif sort == 'drafts':
-             queryset = queryset.order_by('-updated_at') # Чернетки сортуємо за оновленням
-        # --- КІНЕЦЬ ОНОВЛЕННЯ ---
-        elif sort == 'newest': # 'drafts' вже відсортовані за оновленням
+             queryset = queryset.order_by('-updated_at')
+        elif sort == 'newest': 
              queryset = queryset.order_by('-created_at')
         
         return queryset
@@ -242,7 +233,6 @@ class UserPostListView(ListView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context['author'] = get_object_or_404(User, username=self.kwargs.get('username'))
-        # ВИПРАВЛЕНО: Видалено context['categories'] = Category.objects.all()
         return context
 
 
@@ -271,7 +261,6 @@ class CategoryListView(ListView):
             'most_popular_category': most_popular_category,
             'popular_categories': popular_categories,
         })
-        # ВИПРАВЛЕНО: Видалено context['categories'] = Category.objects.all()
         return context
 
 
@@ -312,7 +301,7 @@ class CategoryDetailView(DetailView):
 class CategoryCreateView(LoginRequiredMixin, UserPassesTestMixin, CreateView):
     model = Category
     fields = ['name', 'description']
-    template_name = 'core/category_form.html' # Будемо використовувати спільний шаблон
+    template_name = 'core/category_form.html'
     success_url = reverse_lazy('core:category_list')
     def test_func(self): return self.request.user.is_admin
     def form_valid(self, form):
@@ -333,7 +322,7 @@ class CategoryUpdateView(LoginRequiredMixin, UserPassesTestMixin, UpdateView):
 
 class CategoryDeleteView(LoginRequiredMixin, UserPassesTestMixin, DeleteView):
     model = Category
-    template_name = 'core/category_confirm_delete.html' # Спільний шаблон
+    template_name = 'core/category_confirm_delete.html'
     success_url = reverse_lazy('core:category_list')
     def test_func(self): return self.request.user.is_admin
     def delete(self, request, *args, **kwargs):
@@ -350,7 +339,6 @@ class TagListView(ListView):
         return Tag.objects.annotate(
             post_count=Count('post')
         ).filter(
-            # --- ВИПРАВЛЕННЯ NoReverseMatch: Фільтруємо невалідні теги ---
             Q(name__isnull=False) & Q(name__gt='') & Q(slug__isnull=False) & Q(slug__gt='')
         ).order_by('name')
 
@@ -375,9 +363,6 @@ class TagDetailView(DetailView):
         context['post_count'] = posts_qs.count()
         return context
 
-# ---
-# --- ДОДАНО НОВІ VIEWS ДЛЯ КЕРУВАННЯ ТЕГАМИ (ДЛЯ АДМІНІВ) ---
-# ---
 class TagCreateView(LoginRequiredMixin, CreateView):
     model = Tag
     form_class = TagForm
@@ -541,7 +526,7 @@ def subscribe(request):
                     subscription.save()
                     messages.success(request, 'Вашу підписку відновлено!')
                 else: messages.info(request, 'Ви вже підписані на нашу розсилку!')
-            return redirect('core:post_list') # Змінено з post_list
+            return redirect('core:post_list')
     else: form = SubscriptionForm()
     return render(request, 'core/subscribe.html', {'form': form})
 
@@ -551,7 +536,7 @@ def unsubscribe(request, email):
     subscription.is_active = False
     subscription.save()
     messages.success(request, 'Ви успішно відписались від розсилки.')
-    return redirect('core:post_list') # Змінено з post_list
+    return redirect('core:post_list')
 
 
 def home(request):
@@ -564,9 +549,14 @@ def home(request):
     popular_posts = Post.get_published_posts().order_by('-view_count')[:5]
     
     categories = Category.objects.annotate(
-        post_count=Count('post')
+        post_count=Count('post', filter=Q(post__status='published'))
     ).order_by('-post_count')[:8]
-    
+    popular_tags = Tag.objects.annotate(
+    post_count=Count('post', filter=Q(post__status='published'))
+    ).filter(
+        post_count__gt=0
+    ).order_by('-post_count')[:15]
+
     total_posts = Post.get_published_posts().count()
     total_categories = Category.objects.count()
     total_users = User.objects.count()
@@ -582,6 +572,7 @@ def home(request):
         'featured_posts': featured_posts,
         'popular_posts': popular_posts,
         'categories': categories,
+        'popular_tags': popular_tags,
         'total_posts': total_posts,
         'total_categories': total_categories,
         'total_users': total_users,
@@ -627,7 +618,9 @@ def search(request):
         posts = annotate_post_queryset(posts_qs, request.user)
     
     popular_tags = Tag.objects.annotate(
-        post_count=Count('post')
+        post_count=Count('post', filter=Q(post__status='published')) 
+    ).filter(
+        post_count__gt=0
     ).order_by('-post_count')[:15]
     
     categories = Category.objects.annotate(

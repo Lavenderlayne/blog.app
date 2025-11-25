@@ -13,14 +13,14 @@ class UserRegistrationForm(UserCreationForm):
     
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        # Додаємо стилі до полів
+
         for field_name, field in self.fields.items():
             field.widget.attrs.update({'class': 'form-control bg-dark border-secondary text-light'})
 
 class UserUpdateForm(forms.ModelForm):
     class Meta:
         model = CustomUser
-        fields = ['first_name', 'last_name', 'email']  # Видалити bio, avatar
+        fields = ['first_name', 'last_name', 'email']
         widgets = {
             'first_name': forms.TextInput(attrs={'class': 'form-control'}),
             'last_name': forms.TextInput(attrs={'class': 'form-control'}),
