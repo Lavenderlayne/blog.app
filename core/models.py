@@ -3,7 +3,7 @@ from django.conf import settings
 from django.urls import reverse
 from django.utils import timezone
 from django.utils.text import slugify
-from ckeditor_5.fields import CKEditor5Field
+from django_ckeditor_5.fields import CKEditor5Field
 
 class Category(models.Model):
     """Модель категорії для постів/статей"""

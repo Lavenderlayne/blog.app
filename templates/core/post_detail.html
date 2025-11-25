@@ -2,7 +2,15 @@
 {% load core_filters %}
 
 {% block title %}{{ post.title }} - Мій Блог{% endblock %}
-
+{% block extra_css %}
+<style>
+    .post-content img {
+        max-width: 100%;
+        height: auto;
+        object-fit: contain;
+    }
+</style>
+{% endblock %}
 {% block content %}
 <div class="row g-4">
 
@@ -93,7 +101,7 @@
                         </div>
                         {% endif %}
 
-                        <div class="post-content text-light mb-4">
+                        <div class="post-content text-light mb-4 w-100 ">
                             {{ post.content|safe }}
                         </div>
 

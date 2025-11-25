@@ -1,8 +1,7 @@
 from django import forms
-from .models import Post, PostComment, Subscription, Tag # Додано Tag
+from .models import Post, PostComment, Subscription, Tag
+from django_ckeditor_5.widgets import CKEditor5Widget
 
-
-# --- НОВА ФОРМА ДЛЯ СТВОРЕННЯ/РЕДАГУВАННЯ ТЕГІВ ---
 class TagForm(forms.ModelForm):
     class Meta:
         model = Tag
@@ -14,12 +13,9 @@ class TagForm(forms.ModelForm):
     
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.fields['slug'].required = False # Робимо слаг необов'язковим
-
+        self.fields['slug'].required = False
 
 class PostForm(forms.ModelForm):
-    # --- ОНОВЛЕНО ПОЛЕ TAGS ---
-    # Тепер це просте текстове поле, а не ModelMultipleChoiceField
     tags = forms.CharField(
         required=False,
         widget=forms.TextInput(attrs={
@@ -28,7 +24,6 @@ class PostForm(forms.ModelForm):
         }),
         label="Теги"
     )
-    # --- КІНЕЦЬ ОНОВЛЕННЯ ---
 
     class Meta:
         model = Post
@@ -41,10 +36,10 @@ class PostForm(forms.ModelForm):
         ]
         widgets = {
             'title': forms.TextInput(attrs={'class': 'form-control form-control-lg bg-dark border-secondary text-light', 'placeholder': 'Введіть заголовок...'}),
-            'content': forms.Textarea(attrs={'class': 'form-control bg-dark border-secondary text-light', 'rows': 20}),
+            'content': CKEditor5Widget(attrs={"class": "django_ckeditor_5"},config_name="default"),
             'excerpt': forms.Textarea(attrs={'class': 'form-control bg-dark border-secondary text-light', 'rows': 4}),
             'category': forms.Select(attrs={'class': 'form-select bg-dark border-secondary text-light'}),
-            # 'tags' тепер визначено вище як CharField
+
             'post_type': forms.Select(attrs={'class': 'form-select bg-dark border-secondary text-light'}),
             'status': forms.Select(attrs={'class': 'form-select bg-dark border-secondary text-light'}),
             'video_url': forms.URLInput(attrs={'class': 'form-control bg-dark border-secondary text-light', 'placeholder': 'https://www.youtube.com/watch?v=...'}),
