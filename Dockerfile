@@ -32,4 +32,4 @@ EXPOSE 8000
 # Приберіть python create_superuser.py && \ якщо не використовуєте Postrges
 CMD python manage.py migrate && \
     python create_superuser.py && \ 
-    gunicorn myproject.wsgi:application --bind 0.0.0.0:8000
+    gunicorn dlango_blog.wsgi:application --bind 0.0.0.0:8000
