@@ -23,14 +23,16 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # SECURITY WARNING: keep the secret key used in production secret!
 # Цей ключ потрібно згенерувати новий і заховати у змінну оточення
 SECRET_KEY = os.environ.get('DJANGO_SECRET_KEY', 'your-fallback-key-here')
+
 # SECURITY WARNING: don't run with debug turned on in production!
 #
-ALLOWED_HOSTS = ['my-blog-pn6p.onrender.com', '.onrender.com']
-# ВИМИКАЄМО РЕЖИМ ВІДЛАДКИ
+# ВИПРАВЛЕНО: Залишаємо DEBUG = False для Production
 DEBUG = False
 
 # ВКАЗУЄМО ДОЗВОЛЕНІ ХОСТИ (адреси, з яких можна заходити на сайт)
-ALLOWED_HOSTS = ['your_domain.com', 'www.your_domain.com', '127.0.0.1', 'localhost']
+# --- ВИПРАВЛЕНО: Залишено лише коректний список хостів ---
+ALLOWED_HOSTS = ['my-blog-pn6p.onrender.com', '.onrender.com']
+
 
 JAZZMIN_SETTINGS = {
     "site_title": "Мій Блог Admin",
@@ -121,17 +123,17 @@ INSTALLED_APPS = [
     'core',
 ]
 
-# --- ВИПРАВЛЕНО: Відновлено обов'язковий список MIDDLEWARE ---
+# --- ВИПРАВЛЕНО: Очищено та впорядковано MIDDLEWARE ---
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
+    # WhiteNoise повинен бути розташований тут, другим, для кращої продуктивності та обробки статичних файлів
+    'whitenoise.middleware.WhiteNoiseMiddleware', 
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
-    'django.middleware.security.SecurityMiddleware',
-    'whitenoise.middleware.WhiteNoiseMiddleware',
 ]
 
 ROOT_URLCONF = 'dlango_blog.urls'
@@ -213,7 +215,7 @@ LOGIN_REDIRECT_URL = '/'
 LOGOUT_REDIRECT_URL = '/login/'
 
 MEDIA_URL = '/media/'
-MEDIA_ROOT = BASE_DIR / 'media'
+# Виправлено: прибрано дублювання MEDIA_ROOT
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
