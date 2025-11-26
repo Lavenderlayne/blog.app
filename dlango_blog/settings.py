@@ -25,9 +25,9 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = os.environ.get('DJANGO_SECRET_KEY', 'your-fallback-key-here')
 # SECURITY WARNING: don't run with debug turned on in production!
 #
-ALLOWED_HOSTS = ['*']
+ALLOWED_HOSTS = ['my-blog-pn6p.onrender.com', '.onrender.com']
 # ВИМИКАЄМО РЕЖИМ ВІДЛАДКИ
-DEBUG = True
+DEBUG = False
 
 # ВКАЗУЄМО ДОЗВОЛЕНІ ХОСТИ (адреси, з яких можна заходити на сайт)
 ALLOWED_HOSTS = ['your_domain.com', 'www.your_domain.com', '127.0.0.1', 'localhost']
