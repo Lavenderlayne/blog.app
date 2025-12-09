@@ -10,7 +10,7 @@ from .forms import ProfileUpdateForm, UserUpdateForm, UserRegistrationForm
 from django.contrib.auth.views import LoginView
 from django.contrib.auth import login
 from django.http import JsonResponse, HttpResponseBadRequest
-from core.models import Post, PostComment  # Імпортуємо Post, PostComment
+from core.models import Post, PostComment
 from django.utils import timezone
 from datetime import timedelta
 
@@ -77,13 +77,7 @@ class ProfileDetailView(LoginRequiredMixin, DetailView):
         
         if request_user == profile_user:
             context['bookmarked_posts'] = profile_user.bookmarked_posts.all().order_by('-created_at')
-            
-            # --- ОСЬ ВАЖЛИВИЙ РЯДОК ---
-            context['user_drafts'] = Post.objects.filter(
-                author=profile_user, status='draft'
-            ).order_by('-updated_at')
-            # --- КІНЕЦЬ ---
-
+        context['user_drafts'] = Post.objects.filter(author=profile_user, status='draft').order_by('-updated_at')
         context['post_count'] = context['user_posts'].count()
         context['comment_count'] = context['user_comments'].count()
         context['followers_count'] = profile_user.followers.count()
@@ -173,9 +167,6 @@ def toggle_user_status(request, user_id):
 def my_profile(request):
     return redirect('users:profile_detail', username=request.user.username)
 
-# ---
-# --- (Ця функція user_statistics вже коректна) ---
-# ---
 @login_required
 @user_passes_test(is_admin)
 def user_statistics(request):
@@ -184,34 +175,24 @@ def user_statistics(request):
     moderators_count = CustomUser.objects.filter(role='moderator').count()
     admins_count = CustomUser.objects.filter(role='admin').count()    
     recent_users = CustomUser.objects.order_by('-date_joined')[:10]
-    
-    # --- ДОДАНО ОБЧИСЛЕННЯ ---
-    # 1. Обчислюємо реєстрації за останній місяць
     one_month_ago = timezone.now() - timedelta(days=30)
     monthly_registrations = CustomUser.objects.filter(date_joined__gte=one_month_ago).count()
     
-    # 2. Обчислюємо відсоток активності (з перевіркою ділення на нуль)
     active_percentage = 0
     if total_users > 0:
         active_percentage = round((active_users / total_users) * 100)
-    # --- КІНЕЦЬ ДОДАНОГО КОДУ ---
-    
+
     context = {
         'total_users': total_users,
         'active_users': active_users,
         'moderators_count': moderators_count,
         'admins_count': admins_count,
         'recent_users': recent_users,
-        
-        # --- ДОДАНО ДО КОНТЕКСТУ ---
         'monthly_registrations': monthly_registrations,
         'active_percentage': active_percentage,
     }
     
     return render(request, 'users/statistics.html', context)
-# ---
-# --- КІНЕЦЬ ЗАМІНИ ---
-# ---
 
 class UserSearchView(LoginRequiredMixin, UserPassesTestMixin, ListView):
     model = CustomUser
@@ -251,11 +232,9 @@ def toggle_follow(request, username):
 
     is_following = False
     if user_to_follow.followers.filter(id=request_user.id).exists():
-        # Вже підписаний, відписуємось
         user_to_follow.followers.remove(request_user)
         is_following = False
     else:
-        # Не підписаний, підписуємось
         user_to_follow.followers.add(request_user)
         is_following = True
 

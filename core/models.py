@@ -181,8 +181,6 @@ class Post(models.Model):
     @property
     def reading_time(self):
         words_per_minute = 200
-        # Оскільки content тепер може бути CKEditor5Field, 
-        # припускаємо, що він повертає рядок для обробки
         word_count = len(self.content.split())
         return max(1, round(word_count / words_per_minute))
     

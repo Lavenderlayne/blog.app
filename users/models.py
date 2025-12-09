@@ -3,7 +3,6 @@ from django.db import models
 from django.db.models.signals import post_save
 from django.dispatch import receiver
 
-# Create your models here.
 class CustomUser(AbstractUser):
     ROLE_CHOICES = (
         ('user', 'Користувач'),
@@ -12,16 +11,13 @@ class CustomUser(AbstractUser):
     )
     role = models.CharField(max_length=10, choices=ROLE_CHOICES, default='user')
     
-    # --- ОСЬ ТУТ ДОДАНО ПОЛЕ СЛІДКУВАННЯ ---
-    # `symmetrical=False` означає, що це не "дружба" (де обидва слідують), а одностороннє слідкування
     following = models.ManyToManyField(
         'self', 
         symmetrical=False, 
-        related_name='followers',  # Дозволяє нам використовувати user.followers.all()
+        related_name='followers',
         blank=True,
         verbose_name='Слідкує за'
     )
-    # --- КІНЕЦЬ ДОДАНОГО КОДУ ---
 
     class Meta:
         verbose_name = 'Користувач'
@@ -55,14 +51,9 @@ class Profile(models.Model):
     website = models.URLField(blank=True, verbose_name='Вебсайт')
     location = models.CharField(max_length=100, blank=True, verbose_name='Місцезнаходження')
     birth_date = models.DateField(null=True, blank=True, verbose_name='Дата народження')
-
-    # Соціальні мережі
-    # ... (інші поля моделі Profile) ...
     social_x = models.URLField(blank=True, verbose_name='X')
     social_telegram = models.CharField(max_length=100, blank=True, verbose_name='Telegram')
     social_discord = models.CharField(max_length=100, blank=True, verbose_name='Discord')
-
-    # Налаштування
     email_notifications = models.BooleanField(default=True, verbose_name='Email сповіщення')
     email_subscriptions = models.BooleanField(default=True, verbose_name='Підписки на новини')
 
@@ -76,8 +67,6 @@ class Profile(models.Model):
     def __str__(self):
         return f'Профіль користувача {self.user.username}'
     
-    # Автоматичне створення профілю користувача
-
     @receiver(post_save, sender=CustomUser)
     def create_user_profile(sender, instance, created, **kwargs):
         if created:
