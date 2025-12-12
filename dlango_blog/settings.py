@@ -230,14 +230,30 @@ DEFAULT_FROM_EMAIL = 'noreply@myblog.com'
 SITE_URL = 'http://127.0.0.1:8000'
 
 CKEDITOR_UPLOAD_PATH = "uploads/"
+CKEDITOR_5_FILE_UPLOAD_PERMISSION = "authenticated"  # Дозволяє завантаження для авторизованих користувачів
 CKEDITOR_5_CONFIGS = {
-  'default': {
-      'toolbar': ['heading', '|', 'bold', 'italic', 'link',
-                  'bulletedList', 'numberedList', 'blockQuote', 'imageUpload', ],
-      'language': 'uk',
-  },
-  
+    'default': {
+        'toolbar': ['heading', '|', 'bold', 'italic', 'link',
+                    'bulletedList', 'numberedList', 'blockQuote', 'imageUpload'],
+        'language': 'uk',
+    },
+    'extends': {
+        'toolbar': ['heading', '|', 'bold', 'italic', 'link', 'underline', 'strikethrough',
+                    'bulletedList', 'numberedList', 'blockQuote', 'imageUpload', 
+                    '|', 'outdent', 'indent', '|', 'insertTable', 'mediaEmbed',
+                    '|', 'undo', 'redo', '|', 'sourceEditing'],
+        'language': 'uk',
+        'image': {
+            'toolbar': ['imageTextAlternative', 'imageStyle:alignLeft', 
+                       'imageStyle:alignRight', 'imageStyle:alignCenter', 
+                       'imageStyle:side'],
+        },
+        'table': {
+            'contentToolbar': ['tableColumn', 'tableRow', 'mergeTableCells'],
+        },
+    },
 }
+
 
 # Cloudinary Configuration
 CLOUDINARY_STORAGE = {
