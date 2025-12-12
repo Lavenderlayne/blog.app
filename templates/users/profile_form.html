@@ -18,6 +18,7 @@
         <div class="alert alert-dark border-warning mb-4">
             <i class="bi bi-exclamation-triangle text-warning"></i>
             Будь ласка, виправте помилки у формах нижче.
+            {{ form.non_field_errors }}
         </div>
         {% endif %}
 
@@ -27,145 +28,201 @@
                 <div class="card-header bg-dark border-secondary">
                     <ul class="nav nav-tabs card-header-tabs" id="profileEditTabs" role="tablist">
                         <li class="nav-item" role="presentation">
-                            <button class="nav-link active text-light bg-black border-secondary" id="main-tab" data-bs-toggle="tab" data-bs-target="#main" type="button" role="tab">
+                            <button class="nav-link active text-light bg-black border-secondary" id="main-tab"
+                                data-bs-toggle="tab" data-bs-target="#main" type="button" role="tab">
                                 <i class="bi bi-person-circle"></i> Основне
                             </button>
                         </li>
                         <li class="nav-item" role="presentation">
-                            <button class="nav-link text-light bg-black border-secondary" id="contact-tab" data-bs-toggle="tab" data-bs-target="#contact" type="button" role="tab">
+                            <button class="nav-link text-light bg-black border-secondary" id="contact-tab"
+                                data-bs-toggle="tab" data-bs-target="#contact" type="button" role="tab">
                                 <i class="bi bi-share"></i> Контакти та Соц. мережі
                             </button>
                         </li>
                         <li class="nav-item" role="presentation">
-                            <button class="nav-link text-light bg-black border-secondary" id="settings-tab" data-bs-toggle="tab" data-bs-target="#settings" type="button" role="tab">
+                            <button class="nav-link text-light bg-black border-secondary" id="settings-tab"
+                                data-bs-toggle="tab" data-bs-target="#settings" type="button" role="tab">
                                 <i class="bi bi-bell"></i> Сповіщення
                             </button>
                         </li>
                     </ul>
                 </div>
-                
+
                 <div class="card-body p-4">
                     <div class="tab-content" id="profileEditTabsContent">
-                        
+
                         <div class="tab-pane fade show active" id="main" role="tabpanel">
-                            
-                            <div class="mb-4">
-                                <label class="form-label text-light">Аватар</label>
-                                {% if user.profile.avatar %}
-                                <div class="mb-2">
-                                    <img src="{{ user.profile.avatar.url }}" alt="Поточний аватар" class="img-thumbnail border-secondary" width="150" height="150" style="object-fit: cover;">
-                                </div>
-                                <div class="form-check mb-2">
-                                    <input class="form-check-input" type="checkbox" name="avatar-clear" id="avatar-clear">
-                                    <label class="form-check-label text-light" for="avatar-clear">
-                                        Видалити поточний аватар
-                                    </label>
-                                </div>
-                                {% endif %}
-                                <input type="file" name="avatar" class="form-control" accept="image/*" id="{{ form.avatar.id_for_label }}">
-                                <div class="form-text text-muted">Рекомендований розмір: 150x150 пікселів</div>
-                                {% if form.avatar.errors %}
-                                    <div class="text-warning small mt-1">{{ form.avatar.errors }}</div>
-                                {% endif %}
-                            </div>
+                            <div class="row g-4">
+                                <div class="col-md-6">
 
-                            <div class="mb-4">
-                                <label for="{{ form.bio.id_for_label }}" class="form-label text-light">Біографія</label>
-                                {{ form.bio }}
-                                <div class="form-text text-muted">Розкажіть трохи про себе (максимум 500 символів)</div>
-                                {% if form.bio.errors %}
-                                    <div class="text-warning small mt-1">{{ form.bio.errors }}</div>
-                                {% endif %}
-                            </div>
-                            
-                            <div class="row">
-                                <div class="col-md-6 mb-4">
-                                    <label for="{{ form.location.id_for_label }}" class="form-label text-light">Місцезнаходження</label>
-                                    {{ form.location }}
-                                    <div class="form-text text-muted">Місто, країна</div>
-                                    {% if form.location.errors %}
-                                        <div class="text-warning small mt-1">{{ form.location.errors }}</div>
-                                    {% endif %}
-                                </div>
-                                <div class="col-md-6 mb-4">
-                                    <label for="{{ form.birth_date.id_for_label }}" class="form-label text-light">Дата народження</label>
-                                    {{ form.birth_date }}
-                                    {% if form.birth_date.errors %}
-                                        <div class="text-warning small mt-1">{{ form.birth_date.errors }}</div>
-                                    {% endif %}
-                                </div>
-                            </div>
+                                    <div class="mb-4">
+                                        <label for="{{ form.username.id_for_label }}"
+                                            class="form-label text-light">Нікнейм</label>
+                                        {{ form.username }}
+                                        <div class="form-text text-muted">Ваше унікальне ім'я користувача на сайті</div>
+                                        {% if form.username.errors %}
+                                        <div class="text-warning small mt-1">{{ form.username.errors }}</div>
+                                        {% endif %}
+                                    </div>
 
+                                    <div class="mb-4">
+                                        <label for="{{ form.first_name.id_for_label }}"
+                                            class="form-label text-light">Ім'я</label>
+                                        {{ form.first_name }}
+                                        <div class="form-text text-muted">Ваше справжнє ім'я</div>
+                                        {% if form.first_name.errors %}
+                                        <div class="text-warning small mt-1">{{ form.first_name.errors }}</div>
+                                        {% endif %}
+                                    </div>
+
+                                    <div class="mb-4">
+                                        <label for="{{ form.last_name.id_for_label }}"
+                                            class="form-label text-light">Прізвище</label>
+                                        {{ form.last_name }}
+                                        <div class="form-text text-muted">Ваше справжнє прізвище</div>
+                                        {% if form.last_name.errors %}
+                                        <div class="text-warning small mt-1">{{ form.last_name.errors }}</div>
+                                        {% endif %}
+                                    </div>
+
+                                    <div class="mb-4">
+                                        <label for="{{ form.email.id_for_label }}"
+                                            class="form-label text-light">Email</label>
+                                        {{ form.email }}
+                                        <div class="form-text text-muted">Ваша контактна пошта</div>
+                                        {% if form.email.errors %}
+                                        <div class="text-warning small mt-1">{{ form.email.errors }}</div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+
+                                <div class="col-md-6">
+                                    <div class="mb-4">
+                                        <label class="form-label text-light">Аватар</label>
+                                        {% if user.profile.avatar %}
+                                        <div class="mb-2 text-center">
+                                            <img src="{{ user.profile.avatar.url }}" alt="Поточний аватар"
+                                                class="rounded-circle border border-secondary" width="150" height="150"
+                                                style="object-fit: cover;">
+                                        </div>
+                                        <div class="form-check mb-2">
+                                            <input class="form-check-input" type="checkbox" name="avatar-clear"
+                                                id="avatar-clear">
+                                            <label class="form-check-label text-light" for="avatar-clear">
+                                                Видалити фото
+                                            </label>
+                                        </div>
+                                        {% endif %}
+                                        <input type="file" name="avatar" class="form-control" accept="image/*"
+                                            id="{{ form.avatar.id_for_label }}">
+                                        <div class="form-text text-muted">Рекомендований розмір: 150x150 пікселів</div>
+                                        {% if form.avatar.errors %}
+                                        <div class="text-warning small mt-1">{{ form.avatar.errors }}</div>
+                                        {% endif %}
+                                    </div>
+
+                                    <div class="mb-4">
+                                        <label for="{{ form.bio.id_for_label }}"
+                                            class="form-label text-light">Біографія</label>
+                                        {{ form.bio }}
+                                        <div class="form-text text-muted">Розкажіть про себе (максимум 500 символів)
+                                        </div>
+                                        {% if form.bio.errors %}
+                                        <div class="text-warning small mt-1">{{ form.bio.errors }}</div>
+                                        {% endif %}
+                                    </div>
+
+                                    <div class="row">
+                                        <div class="col-md-6 mb-4">
+                                            <label for="{{ form.location.id_for_label }}"
+                                                class="form-label text-light">Місцезнаходження</label>
+                                            {{ form.location }}
+                                            <div class="form-text text-muted">Місто, країна</div>
+                                            {% if form.location.errors %}
+                                            <div class="text-warning small mt-1">{{ form.location.errors }}</div>
+                                            {% endif %}
+                                        </div>
+                                        <div class="col-md-6 mb-4">
+                                            <label for="{{ form.birth_date.id_for_label }}"
+                                                class="form-label text-light">Дата народження</label>
+                                            {{ form.birth_date }}
+                                            {% if form.birth_date.errors %}
+                                            <div class="text-warning small mt-1">{{ form.birth_date.errors }}</div>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
-                        
+
                         <div class="tab-pane fade" id="contact" role="tabpanel">
-                            
                             <div class="row">
                                 <div class="col-md-6 mb-4">
-                                    <label for="{{ form.phone.id_for_label }}" class="form-label text-light">Телефон</label>
+                                    <label for="{{ form.phone.id_for_label }}"
+                                        class="form-label text-light">Телефон</label>
                                     {{ form.phone }}
-                                    <div class="form-text text-muted">Необов'язково</div>
                                     {% if form.phone.errors %}
-                                        <div class="text-warning small mt-1">{{ form.phone.errors }}</div>
+                                    <div class="text-warning small mt-1">{{ form.phone.errors }}</div>
                                     {% endif %}
                                 </div>
                                 <div class="col-md-6 mb-4">
-                                    <label for="{{ form.website.id_for_label }}" class="form-label text-light">Вебсайт</label>
+                                    <label for="{{ form.website.id_for_label }}"
+                                        class="form-label text-light">Вебсайт</label>
                                     {{ form.website }}
-                                    <div class="form-text text-muted">Введіть повну URL-адресу</div>
                                     {% if form.website.errors %}
-                                        <div class="text-warning small mt-1">{{ form.website.errors }}</div>
+                                    <div class="text-warning small mt-1">{{ form.website.errors }}</div>
                                     {% endif %}
                                 </div>
                             </div>
-                            
+
                             <hr class="border-secondary my-3">
-                            <h6 class="text-light">Соціальні мережі</h6>
-                            
+                            <h6 class="text-light mb-3">Соціальні мережі</h6>
+
                             <div class="mb-3">
-                                <label for="{{ form.social_x.id_for_label }}" class="form-label text-light">
-                                    <i class="bi bi-twitter-x"></i> X (Twitter)
-                                </label>
+                                <label for="{{ form.social_x.id_for_label }}" class="form-label text-light"><i
+                                        class="bi bi-twitter-x"></i> X (Twitter)</label>
                                 {{ form.social_x }}
                                 {% if form.social_x.errors %}
-                                    <div class="text-warning small mt-1">{{ form.social_x.errors }}</div>
+                                <div class="text-warning small mt-1">{{ form.social_x.errors }}</div>
                                 {% endif %}
                             </div>
                             <div class="mb-3">
-                                <label for="{{ form.social_telegram.id_for_label }}" class="form-label text-light">
-                                    <i class="bi bi-telegram"></i> Telegram
-                                </label>
+                                <label for="{{ form.social_telegram.id_for_label }}" class="form-label text-light"><i
+                                        class="bi bi-telegram"></i> Telegram</label>
                                 {{ form.social_telegram }}
                                 <div class="form-text text-muted">Наприклад: @username</div>
                                 {% if form.social_telegram.errors %}
-                                    <div class="text-warning small mt-1">{{ form.social_telegram.errors }}</div>
+                                <div class="text-warning small mt-1">{{ form.social_telegram.errors }}</div>
                                 {% endif %}
                             </div>
                             <div class="mb-3">
-                                <label for="{{ form.social_discord.id_for_label }}" class="form-label text-light">
-                                    <i class="bi bi-discord"></i> Discord
-                                </label>
+                                <label for="{{ form.social_discord.id_for_label }}" class="form-label text-light"><i
+                                        class="bi bi-discord"></i> Discord</label>
                                 {{ form.social_discord }}
                                 <div class="form-text text-muted">Наприклад: username#1234</div>
                                 {% if form.social_discord.errors %}
-                                    <div class="text-warning small mt-1">{{ form.social_discord.errors }}</div>
+                                <div class="text-warning small mt-1">{{ form.social_discord.errors }}</div>
                                 {% endif %}
                             </div>
-
                         </div>
-                        
+
                         <div class="tab-pane fade" id="settings" role="tabpanel">
                             <h6 class="text-light mb-3">Налаштування сповіщень</h6>
-                            <div class="form-check form-switch mb-3">
+
+                            <div class="form-check mb-3">
                                 {{ form.email_notifications }}
-                                <label class="form-check-label text-light" for="{{ form.email_notifications.id_for_label }}">
+                                <label class="form-check-label text-light"
+                                    for="{{ form.email_notifications.id_for_label }}">
                                     <i class="bi bi-envelope me-1"></i> Email сповіщення
                                 </label>
-                                <div class="form-text text-muted">Отримувати сповіщення про нові коментарі та відповіді</div>
+                                <div class="form-text text-muted">Отримувати сповіщення про нові коментарі та відповіді
+                                </div>
                             </div>
-                            <div class="form-check form-switch">
+
+                            <div class="form-check">
                                 {{ form.email_subscriptions }}
-                                <label class="form-check-label text-light" for="{{ form.email_subscriptions.id_for_label }}">
+                                <label class="form-check-label text-light"
+                                    for="{{ form.email_subscriptions.id_for_label }}">
                                     <i class="bi bi-megaphone me-1"></i> Підписки на новини
                                 </label>
                                 <div class="form-text text-muted">Отримувати розсилку про нові статті та оновлення</div>
@@ -176,13 +233,11 @@
                 </div>
 
                 <div class="card-footer bg-dark border-secondary d-flex justify-content-between align-items-center">
-                    <div>
-                        <button type="submit" class="btn btn-warning me-2">
-                            <i class="bi bi-check"></i> Зберегти зміни
-                        </button>
-                    </div>
+                    <button type="submit" class="btn btn-warning">
+                        <i class="bi bi-check-lg"></i> Зберегти зміни
+                    </button>
                     <a href="{% url 'users:profile_detail' username=user.username %}" class="btn btn-outline-light">
-                        <i class="bi bi-x"></i> Скасувати
+                        <i class="bi bi-x-lg"></i> Скасувати
                     </a>
                 </div>
             </div>
@@ -192,20 +247,27 @@
 {% endblock %}
 
 {% block extra_js %}
+
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    // Додавання темних класів для всіх полів вводу
-    document.querySelectorAll('input, textarea, select').forEach(control => {
-        if (!control.classList.contains('form-check-input')) {
-            control.classList.add('bg-dark', 'border-secondary', 'text-light');
-        }
-    });
-
-    // Підсвічування помилкових полів
-    document.querySelectorAll('.text-warning').forEach(error => {
-        const field = error.closest('.mb-4, .mb-3').querySelector('input, textarea, select');
-        if (field) {
-            field.classList.add('border-warning');
+    // Знаходимо всі поля вводу
+    const inputs = document.querySelectorAll('input, textarea, select');
+    
+    inputs.forEach(input => {
+        // Якщо це чекбокс або радіо-кнопка
+        if (input.type === 'checkbox' || input.type === 'radio') {
+            if (!input.classList.contains('form-check-input')) {
+                input.classList.add('form-check-input');
+            }
+            // Додаємо стилі для темної теми
+            input.classList.add('bg-dark', 'border-secondary');
+        } 
+        // Якщо це звичайне поле вводу (текст, email тощо)
+        else if (!input.classList.contains('form-control')) {
+            input.classList.add('form-control', 'bg-dark', 'border-secondary', 'text-light');
+        } else {
+            // Якщо клас вже є, просто додаємо кольори
+            input.classList.add('bg-dark', 'border-secondary', 'text-light');
         }
     });
 });
@@ -213,33 +275,55 @@ document.addEventListener('DOMContentLoaded', function() {
 
 <style>
 /* Стилі для вкладок */
-.nav-tabs .nav-link {
-    border-bottom: 3px solid transparent;
+.nav-tabs .nav-link { 
+    border-bottom: 3px solid transparent; 
+    color: #aaa; 
 }
+.nav-tabs .nav-link:hover { 
+    color: #fff; 
+    border-color: transparent; 
+}
+
+/* Стилі для АКТИВНОЇ вкладки (Жовтий) */
 .nav-tabs .nav-link.active {
-    border-bottom-color: #ffc107; /* warning color */
-    color: #ffc107 !important;
+    background-color: transparent !important;
+    border-bottom-color: #ffc107 !important; /* Жовта лінія */
+    color: #ffc107 !important;               /* Жовтий текст */
 }
 
-/* Стилі для чекбоксів (якщо вони ще не визначені) */
-.form-check-input:checked {
-    background-color: #ffc107;
-    border-color: #ffc107;
-}
-.form-check-input:focus {
-    border-color: #ffc107;
-    box-shadow: 0 0 0 0.25rem rgba(255, 193, 7, 0.25);
-}
-
+/* Фокус на полях вводу (текст, email) */
 .form-control:focus, .form-select:focus {
     background-color: #1a1a1b !important;
-    border-color: #ffc107 !important;
-    box-shadow: 0 0 0 0.2rem rgba(255, 193, 7, 0.25) !important;
-    color: #ffffff !important;
+    border-color: #ffc107 !important; /* Жовта рамка */
+    /* Жовте світіння (тінь) */
+    box-shadow: 0 0 0 0.25rem rgba(255, 193, 7, 0.25) !important; 
+    color: #fff !important;
 }
 
+/* Колір рамки при помилці валідації */
 .form-control.border-warning {
     border-color: #ffc107 !important;
 }
+
+/* Робимо сам квадратик чекбокса білим */
+.form-check-input {
+    background-color: #1a1a1b  !important; /* Білий фон */
+    border: 1px solid #1a1a1b  !important; /* Світла рамка */
+}
+
+/* Коли чекбокс активний: жовтий фон + ЧОРНА галочка */
+.form-check-input:checked {
+    background-color: #ffc107 !important;
+    border-color: #ffc107 !important;
+    /* Чорна галочка (stroke='%23000') */
+    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20'%3e%3cpath fill='none' stroke='%23000' stroke-linecap='round' stroke-linejoin='round' stroke-width='3' d='m6 10 3 3 6-6'/%3e%3c/svg%3e") !important;
+}
+
+/* Прибирання синього світіння при кліку */
+.form-check-input:focus {
+    box-shadow: 0 0 0 0.25rem rgba(255, 193, 7, 0.25) !important;
+    border-color: #ffc107 !important;
+}
+
 </style>
 {% endblock %}
