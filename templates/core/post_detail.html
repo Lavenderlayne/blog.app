@@ -2,11 +2,8 @@
 {% load core_filters %}
 
 {% block title %}{{ post.title }} - Мій Блог{% endblock %}
-{% block extra_css %}
 
-</style>
-{% endblock %}
-{% block content %}
+{% block extra_css %}
 <style>
     .text-light img {
         width: 100%;
@@ -17,8 +14,8 @@
         border-radius: 8px;
     }
 </style>
-
 {% endblock %}
+
 {% block content %}
 <div class="row g-4">
 
@@ -109,7 +106,7 @@
                         </div>
                         {% endif %}
 
-                        <p class="text-light small mb-3">{{ post.content|safe }}</p>
+                        <div class="text-light small mb-3">{{ post.content|safe }}</div>
 
                         {% if post.tags.all %}
                         <div class="mb-4">
