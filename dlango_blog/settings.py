@@ -230,7 +230,11 @@ DEFAULT_FROM_EMAIL = 'noreply@myblog.com'
 SITE_URL = 'http://127.0.0.1:8000'
 
 CKEDITOR_UPLOAD_PATH = "uploads/"
+
 CKEDITOR_5_FILE_UPLOAD_PERMISSION = "authenticated"  # Дозволяє завантаження для авторизованих користувачів
+
+CK_EDITOR_5_UPLOAD_FILE_VIEW_NAME = "core:ckeditor_upload"
+
 CKEDITOR_5_CONFIGS = {
     'default': {
         'toolbar': ['heading', '|', 'bold', 'italic', 'link',

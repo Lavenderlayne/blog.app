@@ -1,5 +1,6 @@
 from django.urls import path
 from . import views
+from .ckeditor_upload import ckeditor_upload_image
 from django.conf import settings
 from django.conf.urls.static import static
 from django.urls import include
@@ -7,6 +8,9 @@ from django.urls import include
 app_name = 'core'
 
 urlpatterns = [
+    # Маршрут для завантаження зображень CKEditor
+    path('ckeditor/upload/', ckeditor_upload_image, name='ckeditor_upload'),
+
     path('', views.home, name='home'),
     path('posts/', views.PostListView.as_view(), name='post_list'),
     path('posts/create/', views.PostCreateView.as_view(), name='post_create'),
