@@ -51,17 +51,6 @@ class ProfileDetailView(LoginRequiredMixin, DetailView):
             Profile.objects.create(user=user)
         return user
     
-class ProfileDetailView(LoginRequiredMixin, DetailView):
-    model = CustomUser
-    template_name = 'users/profile_detail.html'
-    context_object_name = 'profile_user'
-    
-    def get_object(self):
-        user = get_object_or_404(CustomUser, username=self.kwargs['username'])
-        if not hasattr(user, 'profile'):
-            Profile.objects.create(user=user)
-        return user
-    
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         profile_user = self.get_object()
@@ -131,7 +120,34 @@ class UserListView(LoginRequiredMixin, UserPassesTestMixin, ListView):
         return is_moderator(self.request.user)
     
     def get_queryset(self):
-        return CustomUser.objects.all().order_by('-date_joined')
+        # Початковий запит (всі користувачі)
+        queryset = CustomUser.objects.all()
+        
+        # Отримуємо параметри з URL
+        role = self.request.GET.get('role')
+        status = self.request.GET.get('status')
+        sort = self.request.GET.get('sort')
+
+        # 1. Фільтрація за роллю (role)
+        if role in ['user', 'moderator', 'admin']:
+            queryset = queryset.filter(role=role)
+
+        # 2. Фільтрація за статусом (status)
+        if status == 'active':
+            queryset = queryset.filter(is_active=True)
+        elif status == 'inactive':
+            queryset = queryset.filter(is_active=False)
+
+        # 3. Сортування (sort)
+        if sort == 'oldest':
+            queryset = queryset.order_by('date_joined')
+        elif sort == 'username':
+            queryset = queryset.order_by('username')
+        else:
+            # За замовчуванням: спочатку нові
+            queryset = queryset.order_by('-date_joined')
+            
+        return queryset
 
 @login_required
 @user_passes_test(is_admin)
