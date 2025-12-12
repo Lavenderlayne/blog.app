@@ -1,4 +1,5 @@
-{% load static %}  <!DOCTYPE html>
+{% load static %}
+<!DOCTYPE html>
 <html lang="uk">
 <head>
     <meta charset="UTF-8">
@@ -23,6 +24,7 @@
                 <span class="navbar-toggler-icon"></span>
             </button>
             
+            <div class="collapse navbar-collapse" id="navbarNav">
                 <form class="d-flex mx-auto" method="get" action="{% url 'core:search' %}" style="width: 50%;">
                     <input class="form-control me-2 bg-dark border-secondary text-light" 
                            type="search" 
@@ -99,7 +101,7 @@
             {% for message in messages %}
                 <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
                     {{ message }}
-                    <button typebutton" class="btn-close" data-bs-dismiss="alert"></button>
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
                 </div>
             {% endfor %}
         {% endif %}
@@ -182,7 +184,7 @@ function handlePostVote(slug, direction, button) {
         return;
     {% endif %}
 
-    const url = `/vote/${slug}/${direction}/`; // Новий URL
+    const url = `/vote/${slug}/${direction}/`; 
 
     fetch(url, {
         method: 'POST',
@@ -224,7 +226,6 @@ function handlePostVote(slug, direction, button) {
             downButton.classList.remove('btn-outline-danger');
             downButton.classList.add('btn-danger');
         }
-        // Якщо data.user_vote == 0, обидві кнопки залишаться "outline"
     })
     .catch(error => console.error('Error handling post vote:', error));
 }
@@ -240,7 +241,7 @@ document.addEventListener('DOMContentLoaded', function() {
         if (voteButton) {
             event.preventDefault();
             const slug = voteButton.dataset.slug;
-            const direction = voteButton.dataset.direction; // "up" or "down"
+            const direction = voteButton.dataset.direction; 
             handlePostVote(slug, direction, voteButton);
             return;
         }
@@ -263,7 +264,7 @@ document.addEventListener('DOMContentLoaded', function() {
             return;
         }
 
-        // --- Обробник кнопки "Слідкувати" ---
+        // --- Обробник кнопки "Слідкувати" (За Користувачем) ---
         const followButton = event.target.closest('.profile-follow-btn');
         if (followButton) {
             event.preventDefault();
@@ -271,10 +272,19 @@ document.addEventListener('DOMContentLoaded', function() {
             handleProfileFollow(username, followButton);
             return;
         }
+
+        // --- Обробник кнопки "Слідкувати" (За Категорією) ---
+        const categoryFollowButton = event.target.closest('.category-follow-btn');
+        if (categoryFollowButton) {
+            event.preventDefault();
+            const slug = categoryFollowButton.dataset.slug;
+            handleCategoryFollow(slug, categoryFollowButton);
+            return;
+        }
     });
 });
 
-// --- Функція для "Слідкувати" ---
+// --- Функція для "Слідкувати за Користувачем" ---
 function handleProfileFollow(username, button) {
     {% if not user.is_authenticated %}
         window.location.href = "{% url 'users:login' %}?next=" + window.location.pathname;
@@ -312,12 +322,8 @@ function handleProfileFollow(username, button) {
     })
     .catch(error => console.error('Error handling follow:', error));
 }
-// --- Функція для "Слідкувати за Користувачем" ---
-function handleProfileFollow(username, button) {
-    // ... (ваш існуючий код)
-}
 
-// === ДОДАЙТЕ ЦЮ НОВУ ФУНКЦІЮ ===
+// --- Функція для "Слідкувати за Категорією" ---
 function handleCategoryFollow(slug, button) {
     {% if not user.is_authenticated %}
         window.location.href = "{% url 'users:login' %}?next=" + window.location.pathname;
@@ -352,22 +358,6 @@ function handleCategoryFollow(slug, button) {
     })
     .catch(error => console.error('Error handling category follow:', error));
 }
-
-document.body.addEventListener('click', function(event) {
-    const followButton = event.target.closest('.profile-follow-btn');
-    if (followButton) {
-        return;
-    }
-
-    const categoryFollowButton = event.target.closest('.category-follow-btn');
-    if (categoryFollowButton) {
-        event.preventDefault();
-        const slug = categoryFollowButton.dataset.slug;
-        handleCategoryFollow(slug, categoryFollowButton);
-        return;
-    }
-});
-
 </script>
 </body>
 </html>

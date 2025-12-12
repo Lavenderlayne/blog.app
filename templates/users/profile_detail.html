@@ -1,6 +1,5 @@
 {% extends 'base.html' %}
-
-{% block title %}Профіль {{ profile_user.username }}{% endblock %}
+{% load static %}  {% block title %}Профіль {{ profile_user.username }}{% endblock %}
 
 {% block content %}
 <div class="row g-4">
@@ -10,10 +9,10 @@
             <div class="card-body text-center">
                 {% if profile_user.profile.avatar %}
                     <img src="{{ profile_user.profile.avatar.url }}" alt="Аватар"
-                         class="rounded-circle mb-3" width="150" height="150" style="object-fit: cover;">
+                            class="rounded-circle mb-3" width="150" height="150" style="object-fit: cover;">
                 {% else %}
                     <div class="bg-secondary rounded-circle d-inline-flex align-items-center justify-content-center mb-3"
-                         style="width: 150px; height: 150px;">
+                            style="width: 150px; height: 150px;">
                         <i class="bi bi-person-fill text-light" style="font-size: 60px;"></i>
                     </div>
                 {% endif %}
@@ -267,8 +266,15 @@
 </div>
 {% endblock %}
 
+
+{% block extra_js %}
 <script>
-// --- Функція для отримання CSRF токена ---
+    window.USER_IS_AUTHENTICATED = {{ user.is_authenticated|yesno:"true,false" }};
+    window.LOGIN_URL = "{% url 'users:login' %}";
+</script>
+
+<script>
+// --- 1. Функція для отримання CSRF токена ---
 function getCookie(name) {
     let cookieValue = null;
     if (document.cookie && document.cookie !== '') {
@@ -286,22 +292,40 @@ function getCookie(name) {
 const csrftoken = getCookie('csrftoken');
 
 
-// --- Функція для "Поділитися" ---
+// --- Допоміжна функція для перевірки авторизації (ТЕПЕР ВИКОРИСТОВУЄ ГЛОБАЛЬНІ ЗМІННІ) ---
+function checkAuthAndRedirect() {
+    if (!window.USER_IS_AUTHENTICATED) {
+        // window.LOGIN_URL тепер коректно визначено вище
+        window.location.href = window.LOGIN_URL + "?next=" + window.location.pathname;
+        return true; // Користувач не авторизований, виконано перенаправлення
+    }
+    return false; // Користувач авторизований
+}
+
+
+// --- 2. Функція для "Поділитися" ---
 function sharePost(slug) {
     const url = `${window.location.origin}/posts/${slug}/`;
+    
     if (navigator.share) {
-        navigator.share({ title: 'Цікавий пост', text: 'Переглянь цей пост', url: url });
+        navigator.share({ 
+            title: 'Цікавий пост', 
+            text: 'Переглянь цей пост', 
+            url: url 
+        });
     } else {
-        navigator.clipboard.writeText(url);
+        navigator.clipboard.writeText(url)
+            .then(() => alert('Посилання скопійовано у буфер обміну!'))
+            .catch(err => console.error('Не вдалося скопіювати текст: ', err));
     }
 }
 
-// --- Функція для "Зберегти" (Закладки) ---
+
+// --- 3. Функція для "Зберегти" (Закладки) ---
 function savePost(slug, button) {
-    {% if not user.is_authenticated %}
-        window.location.href = "{% url 'users:login' %}?next=" + window.location.pathname;
+    if (checkAuthAndRedirect()) {
         return;
-    {% endif %}
+    }
 
     const url = `/bookmark/${slug}/`;
     fetch(url, {
@@ -328,12 +352,11 @@ function savePost(slug, button) {
 }
 
 
-// --- Функція: Обробка голосування (вгору/вниз) ---
+// --- 4. Функція: Обробка голосування (вгору/вниз) ---
 function handlePostVote(slug, direction, button) {
-    {% if not user.is_authenticated %}
-        window.location.href = "{% url 'users:login' %}?next=" + window.location.pathname;
+    if (checkAuthAndRedirect()) {
         return;
-    {% endif %}
+    }
 
     const url = `/vote/${slug}/${direction}/`; 
 
@@ -380,58 +403,21 @@ function handlePostVote(slug, direction, button) {
 }
 
 
-// --- Загальний обробник подій ---
-document.addEventListener('DOMContentLoaded', function() {
-    
-    document.body.addEventListener('click', function(event) {
-        
-        // --- Обробка кнопок "Голосування" ---
-        const voteButton = event.target.closest('.post-vote-btn');
-        if (voteButton) {
-            event.preventDefault();
-            const slug = voteButton.dataset.slug;
-            const direction = voteButton.dataset.direction;
-            handlePostVote(slug, direction, voteButton);
-            return;
-        }
-
-        // --- Обробка кнопки "Зберегти" ---
-        const saveButton = event.target.closest('.post-save-btn');
-        if (saveButton) {
-            event.preventDefault();
-            const slug = saveButton.dataset.slug;
-            savePost(slug, saveButton);
-            return;
-        }
-
-        // --- Обробка кнопки "Поділитися" ---
-        const shareButton = event.target.closest('.post-share-btn');
-        if (shareButton) {
-            event.preventDefault();
-            const slug = shareButton.dataset.slug;
-            sharePost(slug);
-            return;
-        }
-
-        // --- Обробник кнопки "Слідкувати" ---
-        const followButton = event.target.closest('.profile-follow-btn');
-        if (followButton) {
-            event.preventDefault();
-            const username = followButton.dataset.username;
-            handleProfileFollow(username, followButton);
-            return;
-        }
-    });
-});
-
-// --- Функція для "Слідкувати" ---
+// --- 5. Функція для "Слідкувати" (виправлено) ---
 function handleProfileFollow(username, button) {
-    {% if not user.is_authenticated %}
-        window.location.href = "{% url 'users:login' %}?next=" + window.location.pathname;
+    if (checkAuthAndRedirect()) {
         return;
-    {% endif %}
+    }
+    
+    // Додаткова перевірка username, хоча в HTML він коректно визначений
+    if (!username) {
+        console.error('Помилка: Не вдалося отримати ім’я користувача для підписки.');
+        return;
+    }
 
-    const url = `/users/profile/${username}/follow/`;
+    // URL для POST-запиту, що перемикає стан підписки
+    const url = `/users/profile/${username}/follow/`; 
+    
     fetch(url, {
         method: 'POST',
         headers: {
@@ -459,4 +445,50 @@ function handleProfileFollow(username, button) {
     })
     .catch(error => console.error('Error handling follow:', error));
 }
+
+
+// --- 6. Загальний обробник подій (DOMContentLoaded) ---
+document.addEventListener('DOMContentLoaded', function() {
+    
+    document.body.addEventListener('click', function(event) {
+        
+        // Обробка кнопок "Голосування"
+        const voteButton = event.target.closest('.post-vote-btn');
+        if (voteButton) {
+            event.preventDefault();
+            const slug = voteButton.dataset.slug;
+            const direction = voteButton.dataset.direction;
+            handlePostVote(slug, direction, voteButton);
+            return;
+        }
+
+        // Обробка кнопки "Зберегти"
+        const saveButton = event.target.closest('.post-save-btn');
+        if (saveButton) {
+            event.preventDefault();
+            const slug = saveButton.dataset.slug;
+            savePost(slug, saveButton);
+            return;
+        }
+
+        // Обробка кнопки "Поділитися"
+        const shareButton = event.target.closest('.post-share-btn');
+        if (shareButton) {
+            event.preventDefault();
+            const slug = shareButton.dataset.slug;
+            sharePost(slug);
+            return;
+        }
+
+        // Обробник кнопки "Слідкувати"
+        const followButton = event.target.closest('.profile-follow-btn');
+        if (followButton) {
+            event.preventDefault();
+            const username = followButton.dataset.username;
+            handleProfileFollow(username, followButton);
+            return;
+        }
+    });
+});
 </script>
+{% endblock %}
