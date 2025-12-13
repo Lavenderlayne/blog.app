@@ -13,24 +13,13 @@ https://docs.djangoproject.com/en/5.2/ref/settings/
 from pathlib import Path
 import dj_database_url
 import os
-# Build paths inside the project like this: BASE_DIR / 'subdir'.
+
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-
-# Quick-start development settings - unsuitable for production
-# See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
-
-# SECURITY WARNING: keep the secret key used in production secret!
-# Цей ключ потрібно згенерувати новий і заховати у змінну оточення
 SECRET_KEY = os.environ.get('DJANGO_SECRET_KEY', 'your-fallback-key-here')
 
-# SECURITY WARNING: don't run with debug turned on in production!
-#
-# ВИПРАВЛЕНО: Залишаємо DEBUG = False для Production
 DEBUG = False
 
-# ВКАЗУЄМО ДОЗВОЛЕНІ ХОСТИ (адреси, з яких можна заходити на сайт)
-# --- ВИПРАВЛЕНО: Залишено лише коректний список хостів ---
 ALLOWED_HOSTS = ['my-blog-pn6p.onrender.com', '.onrender.com']
 
 
@@ -129,7 +118,6 @@ INSTALLED_APPS = [
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'whitenoise.middleware.WhiteNoiseMiddleware',
-    # WhiteNoise повинен бути розташований тут, другим, для кращої продуктивності та обробки статичних файлів
     'whitenoise.middleware.WhiteNoiseMiddleware', 
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
