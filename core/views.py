@@ -51,7 +51,7 @@ def handle_tags(post_object, tag_string):
     for name in tag_names:
         tag, created = Tag.objects.get_or_create(
             name__iexact=name, 
-            defaults={'name': name, 'slug': slugify(name)}
+            defaults={'name': name, 'slug': slugify(name, allow_unicode=True)}
         )
         post_object.tags.add(tag)
 
