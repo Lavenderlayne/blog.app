@@ -38,7 +38,7 @@
     </div>
 
     <div class="col-md-6">
-        
+
         <div class="card bg-black border-secondary mb-4">
             <div class="card-body d-flex justify-content-between align-items-center">
                 <div>
@@ -57,9 +57,10 @@
 
         <div class="card bg-black border-secondary">
             <div class="list-group list-group-flush">
-                
+
                 {% for tag in tags %}
-                <div class="list-group-item bg-black text-light border-secondary d-flex justify-content-between align-items-center">
+                <div
+                    class="list-group-item bg-black text-light border-secondary d-flex justify-content-between align-items-center">
                     <div>
                         <a href="{% url 'core:tag_detail' tag.slug %}" class="text-light text-decoration-none fs-5">
                             #{{ tag.name }}
@@ -80,9 +81,52 @@
                     Тегів ще не створено.
                 </div>
                 {% endfor %}
-
             </div>
         </div>
     </div>
 
-    </div> {% endblock %}
+    <div class="col-md-3">
+        <div class="card bg-black border-secondary mb-4">
+            <div class="card-header bg-dark border-secondary">
+                <h5 class="text-light mb-0"><i class="bi bi-fire text-warning"></i> Рекомендовані спільноти</h5>
+            </div>
+            <div class="card-body p-0">
+                <ul class="list-group list-group-flush bg-black">
+                    {% for category in categories|slice:":5" %} <a href="{% url 'core:category_detail' category.slug %}"
+                        class="list-group-item list-group-item-action bg-black border-secondary text-light d-flex justify-content-between align-items-center">
+                        <div class="d-flex align-items-center">
+                            <i class="bi bi-reddit text-warning me-2"></i>
+                            <span>/r/{{ category.name }}</span>
+                        </div>
+                        <span class="badge bg-secondary">{{ category.post_count }}</span>
+                    </a>
+                    {% empty %}
+                    <div class="list-group-item bg-black border-secondary text-muted">
+                        Немає спільнот
+                    </div>
+                    {% endfor %}
+                </ul>
+            </div>
+        </div>
+
+        <div class="card bg-black border-secondary mb-4">
+            <div class="card-header bg-dark border-secondary">
+                <h5 class="text-light mb-0"><i class="bi bi-lightning text-warning"></i> Швидкі дії</h5>
+            </div>
+            <div class="card-body">
+                <div class="d-grid gap-2">
+                    {% if user.is_authenticated %}
+                    <a href="{% url 'core:post_create' %}" class="btn btn-warning">
+                        <i class="bi bi-plus-circle"></i> Створити пост
+                    </a>
+                    {% else %}
+                    {% endif %}
+                    <a href="{% url 'core:search' %}" class="btn btn-outline-light">
+                        <i class="bi bi-search"></i> Пошук
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
