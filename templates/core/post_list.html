@@ -46,8 +46,8 @@
                 <ul class="list-group list-group-flush" style="max-height: 300px; overflow-y: auto;">
                     {% for category in categories %}
                     <li class="list-group-item bg-black text-light border-secondary">
-                        <a href="{% url 'core:category_detail' category.slug %}" 
-                           class="text-light text-decoration-none d-flex justify-content-between align-items-center">
+                        <a href="{% url 'core:category_detail' category.slug %}"
+                            class="text-light text-decoration-none d-flex justify-content-between align-items-center">
                             <span><i class="bi bi-record-circle text-warning me-2"></i> /r/{{ category.name }}</span>
                             <span class="badge bg-secondary">{{ category.post_count }}</span>
                         </a>
@@ -78,12 +78,17 @@
                         <i class="bi bi-sort-down"></i> Сортування
                     </button>
                     <ul class="dropdown-menu bg-black border-secondary">
-                        <li><a class="dropdown-item text-light" href="?sort=newest"><i class="bi bi-arrow-up"></i> Найновіші</a></li>
-                        <li><a class="dropdown-item text-light" href="?sort=top"><i class="bi bi-fire"></i> Найкращі</a></li>
-                        <li><a class="dropdown-item text-light" href="?sort=popular"><i class="bi bi-bar-chart"></i> Популярні</a></li>
-                        <li><a class="dropdown-item text-light" href="?sort=featured"><i class="bi bi-star"></i> Рекомендовані</a></li>
+                        <li><a class="dropdown-item text-light" href="?sort=newest"><i class="bi bi-arrow-up"></i>
+                                Найновіші</a></li>
+                        <li><a class="dropdown-item text-light" href="?sort=top"><i class="bi bi-fire"></i> Найкращі</a>
+                        </li>
+                        <li><a class="dropdown-item text-light" href="?sort=popular"><i class="bi bi-bar-chart"></i>
+                                Популярні</a></li>
+                        <li><a class="dropdown-item text-light" href="?sort=featured"><i class="bi bi-star"></i>
+                                Рекомендовані</a></li>
                         {% if user.is_authenticated %}
-                        <li><a class="dropdown-item text-light" href="?sort=bookmarked"><i class="bi bi-bookmark-fill"></i> Мої закладки</a></li>
+                        <li><a class="dropdown-item text-light" href="?sort=bookmarked"><i
+                                        class="bi bi-bookmark-fill"></i> Мої закладки</a></li>
                         {% endif %}
                     </ul>
                 </div>
@@ -94,8 +99,8 @@
             <div class="card-body">
                 <form method="get">
                     <div class="input-group">
-                        <input type="text" name="q" class="form-control bg-dark border-secondary text-light" 
-                               placeholder="Пошук постів..." value="{{ request.GET.q }}">
+                        <input type="text" name="q" class="form-control bg-dark border-secondary text-light"
+                            placeholder="Пошук постів..." value="{{ request.GET.q }}">
                         <button type="submit" class="btn btn-warning">
                             <i class="bi bi-search"></i> Пошук
                         </button>
@@ -112,8 +117,8 @@
                 <i class="bi bi-search display-4 text-muted mb-3"></i>
                 <h4 class="text-light">Постів не знайдено</h4>
                 <p class="text-muted mb-4">Спробуйте змінити параметри пошуку або фільтрації.</p>
-                <a href="/posts/" class="btn btn-warning me-2">Скинути фільтри</a>
-                {% if user.is_authenticated %}<a href="/posts/create/" class="btn btn-outline-light">Створити пост</a>{% endif %}
+                <a href="{% url 'core:post_list' %}" class="btn btn-warning me-2">Скинути фільтри</a>
+                {% if user.is_authenticated %}<a href="{% url 'core:post_create' %}" class="btn btn-outline-light">Створити пост</a>{% endif %}
             </div>
         </div>
         {% endfor %}
@@ -122,15 +127,18 @@
         <nav class="mt-4">
             <ul class="pagination justify-content-center">
                 {% if page_obj.has_previous %}
-                <li class="page-item"><a class="page-link bg-black border-secondary text-light" href="?page={{ page_obj.previous_page_number }}">← Попередня</a></li>
+                <li class="page-item"><a class="page-link bg-black border-secondary text-light"
+                        href="?page={{ page_obj.previous_page_number }}">← Попередня</a></li>
                 {% endif %}
                 {% for num in page_obj.paginator.page_range %}
                 <li class="page-item {% if page_obj.number == num %}active{% endif %}">
-                    <a class="page-link {% if page_obj.number == num %}bg-warning border-warning text-dark{% else %}bg-black border-secondary text-light{% endif %}" href="?page={{ num }}">{{ num }}</a>
+                    <a class="page-link {% if page_obj.number == num %}bg-warning border-warning text-dark{% else %}bg-black border-secondary text-light{% endif %}"
+                        href="?page={{ num }}">{{ num }}</a>
                 </li>
                 {% endfor %}
                 {% if page_obj.has_next %}
-                <li class="page-item"><a class="page-link bg-black border-secondary text-light" href="?page={{ page_obj.next_page_number }}">Наступна →</a></li>
+                <li class="page-item"><a class="page-link bg-black border-secondary text-light"
+                        href="?page={{ page_obj.next_page_number }}">Наступна →</a></li>
                 {% endif %}
             </ul>
         </nav>
@@ -146,7 +154,8 @@
                 <h5 class="text-light mb-3"><i class="bi bi-star text-warning"></i> Рекомендовані пости</h5>
                 {% for post in featured_posts %}
                 <div class="mb-3 pb-2 {% if not forloop.last %}border-bottom border-secondary{% endif %}">
-                    <h6 class="mb-1"><a href="/posts/{{ post.slug }}/" class="text-light text-decoration-none">{{ post.title }}</a></h6>
+                    <h6 class="mb-1"><a href="{% url 'core:post_detail' post.slug %}" class="text-light text-decoration-none">{{
+                                post.title }}</a></h6>
                     <div class="d-flex justify-content-between small text-muted">
                         <span>{{ post.created_at|date:"d.m.Y" }}</span>
                         <span><i class="bi bi-eye"></i> {{ post.view_count }}</span>
@@ -163,9 +172,9 @@
             </div>
             <div class="card-body p-0">
                 <ul class="list-group list-group-flush bg-black">
-                    {% for category in categories|slice:":5" %} 
-                    <a href="{% url 'core:category_detail' category.slug %}" 
-                       class="list-group-item list-group-item-action bg-black border-secondary text-light d-flex justify-content-between align-items-center">
+                    {% for category in categories|slice:":5" %}
+                    <a href="{% url 'core:category_detail' category.slug %}"
+                        class="list-group-item list-group-item-action bg-black border-secondary text-light d-flex justify-content-between align-items-center">
                         <div class="d-flex align-items-center">
                             <i class="bi bi-reddit text-warning me-2"></i>
                             <span>/r/{{ category.name }}</span>
@@ -185,7 +194,9 @@
                 <h5 class="text-light mb-3"><i class="bi bi-tags text-warning"></i> Популярні теги</h5>
                 <div class="d-flex flex-wrap">
                     {% for tag in popular_tags %}
-                    <a href="/tags{{ tag.slug }}/" class="badge bg-dark border border-secondary text-light me-1 mb-1">{{ tag.name }} ({{ tag.post_count }})</a>
+                    <a href="{% url 'core:tag_detail' tag.slug %}" class="btn btn-sm btn-outline-light me-2 mb-2">
+                        #{{ tag.name }} <span class="badge bg-secondary ms-1">{{ tag.post_count }}</span>
+                    </a>
                     {% empty %}
                     <p class="text-muted small">Тегів ще немає</p>
                     {% endfor %}
