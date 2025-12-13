@@ -10,6 +10,7 @@ from django.core.paginator import Paginator
 from django.utils import timezone
 from .models import Post, Category, Tag, PostComment, PostVote, Subscription, CommentLike, Advertisement
 from .forms import PostForm, CommentForm, SubscriptionForm, TagForm
+from .models import generate_slug
 from django.utils.text import slugify
 from django.contrib.auth import get_user_model
 
@@ -51,7 +52,10 @@ def handle_tags(post_object, tag_string):
     for name in tag_names:
         tag, created = Tag.objects.get_or_create(
             name__iexact=name, 
-            defaults={'name': name, 'slug': slugify(name, allow_unicode=True)}
+            defaults={
+                'name': name, 
+                'slug': generate_slug(name)
+            }
         )
         post_object.tags.add(tag)
 

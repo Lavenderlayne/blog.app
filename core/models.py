@@ -78,7 +78,7 @@ class Tag(models.Model):
     
     def save(self, *args, **kwargs):
         if not self.slug or not self.slug.strip():
-            self.slug = slugify(self.name, allow_unicode=True)
+            self.slug = generate_slug(self.name, allow_unicode=True)
         super().save(*args, **kwargs)
     
     def get_absolute_url(self):
