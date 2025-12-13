@@ -185,7 +185,7 @@
                 <h5 class="text-light mb-3"><i class="bi bi-tags text-warning"></i> Популярні теги</h5>
                 <div class="d-flex flex-wrap">
                     {% for tag in popular_tags %}
-                    <a href="/tags/{{ tag.slug }}/" class="badge bg-dark border border-secondary text-light me-1 mb-1">{{ tag.name }} ({{ tag.post_count }})</a>
+                    <a href="/tags{{ tag.slug }}/" class="badge bg-dark border border-secondary text-light me-1 mb-1">{{ tag.name }} ({{ tag.post_count }})</a>
                     {% empty %}
                     <p class="text-muted small">Тегів ще немає</p>
                     {% endfor %}

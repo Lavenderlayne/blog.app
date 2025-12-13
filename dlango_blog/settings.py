@@ -141,10 +141,8 @@ TEMPLATES = [
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
-                # --- ВИПРАВЛЕНО: Додано контекст-процесор для глобального доступу до 'categories' ---
                 'core.context_processors.global_context', 
             ],
-            # --- ДОДАНО ДЛЯ ФІЛЬТРІВ ВІДЕО ---
             'libraries': {
                 'core_filters': 'core.templatetags.core_filters',
             }
