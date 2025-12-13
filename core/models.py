@@ -178,7 +178,7 @@ class Post(models.Model):
     
     def save(self, *args, **kwargs):
         if not self.slug:
-            base_slug = slugify(self.title, allow_unicode=True)
+            base_slug = generate_slug(self.title, allow_unicode=True)
             if not base_slug:
                 base_slug = "post"
             slug = base_slug
@@ -370,7 +370,7 @@ class Advertisement(models.Model):
     
     def save(self, *args, **kwargs):
         if not self.slug:
-            self.slug = slugify(self.title, allow_unicode=True)
+            self.slug = generate_slug(self.title, allow_unicode=True)
         super().save(*args, **kwargs)
     
     def is_valid(self):
