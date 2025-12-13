@@ -8,7 +8,7 @@ from django_ckeditor_5.fields import CKEditor5Field
 class Category(models.Model):
     """Модель категорії для постів/статей"""
     name = models.CharField(max_length=100, verbose_name="Назва категорії")
-    slug = models.SlugField(max_length=100, unique=True, verbose_name="URL")
+    slug = models.SlugField(max_length=100, unique=True, verbose_name="URL", allow_unicode=True)
     description = models.TextField(blank=True, verbose_name="Опис")
     created_at = models.DateTimeField(auto_now_add=True, verbose_name="Створено")
     
@@ -31,7 +31,7 @@ class Category(models.Model):
 class Tag(models.Model):
     """Модель тегу для постів"""
     name = models.CharField(max_length=50, verbose_name="Назва тегу")
-    slug = models.SlugField(max_length=50, unique=True, verbose_name="URL")
+    slug = models.SlugField(max_length=50, unique=True, verbose_name="URL", allow_unicode=True)
     
     class Meta:
         verbose_name = "Тег"
@@ -43,11 +43,11 @@ class Tag(models.Model):
     
     def save(self, *args, **kwargs):
         if not self.slug or not self.slug.strip():
-            self.slug = slugify(self.name)
+            self.slug = slugify(self.name, allow_unicode=True)
         super().save(*args, **kwargs)
     
     def get_absolute_url(self):
-        return reverse('tag_detail', kwargs={'slug': self.slug})
+        return reverse('core:tag_detail', kwargs={'slug': self.slug})
 
 class Post(models.Model):
     """Модель посту"""
@@ -64,7 +64,7 @@ class Post(models.Model):
     ]
     
     title = models.CharField(max_length=200, verbose_name="Заголовок")
-    slug = models.SlugField(max_length=200, unique=True, verbose_name="URL")
+    slug = models.SlugField(max_length=200, unique=True, verbose_name="URL", allow_unicode=True)
     content = CKEditor5Field(verbose_name="Зміст", config_name='default')
     excerpt = models.TextField(max_length=300, blank=True, verbose_name="Короткий опис")
     
@@ -143,7 +143,9 @@ class Post(models.Model):
     
     def save(self, *args, **kwargs):
         if not self.slug:
-            base_slug = slugify(self.title)
+            base_slug = slugify(self.title, allow_unicode=True)
+            if not base_slug:
+                base_slug = "post"
             slug = base_slug
             counter = 1
             while Post.objects.filter(slug=slug).exists():
@@ -181,8 +183,11 @@ class Post(models.Model):
     @property
     def reading_time(self):
         words_per_minute = 200
-        word_count = len(self.content.split())
-        return max(1, round(word_count / words_per_minute))
+        # Проста перевірка на наявність контенту
+        if self.content:
+            word_count = len(self.content.split())
+            return max(1, round(word_count / words_per_minute))
+        return 1
     
     @classmethod
     def get_published_posts(cls):
@@ -330,7 +335,7 @@ class Advertisement(models.Model):
     
     def save(self, *args, **kwargs):
         if not self.slug:
-            self.slug = slugify(self.title)
+            self.slug = slugify(self.title, allow_unicode=True)
         super().save(*args, **kwargs)
     
     def is_valid(self):
