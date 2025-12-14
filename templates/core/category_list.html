@@ -1,221 +1,283 @@
 {% extends 'base.html' %}
+{% load static %}
 
 {% block title %}Спільноти - Мій Блог{% endblock %}
 
+{% block extra_css %}
+<style>
+    /* Анімація карток */
+    .category-card {
+        transition: transform 0.2s, border-color 0.2s, background-color 0.2s;
+    }
+
+    .category-card:hover {
+        transform: translateY(-3px);
+        border-color: #ffc107 !important; /* Жовта рамка при наведенні */
+        background-color: #1a1a1a !important;
+    }
+
+    /* Анімація появи */
+    .fade-in {
+        animation: fadeIn 0.4s ease-out;
+    }
+
+    @keyframes fadeIn {
+        from {
+            opacity: 0;
+            transform: translateY(10px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+</style>
+{% endblock %}
+
 {% block content %}
-<div class="row">
+<div class="row fade-in">
 
-    <!-- ЛІВА КОЛОНКА -->
-    <div class="col-md-3">
-        <div class="card bg-black border-secondary mb-4">
-            <div class="card-header bg-dark border-secondary">
-                <h6 class="mb-0 text-light"><i class="bi bi-compass text-warning"></i> Навігація</h6>
-            </div>
-            <div class="card-body p-0">
-                <ul class="list-group list-group-flush">
-                    <li class="list-group-item bg-black text-light border-secondary">
-                        <a class="nav-link text-light" href="{% url 'core:home' %}">
-                            <i class="bi bi-house-door"></i> Головна
-                        </a>
-                    </li>
-                    <li class="list-group-item bg-black text-light border-secondary">
-                        <a class="nav-link text-light" href="{% url 'core:post_list' %}">
-                            <i class="bi bi-card-text"></i> Всі пости
-                        </a>
-                    </li>
-                    <li class="list-group-item bg-black text-light border-secondary">
-                        <a class="nav-link text-light" href="{% url 'core:category_list' %}">
-                            <i class="bi bi-reddit"></i> Спільноти
-                        </a>
-                    </li>
-                    <li class="list-group-item bg-black text-light border-secondary">
-                        <a class="nav-link text-light" href="{% url 'core:tag_list' %}">
-                            <i class="bi bi-tags"></i> Теги
-                        </a>
-                    </li>
-                </ul>
-            </div>
-        </div>
-
-        <div class="card bg-black border-secondary mb-4">
-            <div class="card-body">
-                <h5 class="text-light mb-3">
-                    <i class="bi bi-info-circle text-warning"></i> Про спільноти
-                </h5>
-                <p class="text-light small mb-3">
-                    Спільноти допомагають організувати пости за темами. 
-                    Кожен пост належить до однієї спільноти.
-                </p>
-                {% if not user.is_authenticated %}
-                <div class="alert alert-dark border-warning small mb-0">
-                    <i class="bi bi-exclamation-triangle text-warning"></i>
-                    Для створення нових постів необхідно увійти в систему.
-                </div>
-                {% endif %}
-            </div>
-        </div>
+    <div class="col-md-3 d-none d-lg-block">
+        {% include 'includes/sidebar.html' %}
     </div>
 
-    <!-- ЦЕНТРАЛЬНА КОЛОНКА -->
-    <div class="col-md-6">
-        <div class="card bg-black border-secondary mb-4">
+    <div class="col-md-9 col-lg-6">
+
+        <div class="card bg-black border-secondary mb-4 shadow-sm">
             <div class="card-body">
-                <div class="d-flex justify-content-between align-items-center">
-                    <div>
-                        <h1 class="text-light mb-2">
-                            <i class="bi bi-reddit text-warning"></i> Всі спільноти
+                <div class="d-flex flex-column gap-3">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h1 class="text-light mb-0 fs-3">
+                            <i class="bi bi-people text-warning me-2"></i> Спільноти
                         </h1>
-                        <p class="text-muted mb-0">
-                            <i class="bi bi-people"></i> Знайдено {{ categories|length }} спільнот
-                        </p>
+                        
+                        {% if user.is_authenticated and user.is_staff %}
+                        <a href="/admin/core/category/add/" class="btn btn-sm btn-warning fw-bold">
+                            <i class="bi bi-plus-lg"></i> Створити
+                        </a>
+                        {% endif %}
                     </div>
-                    {% if user.is_authenticated and user.is_admin %}
-                    <a href="/admin/core/category/add/" class="btn btn-warning">
-                        <i class="bi bi-plus-circle"></i> Нова спільнота
-                    </a>
-                    {% endif %}
+
+                    <div class="d-flex gap-2">
+                        <div class="input-group">
+                            <span class="input-group-text bg-dark border-secondary text-secondary">
+                                <i class="bi bi-search"></i>
+                            </span>
+                            <input type="text" id="categorySearch"
+                                class="form-control bg-dark border-secondary text-light"
+                                placeholder="Знайти спільноту...">
+                        </div>
+                        <div class="btn-group">
+                            <button class="btn btn-outline-secondary" onclick="sortCategories('name')" title="За назвою">
+                                <i class="bi bi-sort-alpha-down"></i>
+                            </button>
+                            <button class="btn btn-outline-secondary" onclick="sortCategories('count')" title="За популярністю">
+                                <i class="bi bi-sort-numeric-down-alt"></i>
+                            </button>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
 
-        <div class="row">
+        <div class="row g-3" id="categoriesContainer">
             {% for category in categories %}
-            <div class="col-md-12 mb-3">
-                <div class="card bg-black border-secondary h-100">
-                    <div class="card-body d-flex justify-content-between align-items-center">
-                        <div class="d-flex align-items-center">
-                            <div class="bg-warning rounded-circle p-2 me-3">
-                                <i class="bi bi-reddit text-dark"></i>
-                            </div>
-                            <div>
-                                <h5 class="card-title text-light mb-0">
-                                    <a href="/categories/{{ category.slug }}/" class="text-light text-decoration-none">
-                                        /r/{{ category.name }}
-                                    </a>
-                                </h5>
-                                <small class="text-muted">{{ category.post_count }} постів</small>
+            <div class="col-12 category-item" data-name="{{ category.name|lower }}"
+                data-count="{{ category.post_count }}">
+
+                <div class="card bg-black border-secondary category-card h-100">
+                    <div class="card-body d-flex align-items-center">
+                        <div class="flex-shrink-0 me-3">
+                            <a href="{% url 'core:category_detail' category.slug %}" class="text-decoration-none">
+                                <div class="rounded-circle bg-dark border border-secondary d-flex align-items-center justify-content-center"
+                                    style="width: 50px; height: 50px;">
+                                    <span class="text-warning fw-bold fs-4">{{ category.name|first|upper }}</span>
+                                </div>
+                            </a>
+                        </div>
+
+                        <div class="flex-grow-1 min-width-0">
+                            <h5 class="card-title mb-1 text-truncate">
+                                <a href="{% url 'core:category_detail' category.slug %}"
+                                    class="text-light text-decoration-none stretched-link-hack fw-bold">
+                                    /r/{{ category.name }}
+                                </a>
+                            </h5>
+                            <div class="text-muted small text-truncate">
+                                <span class="badge bg-dark border border-secondary text-secondary me-1">
+                                    {{ category.post_count }} постів
+                                </span>
+                                {% if category.description %}
+                                <span class="d-none d-sm-inline opacity-75">• {{ category.description|truncatechars:40 }}</span>
+                                {% endif %}
                             </div>
                         </div>
 
-                        <div class="btn-group">
-                            <a href="/categories/{{ category.slug }}/" class="btn btn-outline-light btn-sm">
-                                <i class="bi bi-eye"></i>
-                            </a>
+                        <div class="flex-shrink-0 ms-2">
                             {% if user.is_authenticated %}
-                            <a href="/posts/create/?category={{ category.id }}" class="btn btn-outline-warning btn-sm">
-                                <i class="bi bi-plus"></i>
+                            <button class="btn btn-sm btn-outline-warning rounded-pill px-3 follow-btn"
+                                data-slug="{{ category.slug }}" onclick="toggleFollow(this)">
+                                <i class="bi bi-plus-lg"></i>
+                            </button>
+                            {% else %}
+                            <a href="{% url 'core:category_detail' category.slug %}"
+                                class="btn btn-sm btn-outline-secondary rounded-pill">
+                                <i class="bi bi-arrow-right"></i>
                             </a>
                             {% endif %}
                         </div>
                     </div>
-
-                    {% if category.description %}
-                    <div class="card-footer bg-dark border-secondary text-light small">
-                        {{ category.description|truncatewords:20 }}
-                    </div>
-                    {% endif %}
                 </div>
             </div>
             {% empty %}
-            <div class="col-12">
-                <div class="card bg-black border-secondary">
-                    <div class="card-body text-center py-5">
-                        <i class="bi bi-inbox display-4 text-muted mb-3"></i>
-                        <h4 class="text-light">Спільноти відсутні</h4>
-                        <p class="text-muted mb-4">Ще не було створено жодної спільноти.</p>
-                        {% if user.is_authenticated and user.is_admin %}
-                        <a href="/admin/core/category/add/" class="btn btn-warning">
-                            <i class="bi bi-plus-circle"></i> Створити першу спільноту
-                        </a>
-                        {% endif %}
-                    </div>
-                </div>
+            <div class="col-12 text-center py-5">
+                <i class="bi bi-inbox display-1 text-muted opacity-25"></i>
+                <p class="text-muted mt-3">Спільнот ще немає</p>
             </div>
             {% endfor %}
         </div>
+
+        <div id="noResults" class="text-center py-5 d-none">
+            <i class="bi bi-search display-4 text-muted opacity-50 mb-2"></i>
+            <h5 class="text-light">Нічого не знайдено</h5>
+        </div>
+
     </div>
 
-    <!-- ПРАВА КОЛОНКА -->
-    <div class="col-md-3">
-        <div class="card bg-black border-secondary mb-4">
-            <div class="card-body">
-                <h5 class="text-light mb-3">
-                    <i class="bi bi-lightning text-warning"></i> Швидкі дії
-                </h5>
-                <div class="d-grid gap-2">
-                    <a href="/posts/" class="btn btn-outline-light">
-                        <i class="bi bi-card-text"></i> Всі пости
-                    </a>
-                    <a href="/search/" class="btn btn-outline-light">
-                        <i class="bi bi-search"></i> Пошук
-                    </a>
-                    {% if user.is_authenticated %}
-                    <a href="/posts/create/" class="btn btn-warning">
-                        <i class="bi bi-plus-circle"></i> Створити пост
-                    </a>
-                    {% endif %}
-                </div>
-            </div>
-        </div>
+    <div class="col-md-3 d-none d-lg-block">
+        <div class="sticky-top" style="top: 20px;">
 
-        {% if popular_categories %}
-        <div class="card bg-black border-secondary mb-4">
-            <div class="card-body">
-                <h5 class="text-light mb-3">
-                    <i class="bi bi-fire text-warning"></i> Популярні спільноти
-                </h5>
-                <div class="list-group list-group-flush bg-black">
-                    {% for category in popular_categories %}
-                    <a href="/categories/{{ category.slug }}/" 
-                       class="list-group-item list-group-item-action bg-black border-secondary text-light d-flex justify-content-between align-items-center">
-                        <div class="d-flex align-items-center">
-                            <i class="bi bi-reddit text-warning me-2"></i>
-                            <span>/r/{{ category.name }}</span>
-                        </div>
-                        <span class="badge bg-warning text-dark">{{ category.post_count }} постів</span>
-                    </a>
-                    {% endfor %}
+            <div class="card bg-black border-secondary mb-4 shadow-sm">
+                <div class="card-header bg-dark border-secondary">
+                    <h6 class="mb-0 text-light"><i class="bi bi-graph-up text-warning me-2"></i> Статистика</h6>
                 </div>
-            </div>
-        </div>
-        {% endif %}
-
-        {% if categories %}
-        <div class="card bg-black border-secondary mb-4">
-            <div class="card-body">
-                <h5 class="text-light mb-4">
-                    <i class="bi bi-graph-up text-warning"></i> Статистика спільнот
-                </h5>
-                <div class="row text-center">
-                    <div class="col-6 mb-3">
-                        <div class="bg-dark rounded p-3">
-                            <h4 class="text-warning mb-1">{{ categories|length }}</h4>
-                            <p class="text-muted small mb-0">Спільнот</p>
+                <div class="card-body">
+                    <div class="row text-center g-2">
+                        <div class="col-6">
+                            <div class="p-2 bg-dark rounded border border-secondary">
+                                <h4 class="text-warning mb-0 fw-bold">{{ categories|length }}</h4>
+                                <small class="text-muted">Спільнот</small>
+                            </div>
                         </div>
-                    </div>
-                    <div class="col-6 mb-3">
-                        <div class="bg-dark rounded p-3">
-                            <h4 class="text-warning mb-1">{{ total_posts }}</h4>
-                            <p class="text-muted small mb-0">Постів</p>
-                        </div>
-                    </div>
-                    <div class="col-6 mb-3">
-                        <div class="bg-dark rounded p-3">
-                            <h4 class="text-warning mb-1">{{ avg_posts_per_category }}</h4>
-                            <p class="text-muted small mb-0">В середньому</p>
-                        </div>
-                    </div>
-                    <div class="col-6 mb-3">
-                        <div class="bg-dark rounded p-3">
-                            <h4 class="text-warning mb-1">{{ most_popular_category.post_count }}</h4>
-                            <p class="text-muted small mb-0">Топ спільнота</p>
+                        <div class="col-6">
+                            <div class="p-2 bg-dark rounded border border-secondary">
+                                <h4 class="text-light mb-0 fw-bold">{{ total_posts|default:"0" }}</h4>
+                                <small class="text-muted">Постів</small>
+                            </div>
                         </div>
                     </div>
                 </div>
             </div>
-        </div>
-        {% endif %}
+            {% include 'includes/card.html' %}
     </div>
-
 </div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // --- 1. CSRF Token Setup ---
+    // Перевіряємо, чи існує функція, щоб не оголошувати двічі
+    if (typeof getCookie !== 'function') {
+        function getCookie(name) {
+            let cookieValue = null;
+            if (document.cookie && document.cookie !== '') {
+                const cookies = document.cookie.split(';');
+                for (let i = 0; i < cookies.length; i++) {
+                    const cookie = cookies[i].trim();
+                    if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                        break;
+                    }
+                }
+            }
+            return cookieValue;
+        }
+    }
+
+    // ВИПРАВЛЕННЯ: Використовуємо унікальне ім'я змінної для цього файлу
+    const categoryCsrfToken = getCookie('csrftoken');
+
+    // --- Функція має бути глобальною, бо викликається через onclick в HTML ---
+    function toggleFollow(btn) {
+        const slug = btn.dataset.slug;
+
+        // Анімація натискання
+        btn.innerHTML = '<span class="spinner-border spinner-border-sm"></span>';
+        btn.disabled = true;
+
+        fetch(`/categories/${slug}/follow/`, {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': categoryCsrfToken, // Використовуємо нову змінну
+                'Content-Type': 'application/json',
+                'X-Requested-With': 'XMLHttpRequest'
+            }
+        })
+            .then(response => response.json())
+            .then(data => {
+                if (data.is_following) {
+                    btn.innerHTML = '<i class="bi bi-check-lg"></i>';
+                    btn.classList.replace('btn-outline-warning', 'btn-success');
+                } else {
+                    btn.innerHTML = '<i class="bi bi-plus-lg"></i>';
+                    btn.classList.replace('btn-success', 'btn-outline-warning');
+                }
+            })
+            .catch(err => {
+                console.error('Error:', err);
+                btn.innerHTML = '<i class="bi bi-exclamation-triangle"></i>';
+            })
+            .finally(() => {
+                btn.disabled = false;
+            });
+    }
+
+    // --- Ініціалізація пошуку та сортування після завантаження DOM ---
+    document.addEventListener('DOMContentLoaded', function() {
+        
+        // --- 2. Live Search ---
+        const searchInput = document.getElementById('categorySearch');
+        const items = document.querySelectorAll('.category-item');
+        const noResults = document.getElementById('noResults');
+        const container = document.getElementById('categoriesContainer'); // Потрібен для сортування
+
+        if (searchInput) {
+            searchInput.addEventListener('input', function () {
+                const query = this.value.toLowerCase().trim();
+                let visibleCount = 0;
+
+                items.forEach(item => {
+                    const name = item.dataset.name;
+                    if (name.includes(query)) {
+                        item.classList.remove('d-none');
+                        visibleCount++;
+                    } else {
+                        item.classList.add('d-none');
+                    }
+                });
+
+                if (visibleCount === 0) noResults.classList.remove('d-none');
+                else noResults.classList.add('d-none');
+            });
+        }
+
+        // --- 3. Sorting ---
+        // Робимо функцію глобальною або прив'язуємо її до window, 
+        // оскільки вона викликається через onclick в HTML
+        window.sortCategories = function(criteria) {
+            const itemsArray = Array.from(document.querySelectorAll('.category-item'));
+
+            itemsArray.sort((a, b) => {
+                if (criteria === 'name') {
+                    return a.dataset.name.localeCompare(b.dataset.name);
+                } else if (criteria === 'count') {
+                    return parseInt(b.dataset.count) - parseInt(a.dataset.count);
+                }
+            });
+
+            // Перебудова DOM
+            itemsArray.forEach(item => container.appendChild(item));
+        };
+    });
+</script>
 {% endblock %}

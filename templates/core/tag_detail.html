@@ -1,109 +1,60 @@
 {% extends 'base.html' %}
 
-{% block title %}Тег: #{{ tag.name }} - Мій Блог{% endblock %}
+{% block title %}Тег: #{{ tag.name }}{% endblock %}
 
 {% block content %}
-<div class="row g-4"> <div class="col-md-3">
-        <div class="card bg-black border-secondary mb-4">
-            <div class="card-header bg-dark border-secondary">
-                <h6 class="mb-0 text-light"><i class="bi bi-compass text-warning"></i> Навігація</h6>
-            </div>
-            <div class="card-body p-0">
-                <ul class="list-group list-group-flush">
-                    <li class="list-group-item bg-black text-light border-secondary">
-                        <a class="nav-link text-light" href="{% url 'core:home' %}">
-                            <i class="bi bi-house-door"></i> Головна
-                        </a>
-                    </li>
-                    <li class="list-group-item bg-black text-light border-secondary">
-                        <a class="nav-link text-light" href="{% url 'core:post_list' %}">
-                            <i class="bi bi-card-text"></i> Всі пости
-                        </a>
-                    </li>
-                    <li class="list-group-item bg-black text-light border-secondary">
-                        <a class="nav-link text-light" href="{% url 'core:category_list' %}">
-                            <i class="bi bi-reddit"></i> Спільноти
-                        </a>
-                    </li>
-                    <li class="list-group-item bg-black text-light border-secondary">
-                        <a class="nav-link text-light" href="{% url 'core:tag_list' %}">
-                            <i class="bi bi-tags"></i> Теги
-                        </a>
-                    </li>
-                </ul>
-            </div>
-        </div>
+<div class="row g-4 fade-in">
+    
+    <div class="col-md-3 d-none d-lg-block">
+        {% include 'includes/sidebar.html' %}
     </div>
-    <div class="col-md-6"> <div class="card bg-black border-secondary mb-4">
-            <div class="card-body">
-                <h1 class="text-light mb-1">
-                    <i class="bi bi-tag text-warning"></i> Тег: #{{ tag.name }}
-                </h1>
+
+    <div class="col-md-9 col-lg-6">
+        <div class="card bg-black border-secondary mb-4 shadow-sm">
+            <div class="card-body p-4 text-center">
+                <h1 class="display-6 text-light fw-bold mb-2">#{{ tag.name }}</h1>
                 <p class="text-muted mb-0">
-                    <i class="bi bi-file-post"></i> Знайдено {{ post_count }} постів з цим тегом
+                    Знайдено <strong>{{ post_count }}</strong> публікацій
                 </p>
-            </div>
-        </div>
-
-        {% for post in posts %}
-        {% include 'core/post-card.html' %}
-        {% empty %}
-
-        <div class="card bg-black border-secondary">
-            <div class="card-body text-center py-5">
-                <i class="bi bi-inbox display-4 text-muted mb-3"></i>
-                <h4 class="text-light">Постів з тегом #{{ tag.name }} не знайдено</h4>
-                <p class="text-muted">Можливо, пости були видалені або знаходяться у чернетках.</p>
-            </div>
-        </div>
-        {% endfor %}
-
-        {% if posts.paginator.num_pages > 1 %}
-        {% include 'core/_pagination.html' with page_obj=posts %}
-        {% endif %}
-
-    </div>
-
-
-    <div class="col-md-3"> <div class="card bg-black border-secondary mb-4">
-            <div class="card-body">
-                <h5 class="text-light mb-3">
-                    <i class="bi bi-info-circle text-warning"></i> Інформація про тег
-                </h5>
-                <div class="d-flex justify-content-between text-light small mb-2">
-                    <span>Тег:</span>
-                    <strong>#{{ tag.name }}</strong>
-                </div>
-                <div class="d-flex justify-content-between text-light small">
-                    <span>Постів:</span>
-                    <strong>{{ post_count }}</strong>
-                </div>
                 {% if user.is_authenticated and user.is_admin %}
-                <hr class="bg-secondary my-3">
-                <div class="d-grid gap-2">
-                    <a href="{% url 'core:tag_update' tag.slug %}" class="btn btn-outline-warning">
-                        <i class="bi bi-pencil"></i> Редагувати тег
-                    </a>
-                    <a href="{% url 'core:tag_delete' tag.slug %}" class="btn btn-outline-danger">
-                        <i class="bi bi-trash"></i> Видалити тег
-                    </a>
+                <div class="mt-3">
+                    <a href="{% url 'core:tag_update' tag.slug %}" class="btn btn-sm btn-outline-warning me-2"><i class="bi bi-pencil"></i> Ред.</a>
+                    <a href="{% url 'core:tag_delete' tag.slug %}" class="btn btn-sm btn-outline-danger"><i class="bi bi-trash"></i> Вид.</a>
                 </div>
                 {% endif %}
             </div>
         </div>
-        
-        <div class="card bg-black border-secondary">
-            <div class="card-body">
-                <h5 class="text-light mb-3">
-                    <i class="bi bi-tags text-warning"></i> Всі теги
-                </h5>
-                <div class="text-center">
-                    <a href="{% url 'core:tag_list' %}" class="btn btn-outline-light btn-sm">
-                        <i class="bi bi-eye"></i> Переглянути всі
-                    </a>
+
+        {% for post in posts %}
+            {% include 'includes/profile_post_card.html' %}
+        {% empty %}
+            <div class="text-center py-5">
+                <i class="bi bi-journal-x display-1 text-muted mb-3 d-block opacity-25"></i>
+                <h4 class="text-light">Постів з цим тегом немає</h4>
+                <a href="{% url 'core:post_list' %}" class="btn btn-outline-light mt-2">До всіх постів</a>
+            </div>
+        {% endfor %}
+
+        {% if posts.paginator.num_pages > 1 %}
+            {% include 'core/_pagination.html' with page_obj=posts %}
+        {% endif %}
+    </div>
+
+    <div class="col-lg-3 d-none d-lg-block">
+        <div class="card bg-black border-secondary sticky-top" style="top: 20px;">
+            <div class="card-header bg-dark border-secondary">
+                <h6 class="mb-0 text-light"><i class="bi bi-info-circle text-warning"></i> Про тег</h6>
+            </div>
+            <div class="card-body small text-light">
+                <p>Теги допомагають групувати схожі за змістом пости. Підпишіться на оновлення, щоб не пропустити цікаве.</p>
+                <div class="d-grid">
+                    <button class="btn btn-outline-light btn-sm" onclick="alert('Функціонал підписки в розробці!')">
+                        <i class="bi bi-bell"></i> Підписатися на #{{ tag.name }}
+                    </button>
                 </div>
             </div>
         </div>
     </div>
+
 </div>
 {% endblock %}

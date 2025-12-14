@@ -1,48 +1,81 @@
 {% extends 'base.html' %}
+{% load static %}
 
 {% block title %}/r/{{ category.name }} - Мій Блог{% endblock %}
 
+{% block extra_css %}
+<style>
+    /* Анімація появи */
+    .fade-in {
+        animation: fadeIn 0.4s ease-out;
+    }
+
+    @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(10px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Ефекти для карток */
+    .hover-card {
+        transition: transform 0.2s, border-color 0.2s;
+    }
+    .hover-card:hover {
+        border-color: #ffc107 !important;
+        transform: translateY(-2px);
+    }
+    
+    /* Стилізація посилань у списку */
+    .community-link {
+        transition: background-color 0.2s;
+    }
+    .community-link:hover {
+        background-color: #212529;
+    }
+</style>
+{% endblock %}
+
 {% block content %}
-<div class="row">
+<div class="row fade-in">
 
     <div class="col-md-3">
-        <div class="card bg-black border-secondary mb-3">
+        <div class="card bg-black border-secondary mb-4 shadow-sm">
             <div class="card-body">
-                <h5 class="text-light mb-3">
-                    <i class="bi bi-info-circle text-warning"></i> Про спільноту
-                </h5>
+                <div class="d-flex align-items-center mb-3">
+                    <div class="rounded-circle bg-dark border border-secondary d-flex align-items-center justify-content-center me-3" 
+                         style="width: 48px; height: 48px;">
+                        <span class="text-warning fw-bold fs-5">{{ category.name|first|upper }}</span>
+                    </div>
+                    <h5 class="text-light mb-0 fw-bold">Про спільноту</h5>
+                </div>
 
                 {% if category.description %}
-                <p class="text-light small mb-3">{{ category.description }}</p>
+                <p class="text-light small mb-3 opacity-75">{{ category.description }}</p>
                 {% else %}
-                <p class="text-muted small mb-3">Опис відсутній</p>
+                <p class="text-muted small mb-3 fst-italic">Опис відсутній</p>
                 {% endif %}
 
-                <div class="d-flex justify-content-between text-light small mb-2">
-                    <span><i class="bi bi-file-post text-warning"></i> Постів:</span>
-                    <strong>{{ post_count }}</strong>
+                <div class="d-flex justify-content-between text-light small mb-2 border-bottom border-secondary pb-2">
+                    <span><i class="bi bi-file-post text-warning"></i> Постів</span>
+                    <strong class="font-monospace">{{ post_count }}</strong>
                 </div>
 
-                <div class="d-flex justify-content-between text-light small mb-2">
-                    <span><i class="bi bi-people text-warning"></i> Підписників:</span>
-                    <strong id="category-followers-count">{{ followers_count }}</strong>
+                <div class="d-flex justify-content-between text-light small mb-2 border-bottom border-secondary pb-2">
+                    <span><i class="bi bi-people text-warning"></i> Підписників</span>
+                    <strong id="category-followers-count" class="font-monospace">{{ followers_count }}</strong>
                 </div>
                 
-                <div class="d-flex justify-content-between text-light small">
-                    <span><i class="bi bi-calendar text-warning"></i> Створено:</span>
+                <div class="d-flex justify-content-between text-light small mb-3">
+                    <span><i class="bi bi-calendar text-warning"></i> Створено</span>
                     <strong>{{ category.created_at|date:"d.m.Y" }}</strong>
                 </div>
 
-                <hr class="bg-secondary my-3">
-
                 {% if user.is_authenticated %}
                 <div class="d-grid gap-2">
-                    <a href="/posts/create/" class="btn btn-warning">
-                        <i class="bi bi-plus-circle"></i> Створити пост
+                    <a href="{% url 'core:post_create' %}?category={{ category.slug }}" class="btn btn-warning fw-bold rounded-pill">
+                        <i class="bi bi-plus-lg"></i> Створити пост
                     </a>
 
-                    <button
-                        class="btn {% if is_following %}btn-outline-light{% else %}btn-warning{% endif %} category-follow-btn"
+                    <button class="btn {% if is_following %}btn-outline-light{% else %}btn-outline-warning{% endif %} rounded-pill category-follow-btn"
                         data-slug="{{ category.slug }}">
                         <i class="bi {% if is_following %}bi-bell-slash{% else %}bi-bell{% endif %}"></i>
                         {% if is_following %} Відписатись {% else %} Слідкувати {% endif %}
@@ -50,81 +83,84 @@
                 </div>
                 {% else %}
                 <div class="d-grid gap-2">
-                    <a href="/login/" class="btn btn-warning">Увійти для публікації</a>
+                    <a href="/login/" class="btn btn-outline-warning rounded-pill">Увійти для публікації</a>
                 </div>
                 {% endif %}
             </div>
         </div>
 
-        <div class="card bg-black border-secondary mb-3">
-            <div class="card-body">
-                <h5 class="text-light mb-3">
-                    <i class="bi bi-collection text-warning"></i> Інші спільноти
-                </h5>
-
+        <div class="card bg-black border-secondary mb-4 shadow-sm">
+            <div class="card-header bg-dark border-secondary">
+                <h6 class="text-light mb-0"><i class="bi bi-collection text-warning me-2"></i> Інші спільноти</h6>
+            </div>
+            <div class="list-group list-group-flush bg-black">
                 {% for cat in categories %}
                     {% if cat.id != category.id %}
-                    <div
-                        class="d-flex justify-content-between align-items-center mb-2 pb-2 border-bottom border-secondary">
-                        <div>
-                            <a href="/categories/{{ cat.slug }}/" class="text-light text-decoration-none">
-                                <i class="bi bi-record-circle text-warning me-1"></i> /r/{{ cat.name }}
-                            </a>
-                        </div>
-                        <span class="badge bg-secondary">{{ cat.post_count }}</span>
-                    </div>
+                    <a href="{% url 'core:category_detail' cat.slug %}" 
+                       class="list-group-item list-group-item-action bg-black text-light border-secondary community-link d-flex justify-content-between align-items-center">
+                        <span>
+                            <i class="bi bi-record-circle text-warning me-2 small"></i>/r/{{ cat.name }}
+                        </span>
+                        <span class="badge bg-dark border border-secondary text-muted rounded-pill">{{ cat.post_count }}</span>
+                    </a>
                     {% endif %}
                 {% empty %}
-                <p class="text-muted small">Інших категорій немає</p>
+                    <div class="p-3 text-muted small text-center">Інших категорій немає</div>
                 {% endfor %}
-
-                <div class="text-center mt-3">
-                    <a href="/categories/" class="btn btn-outline-light btn-sm">
-                        <i class="bi bi-eye"></i> Переглянути всі
-                    </a>
-                </div>
+            </div>
+            <div class="card-footer bg-black border-secondary text-center">
+                <a href="{% url 'core:category_list' %}" class="btn btn-link text-decoration-none text-warning btn-sm">
+                    Переглянути всі <i class="bi bi-arrow-right"></i>
+                </a>
             </div>
         </div>
-    </div> <div class="col-md-6">
-        <div class="card bg-black border-secondary mb-4">
-            <div class="card-body">
-                <div class="d-flex justify-content-between align-items-center">
+    </div> 
+
+    <div class="col-md-6">
+        <div class="card bg-black border-secondary mb-4 shadow-sm">
+            <div class="card-body py-4">
+                <div class="d-flex align-items-center">
+                    <div class="rounded-circle bg-warning d-flex align-items-center justify-content-center me-4 shadow" style="width: 70px; height: 70px;">
+                        <span class="text-dark display-6 fw-bold">{{ category.name|first|upper }}</span>
+                    </div>
                     <div>
-                        <h1 class="text-light mb-1">
-                            <i class="bi bi-collection-fill text-warning"></i> /r/{{ category.name }}
-                        </h1>
+                        <h1 class="text-light mb-1 fw-bold">/r/{{ category.name }}</h1>
                         <p class="text-muted mb-0">
-                            <i class="bi bi-file-post"></i> {{ post_count }} постів у цій категорії
+                            Перегляд стрічки спільноти
                         </p>
                     </div>
                 </div>
             </div>
         </div>
 
-        {% for post in posts %}
-        {% include 'core/post-card.html' %}
-        {% empty %}
-        <div class="card bg-black border-secondary">
-            <div class="card-body text-center py-5">
-                <i class="bi bi-inbox display-4 text-muted mb-3"></i>
-                <h4 class="text-light">В цій категорії ще немає постів</h4>
-                <p class="text-muted">Будьте першим, хто опублікує пост у цій категорії!</p>
-                {% if user.is_authenticated %}
-                <a href="/posts/create/" class="btn btn-warning mt-2">
-                    <i class="bi bi-plus-circle"></i> Створити перший пост
-                </a>
-                {% endif %}
+        <div class="d-flex flex-column gap-3">
+            {% for post in posts %}
+                {% include 'core/post-card.html' %}
+            {% empty %}
+            <div class="card bg-black border-secondary shadow-sm">
+                <div class="card-body text-center py-5">
+                    <div class="mb-3">
+                        <i class="bi bi-inbox display-1 text-muted opacity-25"></i>
+                    </div>
+                    <h4 class="text-light">В цій категорії ще немає постів</h4>
+                    <p class="text-muted mb-4">Будьте першим, хто опублікує пост у цій категорії!</p>
+                    {% if user.is_authenticated %}
+                    <a href="{% url 'core:post_create' %}?category={{ category.slug }}" class="btn btn-warning rounded-pill px-4">
+                        <i class="bi bi-plus-lg"></i> Створити перший пост
+                    </a>
+                    {% endif %}
+                </div>
             </div>
+            {% endfor %}
         </div>
-        {% endfor %}
 
         {% if posts.paginator.num_pages > 1 %}
-        <nav aria-label="Page navigation">
+        <nav aria-label="Page navigation" class="mt-5">
             <ul class="pagination justify-content-center">
                 {% if posts.has_previous %}
                     <li class="page-item">
-                        <a class="page-link bg-black border-secondary text-light"
-                            href="?page={{ posts.previous_page_number }}">
+                        <a class="page-link bg-black border-secondary text-light rounded-start-pill ps-3"
+                           href="?page={{ posts.previous_page_number }}">
                             <i class="bi bi-chevron-left"></i> Попередня
                         </a>
                     </li>
@@ -133,20 +169,19 @@
                 {% for num in posts.paginator.page_range %}
                     {% if posts.number == num %}
                         <li class="page-item active">
-                            <a class="page-link bg-warning border-warning text-dark" href="#">{{ num }}</a>
+                            <span class="page-link bg-warning border-warning text-dark">{{ num }}</span>
                         </li>
                     {% else %}
                         <li class="page-item">
-                            <a class="page-link bg-black border-secondary text-light" href="?page={{ num }}">{{ num
-                                }}</a>
+                            <a class="page-link bg-black border-secondary text-light" href="?page={{ num }}">{{ num }}</a>
                         </li>
                     {% endif %}
                 {% endfor %}
 
                 {% if posts.has_next %}
                     <li class="page-item">
-                        <a class="page-link bg-black border-secondary text-light"
-                            href="?page={{ posts.next_page_number }}">
+                        <a class="page-link bg-black border-secondary text-light rounded-end-pill pe-3"
+                           href="?page={{ posts.next_page_number }}">
                             Наступна <i class="bi bi-chevron-right"></i>
                         </a>
                     </li>
@@ -154,26 +189,64 @@
             </ul>
         </nav>
         {% endif %}
-    </div> <div class="col-md-3">
-        <div class="card bg-black border-secondary">
-            <div class="card-body">
-                <h5 class="text-light mb-3">
-                    <i class="bi bi-graph-up text-warning"></i> Статистика
-                </h5>
+    </div> 
 
-                <div class="d-flex justify-content-between text-light small mb-2">
-                    <span>Активних користувачів:</span>
-                    <strong>{{ active_users|default:"0" }}</strong>
+    <div class="col-md-3">
+        <div class="sticky-top" style="top: 20px;">
+            
+            <div class="card bg-black border-secondary mb-4 shadow-sm">
+                <div class="card-header bg-dark border-secondary">
+                    <h6 class="text-light mb-0 fw-bold">
+                        <i class="bi bi-graph-up text-warning me-2"></i> Статистика
+                    </h6>
                 </div>
-                <div class="d-flex justify-content-between text-light small mb-2">
-                    <span>Постів за місяць:</span>
-                    <strong>{{ monthly_posts|default:"0" }}</strong>
-                </div>
-                <div class="d-flex justify-content-between text-light small">
-                    <span>Відвідувань:</span>
-                    <strong>{{ total_views|default:"0" }}</strong>
+                <div class="card-body">
+                    <div class="row g-2">
+                        <div class="col-6">
+                            <div class="p-2 bg-dark rounded border border-secondary text-center h-100">
+                                <h5 class="text-warning mb-0 fw-bold">{{ active_users|default:"0" }}</h5>
+                                <small class="text-muted" style="font-size: 0.75rem;">Онлайн</small>
+                            </div>
+                        </div>
+                        <div class="col-6">
+                            <div class="p-2 bg-dark rounded border border-secondary text-center h-100">
+                                <h5 class="text-light mb-0 fw-bold">{{ monthly_posts|default:"0" }}</h5>
+                                <small class="text-muted" style="font-size: 0.75rem;">Постів/міс</small>
+                            </div>
+                        </div>
+                        <div class="col-12">
+                             <div class="p-2 bg-dark rounded border border-secondary text-center mt-1">
+                                <small class="text-muted">Переглядів всього:</small>
+                                <span class="text-light fw-bold ms-1">{{ total_views|default:"0" }}</span>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
+
+            <div class="card bg-black border-secondary mb-4 shadow-sm">
+                <div class="card-header bg-dark border-secondary d-flex align-items-center justify-content-between py-2">
+                    <h6 class="text-light mb-0 fw-bold">
+                        <i class="bi bi-tags-fill text-warning me-2"></i> Популярні теги
+                    </h6>
+                </div>
+                <div class="card-body p-3">
+                    <div class="d-flex flex-wrap gap-2">
+                        {% for tag in popular_tags %}
+                        <a href="{% url 'core:tag_detail' tag.slug %}" class="btn btn-sm btn-dark border-secondary text-light rounded-pill hover-card">
+                            #{{ tag.name }} <span class="badge bg-secondary ms-1">{{ tag.post_count }}</span>
+                        </a>
+                        {% empty %}
+                        <div class="w-100 text-center text-muted py-2">
+                            <small>Популярних тегів ще немає</small>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+            
+            {% include 'core/_advertisement.html' %} 
         </div>
-    </div> </div>
+    </div> 
+</div>
 {% endblock %}

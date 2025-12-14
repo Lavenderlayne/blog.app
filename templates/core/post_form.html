@@ -1,43 +1,64 @@
 {% extends 'base.html' %}
+{% load static %}
 
 {% block title %}{% if form.instance.pk %}Редагування посту{% else %}Створення посту{% endif %}{% endblock %}
 
 {% block extra_css %}
     {{ block.super }} {{ form.media.css }} 
 <style>
-.form-check-input:checked {
+    /* --- Основні стилі форми --- */
+    .form-control, .form-select {
+        background-color: #212529;
+        border: 1px solid #444;
+        color: #e0e0e0;
+    }
+    .form-control:focus, .form-select:focus {
+        background-color: #2b3035;
+        border-color: #ffc107;
+        color: #fff;
+        box-shadow: 0 0 0 0.25rem rgba(255, 193, 7, 0.25);
+    }
+    .form-label {
+        font-weight: 500;
+        margin-bottom: 0.5rem;
+    }
+
+    /* --- Checkbox & Switch --- */
+    .form-check-input:checked {
         background-color: #ffc107;
         border-color: #ffc107;
     }
-
+    .form-switch .form-check-input {
+        width: 3em; 
+        height: 1.5em;
+        margin-right: 0.5em;
+        cursor: pointer;
+    }
+    
+    /* --- CKEditor Dark Mode Overrides (Ваші стилі) --- */
     .ck-editor__editable {
-        min-height: 750px !important;
+        min-height: 600px !important;
         background-color: #212529 !important;
         color: #e0e0e0 !important;
         border: 1px solid #444 !important;
     }
-
     .ck.ck-toolbar {
         background-color: #1c1f23 !important;
         border-color: #444 !important;
     }
-
     .ck.ck-dropdown__panel, .ck.ck-list {
         background-color: #212529 !important;
         border-color: #444 !important;
     }
-
     .ck.ck-button, .ck.ck-dropdown__button {
         color: #e0e0e0 !important;
         background: transparent !important;
         cursor: pointer !important;
     }
-
     .ck.ck-icon, .ck.ck-icon * {
         fill: currentColor !important;
         color: inherit !important;
     }
-
     .ck.ck-button:hover, 
     .ck.ck-button.ck-on, 
     .ck.ck-button.ck-on:hover,
@@ -45,208 +66,248 @@
         background-color: #333 !important;
         color: #ffc107 !important;
     }
-
     .ck.ck-list__item .ck-button:hover,
     .ck.ck-list__item .ck-button.ck-on {
         background-color: #333 !important;
         color: #ffc107 !important;
     }
+    .ck.ck-content { caret-color: #e0e0e0; }
+    .ck.ck-powered-by { display: none !important; }
 
-    .ck.ck-content {
-        caret-color: #e0e0e0;
+    /* --- Image Upload Zone --- */
+    .image-upload-container {
+        position: relative;
+        border: 2px dashed #444;
+        border-radius: 10px;
+        background-color: #1c1f23;
+        transition: all 0.3s ease;
+        overflow: hidden;
+        min-height: 200px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        text-align: center;
+        cursor: pointer;
+    }
+    .image-upload-container:hover, .image-upload-container.dragover {
+        border-color: #ffc107;
+        background-color: #25282c;
+    }
+    .image-upload-container input[type="file"] {
+        position: absolute;
+        width: 100%;
+        height: 100%;
+        opacity: 0;
+        cursor: pointer;
+        z-index: 2;
+    }
+    .upload-placeholder {
+        padding: 20px;
+        color: #6c757d;
+        pointer-events: none;
+    }
+    .image-preview {
+        max-width: 100%;
+        max-height: 300px;
+        display: none; /* JS will toggle this */
+        z-index: 1;
+        object-fit: contain;
+    }
+    .remove-image-btn {
+        position: absolute;
+        top: 10px;
+        right: 10px;
+        z-index: 3;
+        display: none;
     }
 
-    .ck.ck-powered-by {
-        display: none !important;
+    /* --- Tag Badges --- */
+    .tag-badge {
+        font-size: 0.85em;
+        background-color: #333;
+        border: 1px solid #555;
+        color: #ffc107;
+        padding: 5px 10px;
+        border-radius: 20px;
+        margin-right: 5px;
+        margin-bottom: 5px;
+        display: inline-block;
     }
 </style>
 {% endblock %}
+
 {% block content %}
-<form method="post" enctype="multipart/form-data">
+<form method="post" enctype="multipart/form-data" class="needs-validation" novalidate id="postForm">
     {% csrf_token %}
     <div class="row g-4">
 
         <div class="col-lg-8">
             
-            <div class="card bg-black border-secondary mb-4">
+            <div class="card bg-black border-secondary mb-4 shadow-sm">
                 <div class="card-body">
-                    <label for="{{ form.title.id_for_label }}" class="form-label text-light fs-5">Заголовок</label>
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <label for="{{ form.title.id_for_label }}" class="form-label text-light fs-5 mb-0">Заголовок</label>
+                        <small class="text-muted"><span id="titleCharCount">0</span>/200</small>
+                    </div>
                     {{ form.title }}
                     {% if form.title.errors %}
-                        <div class="text-warning small mt-1">{{ form.title.errors }}</div>
+                        <div class="text-danger small mt-1">{{ form.title.errors }}</div>
                     {% endif %}
                 </div>
             </div>
 
-            <div class="card bg-black border-secondary mb-4">
-                <div class="card-header bg-dark border-secondary">
+            <div class="card bg-black border-secondary mb-4 shadow-sm">
+                <div class="card-header bg-dark border-secondary d-flex justify-content-between align-items-center">
                     <h6 class="mb-0 text-light">
-                        <i class="bi bi-file-text text-warning"></i> Зміст
+                        <i class="bi bi-file-text text-warning me-2"></i> Зміст
                     </h6>
                 </div>
-                <div class="card-body">
+                <div class="card-body p-0">
                     {{ form.content }} 
                     {% if form.content.errors %}
-                        <div class="text-warning small mt-1">{{ form.content.errors }}</div>
+                        <div class="p-3 text-danger small border-top border-secondary">{{ form.content.errors }}</div>
                     {% endif %}
                 </div>
             </div>
-
-<!--             <div class="card bg-black border-secondary mb-4">
-                <div class="card-header bg-dark border-secondary">
-                    <h6 class="mb-0 text-light">
-                        <i class="bi bi-justify-left text-warning"></i> Короткий опис (Ексцерпт)
-                    </h6>
-                </div>
-                <div class="card-body">
-                    {{ form.excerpt }}
-                    <div class="form-text text-body-secondary">Короткий опис, який буде відображатися в списку постів</div>
-                    {% if form.excerpt.errors %}
-                        <div class="text-warning small mt-1">{{ form.excerpt.errors }}</div>
-                    {% endif %}
-                </div>
-            </div> -->
-            
-<!--             <div class="card bg-black border-secondary mb-4">
-                <div class="card-header bg-dark border-secondary">
-                    <h6 class="mb-0 text-light">
-                        <i class="bi bi-search text-warning"></i> SEO налаштування
-                    </h6>
-                </div>
-                <div class="card-body">
-                    <div class="mb-3">
-                        <label for="{{ form.meta_title.id_for_label }}" class="form-label text-light">Мета-заголовок</label>
-                        {{ form.meta_title }}
-                        <div class="form-text text-body-secondary">Заголовок для пошукових систем</div>
-                    </div>
-                    <div>
-                        <label for="{{ form.meta_description.id_for_label }}" class="form-label text-light">Мета-опис</label>
-                        {{ form.meta_description }}
-                        <div class="form-text text-body-secondary">Опис для пошукових систем</div>
-                    </div>
-                </div>
-            </div> -->
 
         </div>
 
         <div class="col-lg-4">
             <div style="position: sticky; top: 1.5rem;">
                 
-                <div class="card bg-black border-secondary mb-4">
+                <div class="card bg-black border-secondary mb-4 shadow-sm">
                     <div class="card-header bg-dark border-secondary">
                         <h5 class="mb-0 text-light">
-                            <i class="bi bi-send text-warning"></i> Публікація
+                            <i class="bi bi-send text-warning me-2"></i> Публікація
                         </h5>
                     </div>
                     <div class="card-body">
                         <div class="mb-3">
-                            <label for="{{ form.status.id_for_label }}" class="form-label text-light">Статус</label>
+                            <label for="{{ form.status.id_for_label }}" class="form-label text-light small text-uppercase fw-bold">Статус</label>
                             {{ form.status }}
                             {% if form.status.errors %}
-                                <div class="text-warning small mt-1">{{ form.status.errors }}</div>
+                                <div class="text-danger small mt-1">{{ form.status.errors }}</div>
                             {% endif %}
                         </div>
                         <div class="d-grid gap-2">
-                            <button type="submit" class="btn btn-warning btn-lg">
-                                <i class="bi bi-check"></i>
+                            <button type="submit" class="btn btn-warning fw-bold">
+                                <i class="bi bi-check-lg"></i>
                                 {% if form.instance.pk %}Оновити пост{% else %}Опублікувати{% endif %}
                             </button>
-                            <button type="submit" name="status" value="draft" class="btn btn-outline-light">
+                            <button type="submit" name="status" value="draft" class="btn btn-outline-secondary text-light">
                                 <i class="bi bi-save"></i> Зберегти чернетку
                             </button>
                         </div>
                     </div>
                     <div class="card-footer bg-dark border-secondary text-center">
-                        <a href="{% if form.instance.pk %}{% url 'core:post_detail' form.instance.slug %}{% else %}{% url 'core:post_list' %}{% endif %}" class="btn btn-sm btn-outline-secondary">
-                            <i class="bi bi-x"></i> Скасувати
+                        <a href="{% if form.instance.pk %}{% url 'core:post_detail' form.instance.slug %}{% else %}{% url 'core:post_list' %}{% endif %}" class="btn btn-sm text-muted text-decoration-none">
+                            Скасувати
                         </a>
                     </div>
                 </div>
 
-                <div class="card bg-black border-secondary mb-4">
+                <div class="card bg-black border-secondary mb-4 shadow-sm">
                     <div class="card-header bg-dark border-secondary">
-                        <h6 class="mb-0 text-light"><i class="bi bi-folder2 text-warning"></i> Організація</h6>
+                        <h6 class="mb-0 text-light"><i class="bi bi-folder2 text-warning me-2"></i> Організація</h6>
                     </div>
                     <div class="card-body">
                         <div class="mb-3">
-                            <label for="{{ form.category.id_for_label }}" class="form-label text-light">Спільнота *</label>
+                            <label for="{{ form.category.id_for_label }}" class="form-label text-light small">Спільнота <span class="text-danger">*</span></label>
                             {{ form.category }}
                             {% if form.category.errors %}
-                                <div class="text-warning small mt-1">{{ form.category.errors }}</div>
+                                <div class="text-danger small mt-1">{{ form.category.errors }}</div>
                             {% endif %}
                         </div>
+                        
                         <div class="mb-3">
-                            <label for="{{ form.post_type.id_for_label }}" class="form-label text-light">Тип посту</label>
+                            <label for="{{ form.post_type.id_for_label }}" class="form-label text-light small">Тип посту</label>
                             {{ form.post_type }}
-                            {% if form.post_type.errors %}
-                                <div class="text-warning small mt-1">{{ form.post_type.errors }}</div>
-                            {% endif %}
                         </div>
-                        <div>
-                            <label for="{{ form.tags.id_for_label }}" class="form-label text-light">{{ form.tags.label }}</label>
+
+                        <div class="mb-1">
+                            <label for="{{ form.tags.id_for_label }}" class="form-label text-light small">{{ form.tags.label }}</label>
                             {{ form.tags }}
-                            <div class="form-text text-body-secondary">Введіть теги через кому. Нові теги будуть створені автоматично.</div>
-                            {% if form.tags.errors %}
-                                <div class="text-warning small mt-1">{{ form.tags.errors }}</div>
-                            {% endif %}
-                        </div>
-                        </div>
-                </div>
-
-                <div class="card bg-black border-secondary mb-4">
-                    <div class="card-header bg-dark border-secondary">
-                        <h6 class="mb-0 text-light"><i class="bi bi-image text-warning"></i> Медіа</h6>
-                    </div>
-                    <div class="card-body">
-                        <div class="mb-3">
-<!--                             <label for="id_featured_image" class="form-label text-light">Головне зображення</label>
-                            {% if form.instance.featured_image %}
-                                <img src="{{ form.instance.featured_image.url }}" alt="Поточне зображення" class="img-fluid rounded mb-2">
-                                <div class="form-check">
-                                    <input class="form-check-input" type="checkbox" name="featured_image-clear" id="featured_image-clear">
-                                    <label class="form-check-label text-light" for="featured_image-clear">
-                                        Видалити поточне зображення
-                                    </label>
+                            <div class="mt-2" id="tagsPreviewContainer">
                                 </div>
-                            {% endif %}
-                            <input type="file" name="featured_image" class="form-control bg-dark border-secondary text-light mt-2" accept="image/*" id="id_featured_image">
-                            {% if form.featured_image.errors %}
-                                <div class="text-warning small mt-1">{{ form.featured_image.errors }}</div>
-                            {% endif %} -->
-<!--                         </div>
-                        <hr class="border-secondary"> -->
-                        <div>
-                            <label for="{{ form.video_url.id_for_label }}" class="form-label text-light">Посилання на відео (YouTube)</label>
-                            {{ form.video_url }}
-                            {% if form.video_url.errors %}
-                                <div class="text-warning small mt-1">{{ form.video_url.errors }}</div>
+                            <div class="form-text text-muted small mt-2">Введіть теги через кому.</div>
+                            {% if form.tags.errors %}
+                                <div class="text-danger small mt-1">{{ form.tags.errors }}</div>
                             {% endif %}
                         </div>
                     </div>
                 </div>
-            </div>
 
-                <div class="card bg-black border-secondary mb-4">
+                <!-- <div class="card bg-black border-secondary mb-4 shadow-sm">
                     <div class="card-header bg-dark border-secondary">
-                        <h6 class="mb-0 text-light"><i class="bi bi-gear text-warning"></i> Додаткові налаштування</h6>
+                        <h6 class="mb-0 text-light"><i class="bi bi-image text-warning me-2"></i> Медіа</h6>
                     </div>
                     <div class="card-body">
-                        <div class="form-check form-switch mb-2">
+                        
+                        <div class="mb-4">
+                            <label class="form-label text-light small">Головне зображення</label>
+                            
+                            <div class="image-upload-container" id="dropZone">
+                                <button type="button" class="btn btn-sm btn-danger remove-image-btn rounded-circle" id="removeImageBtn" title="Видалити зображення">
+                                    <i class="bi bi-x"></i>
+                                </button>
+                                
+                                {{ form.featured_image }}
+                                
+                                <div class="d-none">
+                                    <input type="checkbox" name="featured_image-clear" id="featured_image-clear">
+                                </div>
+
+                                <div class="upload-placeholder" id="uploadPlaceholder">
+                                    <i class="bi bi-cloud-arrow-up display-4 text-warning mb-2"></i>
+                                    <p class="mb-0 small">Натисніть або перетягніть фото сюди</p>
+                                </div>
+                                
+                                <img src="{% if form.instance.featured_image %}{{ form.instance.featured_image.url }}{% endif %}" 
+                                     alt="Preview" 
+                                     class="image-preview" 
+                                     id="imagePreview"
+                                     {% if form.instance.featured_image %}style="display: block;"{% endif %}>
+                            </div>
+                            
+                            {% if form.featured_image.errors %}
+                                <div class="text-danger small mt-1">{{ form.featured_image.errors }}</div>
+                            {% endif %}
+                        </div>
+
+                        <div class="mb-0">
+                            <label for="{{ form.video_url.id_for_label }}" class="form-label text-light small">YouTube Відео</label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-dark border-secondary text-secondary"><i class="bi bi-youtube"></i></span>
+                                {{ form.video_url }}
+                            </div>
+                             {% if form.video_url.errors %}
+                                <div class="text-danger small mt-1">{{ form.video_url.errors }}</div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div> -->
+
+                <div class="card bg-black border-secondary mb-4 shadow-sm">
+                    <div class="card-header bg-dark border-secondary">
+                        <h6 class="mb-0 text-light"><i class="bi bi-sliders text-warning me-2"></i> Налаштування</h6>
+                    </div>
+                    <div class="card-body">
+                        <div class="form-check form-switch mb-3 custom-switch">
                             {{ form.is_featured }}
-                            <label class="form-check-label text-light" for="{{ form.is_featured.id_for_label }}">
-                                <i class="bi bi-star"></i> Обраний пост
+                            <label class="form-check-label text-light pt-1" for="{{ form.is_featured.id_for_label }}">
+                                Обраний пост
                             </label>
                         </div>
-                        <div class="form-check form-switch mb-2">
+                        <div class="form-check form-switch mb-3 custom-switch">
                             {{ form.is_pinned }}
-                            <label class="form-check-label text-light" for="{{ form.is_pinned.id_for_label }}">
-                                <i class="bi bi-pin-angle"></i> Закріплений
+                            <label class="form-check-label text-light pt-1" for="{{ form.is_pinned.id_for_label }}">
+                                Закріплений
                             </label>
                         </div>
-                        <div class="form-check form-switch">
+                        <div class="form-check form-switch custom-switch">
                             {{ form.allow_comments }}
-                            <label class="form-check-label text-light" for="{{ form.allow_comments.id_for_label }}">
-                                <i class="bi bi-chat"></i> Дозволити коментарі
+                            <label class="form-check-label text-light pt-1" for="{{ form.allow_comments.id_for_label }}">
+                                Дозволити коментарі
                             </label>
                         </div>
                     </div>
@@ -254,33 +315,142 @@
 
             </div>
         </div>
-
     </div>
 </form>
 {% endblock %}
 
 
 {% block extra_js %}
-    {{ block.super }} {{ form.media.js }} <script>
+    {{ block.super }} {{ form.media.js }} 
+    <script>
     document.addEventListener('DOMContentLoaded', function() {
-        // Автоматичне заповнення мета-полів
-        const titleField = document.querySelector('[name="title"]');
-        const excerptField = document.querySelector('[name="excerpt"]');
-        const metaTitleField = document.querySelector('[name="meta_title"]');
-        const metaDescriptionField = document.querySelector('[name="meta_description"]');
         
-        function updateMetaFields() {
-            if (!metaTitleField.value) {
-                metaTitleField.value = titleField.value;
-            }
-            if (!metaDescriptionField.value && excerptField.value) {
-                metaDescriptionField.value = excerptField.value.substring(0, 300);
-            }
+        // --- 1. Візуалізація тегів (Real-time chips) ---
+        const tagsInput = document.querySelector('[name="tags"]');
+        const tagsContainer = document.getElementById('tagsPreviewContainer');
+
+        function renderTags() {
+            if (!tagsInput || !tagsContainer) return;
+            tagsContainer.innerHTML = '';
+            const tags = tagsInput.value.split(',').map(t => t.trim()).filter(t => t);
+            
+            tags.forEach(tag => {
+                const badge = document.createElement('span');
+                badge.className = 'tag-badge';
+                badge.innerText = '#' + tag;
+                tagsContainer.appendChild(badge);
+            });
         }
         
-        if (titleField) titleField.addEventListener('blur', updateMetaFields);
-        if (excerptField) excerptField.addEventListener('blur', updateMetaFields);
+        if (tagsInput) {
+            tagsInput.addEventListener('input', renderTags);
+            // Ініціалізація при завантаженні (якщо це редагування)
+            renderTags();
+        }
+
+
+        // --- 2. Лічильник символів для заголовка ---
+        const titleInput = document.querySelector('[name="title"]');
+        const titleCount = document.getElementById('titleCharCount');
+        
+        if (titleInput && titleCount) {
+            const updateCount = () => {
+                titleCount.innerText = titleInput.value.length;
+                if(titleInput.value.length > 200) titleCount.classList.add('text-danger');
+                else titleCount.classList.remove('text-danger');
+            };
+            titleInput.addEventListener('input', updateCount);
+            updateCount();
+        }
+
+
+        // --- 3. Image Drag & Drop + Preview ---
+        const dropZone = document.getElementById('dropZone');
+        const fileInput = document.querySelector('input[name="featured_image"]'); // ID може змінюватись, тому беремо по name
+        const previewImg = document.getElementById('imagePreview');
+        const placeholder = document.getElementById('uploadPlaceholder');
+        const removeBtn = document.getElementById('removeImageBtn');
+        const clearCheckbox = document.getElementById('featured_image-clear');
+
+        function showPreview(src) {
+            previewImg.src = src;
+            previewImg.style.display = 'block';
+            placeholder.style.display = 'none';
+            removeBtn.style.display = 'block';
+        }
+
+        function resetPreview() {
+            previewImg.src = '';
+            previewImg.style.display = 'none';
+            placeholder.style.display = 'block';
+            removeBtn.style.display = 'none';
+            fileInput.value = ''; // Очистити інпут
+            if(clearCheckbox) clearCheckbox.checked = true; // Позначити для видалення Django
+        }
+
+        // Початковий стан (якщо редагуємо і є фото)
+        if (previewImg && previewImg.getAttribute('src') && previewImg.getAttribute('src') !== '') {
+            placeholder.style.display = 'none';
+            removeBtn.style.display = 'block';
+        }
+
+        // Обробка вибору файлу
+        if (fileInput) {
+            // Маскуємо стандартний інпут під наш контейнер
+            fileInput.style.opacity = '0';
+            fileInput.style.position = 'absolute';
+            fileInput.style.width = '100%';
+            fileInput.style.height = '100%';
+            fileInput.style.cursor = 'pointer';
+
+            fileInput.addEventListener('change', function(e) {
+                const file = e.target.files[0];
+                if (file) {
+                    const reader = new FileReader();
+                    reader.onload = function(e) {
+                        showPreview(e.target.result);
+                        if(clearCheckbox) clearCheckbox.checked = false;
+                    }
+                    reader.readAsDataURL(file);
+                }
+            });
+        }
+
+        // Кнопка видалення
+        if (removeBtn) {
+            removeBtn.addEventListener('click', function(e) {
+                e.preventDefault();
+                e.stopPropagation(); // Щоб не відкривався діалог вибору файлу
+                resetPreview();
+            });
+        }
+
+        // Drag & Drop ефекти
+        if (dropZone) {
+            ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+                dropZone.addEventListener(eventName, preventDefaults, false);
+            });
+            function preventDefaults(e) { e.preventDefault(); e.stopPropagation(); }
+
+            ['dragenter', 'dragover'].forEach(eventName => {
+                dropZone.addEventListener(eventName, () => dropZone.classList.add('dragover'), false);
+            });
+            ['dragleave', 'drop'].forEach(eventName => {
+                dropZone.addEventListener(eventName, () => dropZone.classList.remove('dragover'), false);
+            });
+
+            dropZone.addEventListener('drop', handleDrop, false);
+            function handleDrop(e) {
+                const dt = e.dataTransfer;
+                const files = dt.files;
+                if (files.length > 0 && fileInput) {
+                    fileInput.files = files; // Присвоюємо файл інпуту
+                    // Тріггеримо подію change вручну
+                    const event = new Event('change');
+                    fileInput.dispatchEvent(event);
+                }
+            }
+        }
     });
     </script>
-
-    {% endblock %}
+{% endblock %}

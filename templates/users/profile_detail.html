@@ -1,113 +1,111 @@
 {% extends 'base.html' %}
-{% load static %}  {% block title %}Профіль {{ profile_user.username }}{% endblock %}
+{% load static %}
+
+{% block title %}Профіль {{ profile_user.username }}{% endblock %}
 
 {% block content %}
 <div class="row g-4">
 
     <div class="col-md-3">
-        <div class="card bg-black border-secondary mb-4">
-            <div class="card-body text-center">
+        
+        <div class="card bg-black border-secondary mb-4 shadow-sm">
+            <div class="card-body text-center p-4">
                 {% if profile_user.profile.avatar %}
                     <img src="{{ profile_user.profile.avatar.url }}" alt="Аватар"
-                            class="rounded-circle mb-3" width="150" height="150" style="object-fit: cover;">
+                         class="rounded-circle mb-3 border border-secondary" width="140" height="140" style="object-fit: cover;">
                 {% else %}
-                    <div class="bg-secondary rounded-circle d-inline-flex align-items-center justify-content-center mb-3"
-                            style="width: 150px; height: 150px;">
-                        <i class="bi bi-person-fill text-light" style="font-size: 60px;"></i>
+                    <div class="bg-dark border border-secondary rounded-circle d-inline-flex align-items-center justify-content-center mb-3"
+                         style="width: 140px; height: 140px;">
+                        <span class="text-warning display-1 fw-bold">{{ profile_user.username|first|upper }}</span>
                     </div>
                 {% endif %}
 
-                <h4 class="text-light mb-1">{{ profile_user.get_full_name|default:profile_user.username }}</h4>
-                <p class="text-muted">@{{ profile_user.username }}</p>
+                <h4 class="text-light mb-1 fw-bold">{{ profile_user.get_full_name|default:profile_user.username }}</h4>
+                <p class="text-secondary small mb-2">@{{ profile_user.username }}</p>
 
-                <div class="badge bg-{% if profile_user.role == 'admin' %}danger{% elif profile_user.role == 'moderator' %}warning text-dark{% else %}primary{% endif %}">
+                <div class="badge rounded-pill bg-{% if profile_user.role == 'admin' %}danger{% elif profile_user.role == 'moderator' %}warning text-dark{% else %}secondary{% endif %} mb-3 px-3">
                     <i class="bi bi-{% if profile_user.role == 'admin' %}shield-lock{% elif profile_user.role == 'moderator' %}shield-check{% else %}person{% endif %} me-1"></i>
                     {{ profile_user.get_role_display }}
                 </div>
 
-                <p class="text-light small mt-3 mb-3">{{ profile_user.profile.bio|default:"Біографія відсутня" }}</p>
-
-                {% if user == profile_user %}
-                    <a href="{% url 'users:profile_update' %}" class="btn btn-outline-light btn-sm mt-2">
-                        <i class="bi bi-gear"></i> Налаштування профілю
-                    </a>
-                {% else %}
-                    <button class="btn {% if is_following %}btn-outline-light{% else %}btn-warning{% endif %} mt-2 profile-follow-btn"
-                            data-username="{{ profile_user.username }}">
-                        {% if is_following %}
-                            <i class="bi bi-person-check-fill"></i> Відписатись
-                        {% else %}
-                            <i class="bi bi-person-plus"></i> Слідкувати
-                        {% endif %}
-                    </button>
+                {% if profile_user.profile.bio %}
+                    <p class="text-light small fst-italic text-break px-2">{{ profile_user.profile.bio }}</p>
                 {% endif %}
+
+                <div class="d-grid gap-2 mt-4">
+                    {% if user == profile_user %}
+                        <a href="{% url 'users:profile_update' %}" class="btn btn-outline-secondary btn-sm">
+                            <i class="bi bi-gear-fill"></i> Налаштування
+                        </a>
+                    {% else %}
+                        <button class="btn {% if is_following %}btn-outline-light{% else %}btn-warning{% endif %} btn-sm profile-follow-btn"
+                                data-username="{{ profile_user.username }}">
+                            {% if is_following %}
+                                <i class="bi bi-person-check-fill"></i> Відписатись
+                            {% else %}
+                                <i class="bi bi-person-plus-fill"></i> Слідкувати
+                            {% endif %}
+                        </button>
+                    {% endif %}
+                </div>
             </div>
         </div>
 
         <div class="card bg-black border-secondary mb-4">
-            <div class="card-body">
-                <div class="row text-center">
-                    <div class="col-4">
-                        <h5 class="text-light mb-0">{{ post_count }}</h5>
-                        <small class="text-muted">Постів</small>
+            <div class="card-body py-2">
+                <div class="row text-center divide-x">
+                    <div class="col-4 border-end border-secondary">
+                        <div class="h5 text-light mb-0">{{ post_count }}</div>
+                        <small class="text-muted" style="font-size: 0.7rem;">Постів</small>
+                    </div>
+                    <div class="col-4 border-end border-secondary">
+                        <div class="h5 text-light mb-0" id="followers-count">{{ followers_count }}</div>
+                        <small class="text-muted" style="font-size: 0.7rem;">Підписників</small>
                     </div>
                     <div class="col-4">
-                        <h5 class="text-light mb-0" id="followers-count">{{ followers_count }}</h5>
-                        <small class="text-muted">Підписників</small>
-                    </div>
-                    <div class="col-4">
-                        <h5 class="text-light mb-0">{{ following_count }}</h5>
-                        <small class="text-muted">Слідкує</small>
+                        <div class="h5 text-light mb-0">{{ following_count }}</div>
+                        <small class="text-muted" style="font-size: 0.7rem;">Читає</small>
                     </div>
                 </div>
             </div>
         </div>
 
-        <div class="card bg-black border-secondary">
+        <div class="card bg-black border-secondary mb-4">
             <div class="card-header bg-dark border-secondary">
-                <h6 class="mb-0 text-warning"><i class="bi bi-info-circle"></i> Інформація</h6>
+                <h6 class="mb-0 text-warning"><i class="bi bi-info-circle me-2"></i>Про себе</h6>
             </div>
             <div class="card-body text-light small">
-                <p><i class="bi bi-calendar-event text-warning me-2"></i> Приєднався: {{ profile_user.date_joined|date:"d.m.Y" }}</p>
+                <div class="mb-2">
+                    <i class="bi bi-calendar3 text-secondary me-2"></i> 
+                    Реєстрація: {{ profile_user.date_joined|date:"d.m.Y" }}
+                </div>
 
                 {% if profile_user.profile.location %}
-                    <p><i class="bi bi-geo-alt text-warning me-2"></i> {{ profile_user.profile.location }}</p>
+                    <div class="mb-2">
+                        <i class="bi bi-geo-alt text-secondary me-2"></i> {{ profile_user.profile.location }}
+                    </div>
                 {% endif %}
 
                 {% if profile_user.profile.website %}
-                    <p><i class="bi bi-globe text-warning me-2"></i>
-                        <a href="{{ profile_user.profile.website }}" target="_blank" class="text-light text-decoration-none">Вебсайт</a>
-                    </p>
+                    <div class="mb-2 text-truncate">
+                        <i class="bi bi-link-45deg text-secondary me-2"></i>
+                        <a href="{{ profile_user.profile.website }}" target="_blank" class="text-warning text-decoration-none">Вебсайт</a>
+                    </div>
                 {% endif %}
-
-                {% if profile_user.profile.social_x %}
-                    <p><i class="bi bi-twitter text-warning me-2"></i>
-                        {% if 'https://' in profile_user.profile.social_x %}
-                            <a href="{{ profile_user.profile.social_x }}" target="_blank" class="text-light text-decoration-none">X (Twitter)</a>
-                        {% else %}
-                            <a href="https://x.com/{{ profile_user.profile.social_x|cut:'@' }}" target="_blank" class="text-light text-decoration-none">X (Twitter)</a>
-                        {% endif %}
-                    </p>
-                {% endif %}
-
-                {% if profile_user.profile.social_telegram %}
-                    <p><i class="bi bi-telegram text-warning me-2"></i>
-                        {% if 'https://' in profile_user.profile.social_telegram %}
-                            <a href="{{ profile_user.profile.social_telegram }}" target="_blank" class="text-light text-decoration-none">Telegram</a>
-                        {% else %}
-                            <a href="https://t.me/{{ profile_user.profile.social_telegram|cut:'@' }}" target="_blank" class="text-light text-decoration-none">Telegram</a>
-                        {% endif %}
-                    </p>
-                {% endif %}
-
-                {% if profile_user.profile.social_discord %}
-                    <p><i class="bi bi-discord text-warning me-2"></i>
-                        {% if 'https://' in profile_user.profile.social_discord %}
-                            <a href="{{ profile_user.profile.social_discord }}" target="_blank" class="text-light text-decoration-none">Discord</a>
-                        {% else %}
-                            <a href="https://discord.com/users/{{ profile_user.profile.social_discord|cut:'@' }}" target="_blank" class="text-light text-decoration-none">Discord</a>
-                        {% endif %}
-                    </p>
+                
+                {% if profile_user.profile.social_x or profile_user.profile.social_telegram or profile_user.profile.social_discord %}
+                <hr class="border-secondary my-2">
+                <div class="d-flex gap-3 justify-content-center mt-2">
+                    {% if profile_user.profile.social_x %}
+                        <a href="{{ profile_user.profile.social_x }}" target="_blank" class="text-secondary hover-text-white" title="X (Twitter)"><i class="bi bi-twitter-x fs-5"></i></a>
+                    {% endif %}
+                    {% if profile_user.profile.social_telegram %}
+                        <a href="{{ profile_user.profile.social_telegram }}" target="_blank" class="text-secondary hover-text-white" title="Telegram"><i class="bi bi-telegram fs-5"></i></a>
+                    {% endif %}
+                    {% if profile_user.profile.social_discord %}
+                        <a href="{{ profile_user.profile.social_discord }}" target="_blank" class="text-secondary hover-text-white" title="Discord"><i class="bi bi-discord fs-5"></i></a>
+                    {% endif %}
+                </div>
                 {% endif %}
             </div>
         </div>
@@ -115,380 +113,296 @@
 
     <div class="col-md-6">
         <div class="card bg-black border-secondary">
-            <div class="card-header bg-dark border-secondary">
-                <ul class="nav nav-tabs card-header-tabs" id="profileTabs" role="tablist">
+            <div class="card-header bg-dark border-secondary p-0">
+                <ul class="nav nav-tabs nav-fill card-header-tabs m-0 border-0" id="profileTabs" role="tablist">
                     <li class="nav-item">
-                        <button class="nav-link active text-light bg-black border-secondary" data-bs-toggle="tab" data-bs-target="#posts" type="button">
-                            <i class="bi bi-card-text"></i> Пости ({{ post_count }})
+                        <button class="nav-link active rounded-0 text-light py-3 border-0 border-bottom border-secondary border-opacity-25" id="posts-tab" data-bs-toggle="tab" data-bs-target="#posts" type="button">
+                            <i class="bi bi-grid-3x3 me-1"></i> Пости
                         </button>
                     </li>
                     <li class="nav-item">
-                        <button class="nav-link text-light bg-black border-secondary" data-bs-toggle="tab" data-bs-target="#comments" type="button">
-                            <i class="bi bi-chat-dots"></i> Коментарі ({{ comment_count }})
+                        <button class="nav-link rounded-0 text-light py-3 border-0 border-bottom border-secondary border-opacity-25" id="comments-tab" data-bs-toggle="tab" data-bs-target="#comments" type="button">
+                            <i class="bi bi-chat-square-text me-1"></i> Коментарі
                         </button>
                     </li>
-                    
                     {% if user == profile_user %}
                     <li class="nav-item">
-                        <button class="nav-link text-light bg-black border-secondary" data-bs-toggle="tab" data-bs-target="#bookmarks" type="button">
-                            <i class="bi bi-bookmark"></i> Закладки
+                        <button class="nav-link rounded-0 text-light py-3 border-0 border-bottom border-secondary border-opacity-25" id="bookmarks-tab" data-bs-toggle="tab" data-bs-target="#bookmarks" type="button">
+                            <i class="bi bi-bookmark me-1"></i> Збережене
                         </button>
                     </li>
-                    
                     <li class="nav-item">
-                        <button class="nav-link text-light bg-black border-secondary" data-bs-toggle="tab" data-bs-target="#drafts" type="button">
-                            <i class="bi bi-file-earmark-text"></i> Чернетки
+                        <button class="nav-link rounded-0 text-light py-3 border-0 border-bottom border-secondary border-opacity-25" id="drafts-tab" data-bs-toggle="tab" data-bs-target="#drafts" type="button">
+                            <i class="bi bi-pencil-square me-1"></i> Чернетки
                         </button>
                     </li>
                     {% endif %}
                 </ul>
             </div>
 
-            <div class="card-body">
+            <div class="card-body p-0">
                 <div class="tab-content" id="profileTabsContent">
 
-                    <div class="tab-pane fade show active" id="posts">
+                    <div class="tab-pane fade show active" id="posts" role="tabpanel">
                         {% for post in user_posts %}
-                        {% if post.slug %} <div class="d-flex mb-3 pb-3 border-bottom border-secondary">
-                            <div class="d-flex flex-column align-items-center me-3">
-                                <i class="bi bi-arrow-up text-success"></i>
-                                <span class="text-light fw-bold">{{ post.vote_score|default:0 }}</span>
-                                <i class="bi bi-arrow-down text-danger"></i>
-                            </div>
-                            <div class="flex-grow-1">
-                                <a href="{% url 'core:post_detail' post.slug %}" class="text-light h6 text-decoration-none d-block mb-1">{{ post.title }}</a>
-                                <small class="text-body-secondary">
-                                    в <a href="{% url 'core:category_detail' post.category.slug %}" class="text-warning text-decoration-none">/r/{{ post.category.name }}</a>
-                                    • {{ post.created_at|date:"d.m.Y H:i" }}
-                                </small>
-                            </div>
-                        </div>
-                        {% endif %}
+                            {% include 'includes/profile_post_card.html' %} 
                         {% empty %}
-                        <div class="text-center text-muted py-4">
-                            <i class="bi bi-card-text display-4"></i>
-                            <p class="mt-2">Користувач ще не створив жодного посту.</p>
-                        </div>
+                            <div class="text-center py-5 text-muted">
+                                <i class="bi bi-journal-x display-4 mb-3 d-block opacity-50"></i>
+                                Постів поки немає
+                            </div>
                         {% endfor %}
                     </div>
 
-                    <div class="tab-pane fade" id="comments">
+                    <div class="tab-pane fade" id="comments" role="tabpanel">
                         {% for comment in user_comments %}
-                        {% if comment.post.slug %} <div class="mb-3 pb-3 border-bottom border-secondary">
-                            <p class="text-light mb-1">{{ comment.content|truncatewords:30 }}</p>
-                            <small class="text-body-secondary">
-                                до <a href="{% url 'core:post_detail' comment.post.slug %}#comment-{{comment.id}}" class="text-warning text-decoration-none">{{ comment.post.title }}</a>
-                                • {{ comment.created_at|date:"d.m.Y H:i" }}
-                            </small>
-                        </div>
-                        {% endif %}
+                            <div class="p-3 border-bottom border-secondary hover-bg-dark">
+                                <small class="text-muted d-block mb-1">
+                                    Коментар до <a href="{% url 'core:post_detail' comment.post.slug %}#comment-{{ comment.id }}" class="text-warning text-decoration-none fw-bold">{{ comment.post.title|truncatechars:50 }}</a>
+                                    <span class="mx-1">•</span> {{ comment.created_at|timesince }} тому
+                                </small>
+                                <div class="text-light bg-dark p-3 rounded border border-secondary border-opacity-25 text-break">
+                                    {{ comment.content|linebreaksbr }}
+                                </div>
+                            </div>
                         {% empty %}
-                        <div class="text-center text-muted py-4">
-                            <i class="bi bi-chat-dots display-4"></i>
-                            <p class="mt-2">Користувач ще не залишив коментарів.</p>
-                        </div>
+                            <div class="text-center py-5 text-muted">
+                                <i class="bi bi-chat-square-dots display-4 mb-3 d-block opacity-50"></i>
+                                Коментарів немає
+                            </div>
                         {% endfor %}
                     </div>
 
                     {% if user == profile_user %}
-                    <div class="tab-pane fade" id="bookmarks">
+                    <div class="tab-pane fade" id="bookmarks" role="tabpanel">
                         {% for post in bookmarked_posts %}
-                        {% if post.slug %} <div class="d-flex mb-3 pb-3 border-bottom border-secondary">
-                            <div class="flex-grow-1">
-                                <a href="{% url 'core:post_detail' post.slug %}" class="text-light h6 text-decoration-none d-block mb-1">{{ post.title }}</a>
-                                <small class="text-body-secondary">
-                                    в <a href="{% url 'core:category_detail' post.category.slug %}" class="text-warning text-decoration-none">/r/{{ post.category.name }}</a>
-                                    • автор: {{ post.author.username }}
-                                </small>
-                            </div>
-                        </div>
-                        {% endif %}
+                            {% include 'includes/profile_post_card.html' %}
                         {% empty %}
-                        <div class="text-center text-muted py-4">
-                            <i class="bi bi-bookmark display-4"></i>
-                            <p class="mt-2">Немає збережених постів.</p>
-                        </div>
+                            <div class="text-center py-5 text-muted">
+                                <i class="bi bi-bookmark display-4 mb-3 d-block opacity-50"></i>
+                                Немає збережених постів
+                            </div>
+                        {% endfor %}
+                    </div>
+
+                    <div class="tab-pane fade" id="drafts" role="tabpanel">
+                        {% for post in user_drafts %}
+                            <div class="p-3 border-bottom border-secondary d-flex justify-content-between align-items-center hover-bg-dark">
+                                <div>
+                                    <h6 class="text-light mb-1 fw-bold">{{ post.title }}</h6>
+                                    <small class="text-warning">
+                                        <i class="bi bi-clock-history"></i> Останнє редагування: {{ post.updated_at|date:"d.m.Y H:i" }}
+                                    </small>
+                                </div>
+                                <a href="{% url 'core:post_update' post.slug %}" class="btn btn-sm btn-outline-info">
+                                    <i class="bi bi-pencil-square"></i> Редагувати
+                                </a>
+                            </div>
+                        {% empty %}
+                            <div class="text-center py-5 text-muted">
+                                <i class="bi bi-file-earmark text-muted display-4 mb-3 d-block opacity-50"></i>
+                                Чернеток немає
+                            </div>
                         {% endfor %}
                     </div>
                     {% endif %}
 
-                    {% if user == profile_user %}
-                    <div class="tab-pane fade" id="drafts">
-                        {% for post in user_drafts %}
-                        {% if post.slug %} <div class="d-flex justify-content-between align-items-center mb-3 pb-3 border-bottom border-secondary">
-                            <div class="flex-grow-1">
-                                <a href="{% url 'core:post_detail' post.slug %}" class="text-light h6 text-decoration-none d-block mb-1">{{ post.title }}</a>
-                                <small class="text-body-secondary">
-                                    в <a href="{% url 'core:category_detail' post.category.slug %}" class="text-warning text-decoration-none">/r/{{ post.category.name }}</a>
-                                    • Останнє оновлення: {{ post.updated_at|date:"d.m.Y H:i" }}
-                                </small>
-                            </div>
-                            <a href="{% url 'core:post_update' post.slug %}" class="btn btn-outline-warning btn-sm ms-2">
-                                <i class="bi bi-pencil"></i> Редагувати
-                            </a>
-                        </div>
-                        {% endif %}
-                        {% empty %}
-                        <div class="text-center text-muted py-4">
-                            <i class="bi bi-file-earmark-text display-4"></i>
-                            <p class="mt-2">У вас немає збережених чернеток.</p>
-                        </div>
-                        {% endfor %}
-                    </div>
-                    {% endif %}
-                    </div>
+                </div>
             </div>
         </div>
     </div>
 
-    <div class="col-md-3">
-        <div class="card bg-black border-secondary mb-3">
-            <div class="card-header bg-dark border-secondary">
-                <h6 class="mb-0 text-warning"><i class="bi bi-compass"></i> Навігація</h6>
-            </div>
-            <div class="list-group list-group-flush">
-                <a href="{% url 'core:home' %}" class="list-group-item bg-black text-light border-secondary">
-                    <i class="bi bi-house-door text-warning me-2"></i> Головна
-                </a>
-                <a href="{% url 'core:post_list' %}" class="list-group-item bg-black text-light border-secondary">
-                    <i class="bi bi-card-text text-warning me-2"></i> Всі пости
-                </a>
-                <a href="{% url 'core:category_list' %}" class="list-group-item bg-black text-light border-secondary">
-                    <i class="bi bi-reddit text-warning me-2"></i> Спільноти
-                </a>
-                <a href="{% url 'core:tag_list' %}" class="list-group-item bg-black text-light border-secondary">
-                    <i class="bi bi-tags text-warning me-2"></i> Теги
-                </a>
-            </div>
-        </div>
+    <div class="col-md-3 d-none d-md-block">
+        {% include 'includes/sidebar.html' %}
     </div>
 
 </div>
 {% endblock %}
 
-
 {% block extra_js %}
 <script>
+    // Глобальні змінні для роботи скриптів на цій сторінці
     window.USER_IS_AUTHENTICATED = {{ user.is_authenticated|yesno:"true,false" }};
     window.LOGIN_URL = "{% url 'users:login' %}";
+    // csrftoken ми беремо з base.html, тому тут його оголошувати не треба
 </script>
 
 <script>
-// --- 1. Функція для отримання CSRF токена ---
-function getCookie(name) {
-    let cookieValue = null;
-    if (document.cookie && document.cookie !== '') {
-        const cookies = document.cookie.split(';');
-        for (let i = 0; i < cookies.length; i++) {
-            const cookie = cookies[i].trim();
-            if (cookie.substring(0, name.length + 1) === (name + '=')) {
-                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
-                break;
-            }
-        }
-    }
-    return cookieValue;
-}
-const csrftoken = getCookie('csrftoken');
-
-
-// --- Допоміжна функція для перевірки авторизації (ТЕПЕР ВИКОРИСТОВУЄ ГЛОБАЛЬНІ ЗМІННІ) ---
-function checkAuthAndRedirect() {
-    if (!window.USER_IS_AUTHENTICATED) {
-        // window.LOGIN_URL тепер коректно визначено вище
-        window.location.href = window.LOGIN_URL + "?next=" + window.location.pathname;
-        return true; // Користувач не авторизований, виконано перенаправлення
-    }
-    return false; // Користувач авторизований
-}
-
-
-// --- 2. Функція для "Поділитися" ---
-function sharePost(slug) {
-    const url = `${window.location.origin}/posts/${slug}/`;
-    
-    if (navigator.share) {
-        navigator.share({ 
-            title: 'Цікавий пост', 
-            text: 'Переглянь цей пост', 
-            url: url 
-        });
-    } else {
-        navigator.clipboard.writeText(url)
-            .then(() => alert('Посилання скопійовано у буфер обміну!'))
-            .catch(err => console.error('Не вдалося скопіювати текст: ', err));
-    }
-}
-
-
-// --- 3. Функція для "Зберегти" (Закладки) ---
-function savePost(slug, button) {
-    if (checkAuthAndRedirect()) {
-        return;
-    }
-
-    const url = `/bookmark/${slug}/`;
-    fetch(url, {
-        method: 'POST',
-        headers: {
-            'X-Requested-With': 'XMLHttpRequest',
-            'X-CSRFToken': csrftoken,
-            'Content-Type': 'application/json'
-        },
-    })
-    .then(response => response.json())
-    .then(data => {
-        if (data.bookmarked) {
-            button.innerHTML = '<i class="bi bi-bookmark-fill"></i>';
-            button.classList.remove('btn-outline-light');
-            button.classList.add('btn-success');
-        } else {
-            button.innerHTML = '<i class="bi bi-bookmark"></i>';
-            button.classList.remove('btn-success');
-            button.classList.add('btn-outline-light');
-        }
-    })
-    .catch(error => console.error('Error toggling bookmark:', error));
-}
-
-
-// --- 4. Функція: Обробка голосування (вгору/вниз) ---
-function handlePostVote(slug, direction, button) {
-    if (checkAuthAndRedirect()) {
-        return;
-    }
-
-    const url = `/vote/${slug}/${direction}/`; 
-
-    fetch(url, {
-        method: 'POST',
-        headers: {
-            'X-Requested-With': 'XMLHttpRequest',
-            'X-CSRFToken': csrftoken,
-            'Content-Type': 'application/json'
-        },
-    })
-    .then(response => response.json())
-    .then(data => {
-        // Оновлюємо лічильник
-        const countSpan = document.getElementById(`vote-score-${slug}`);
-        if (countSpan) {
-            countSpan.textContent = data.vote_score;
-        }
-
-        // Знаходимо обидві кнопки для цього посту
-        const upButton = document.querySelector(`.post-vote-btn[data-slug="${slug}"][data-direction="up"]`);
-        const downButton = document.querySelector(`.post-vote-btn[data-slug="${slug}"][data-direction="down"]`);
-
-        // Скидаємо обидві кнопки до "outline" стану
-        if (upButton) {
-            upButton.classList.remove('btn-success');
-            upButton.classList.add('btn-outline-success');
-        }
-        if (downButton) {
-            downButton.classList.remove('btn-danger');
-            downButton.classList.add('btn-outline-danger');
-        }
-
-        // Встановлюємо активний стан на основі відповіді сервера
-        if (data.user_vote === 1) {
-            upButton.classList.remove('btn-outline-success');
-            upButton.classList.add('btn-success');
-        } else if (data.user_vote === -1) {
-            downButton.classList.remove('btn-outline-danger');
-            downButton.classList.add('btn-danger');
-        }
-    })
-    .catch(error => console.error('Error handling post vote:', error));
-}
-
-
-// --- 5. Функція для "Слідкувати" (виправлено) ---
-function handleProfileFollow(username, button) {
-    if (checkAuthAndRedirect()) {
-        return;
-    }
-    
-    // Додаткова перевірка username, хоча в HTML він коректно визначений
-    if (!username) {
-        console.error('Помилка: Не вдалося отримати ім’я користувача для підписки.');
-        return;
-    }
-
-    // URL для POST-запиту, що перемикає стан підписки
-    const url = `/users/profile/${username}/follow/`; 
-    
-    fetch(url, {
-        method: 'POST',
-        headers: {
-            'X-Requested-With': 'XMLHttpRequest',
-            'X-CSRFToken': csrftoken,
-            'Content-Type': 'application/json'
-        },
-    })
-    .then(response => response.json())
-    .then(data => {
-        if (data.is_following) {
-            button.innerHTML = '<i class="bi bi-person-check-fill"></i> Відписатись';
-            button.classList.remove('btn-warning');
-            button.classList.add('btn-outline-light');
-        } else {
-            button.innerHTML = '<i class="bi bi-person-plus"></i> Слідкувати';
-            button.classList.remove('btn-outline-light');
-            button.classList.add('btn-warning');
-        }
-        
-        const countSpan = document.getElementById('followers-count');
-        if (countSpan) {
-            countSpan.textContent = data.followers_count;
-        }
-    })
-    .catch(error => console.error('Error handling follow:', error));
-}
-
-
-// --- 6. Загальний обробник подій (DOMContentLoaded) ---
 document.addEventListener('DOMContentLoaded', function() {
     
+    // --- 1. ЗБЕРЕЖЕННЯ АКТИВНОЇ ВКЛАДКИ ---
+    const activeTab = localStorage.getItem('profileActiveTab');
+    if (activeTab) {
+        const tabTrigger = document.querySelector(`button[data-bs-target="${activeTab}"]`);
+        if (tabTrigger) {
+            const tab = new bootstrap.Tab(tabTrigger);
+            tab.show();
+        }
+    }
+
+    const tabLinks = document.querySelectorAll('button[data-bs-toggle="tab"]');
+    tabLinks.forEach(tab => {
+        tab.addEventListener('shown.bs.tab', function (event) {
+            localStorage.setItem('profileActiveTab', event.target.getAttribute('data-bs-target'));
+        });
+    });
+
+
+    // --- 2. ДЕЛЕГУВАННЯ ПОДІЙ ---
     document.body.addEventListener('click', function(event) {
         
-        // Обробка кнопок "Голосування"
-        const voteButton = event.target.closest('.post-vote-btn');
-        if (voteButton) {
-            event.preventDefault();
-            const slug = voteButton.dataset.slug;
-            const direction = voteButton.dataset.direction;
-            handlePostVote(slug, direction, voteButton);
-            return;
-        }
+        // Слідкувати
+        const followBtn = event.target.closest('.profile-follow-btn');
+        if (followBtn) handleFollow(followBtn);
 
-        // Обробка кнопки "Зберегти"
-        const saveButton = event.target.closest('.post-save-btn');
-        if (saveButton) {
-            event.preventDefault();
-            const slug = saveButton.dataset.slug;
-            savePost(slug, saveButton);
-            return;
-        }
+        // Поділитися
+        const shareBtn = event.target.closest('.post-share-btn');
+        if (shareBtn) handleShare(shareBtn);
 
-        // Обробка кнопки "Поділитися"
-        const shareButton = event.target.closest('.post-share-btn');
-        if (shareButton) {
-            event.preventDefault();
-            const slug = shareButton.dataset.slug;
-            sharePost(slug);
-            return;
-        }
+        // Зберегти
+        const saveBtn = event.target.closest('.post-save-btn');
+        if (saveBtn) handleSave(saveBtn);
 
-        // Обробник кнопки "Слідкувати"
-        const followButton = event.target.closest('.profile-follow-btn');
-        if (followButton) {
-            event.preventDefault();
-            const username = followButton.dataset.username;
-            handleProfileFollow(username, followButton);
-            return;
-        }
+        // Голосувати
+        const voteBtn = event.target.closest('.post-vote-btn');
+        if (voteBtn) handleVote(voteBtn);
     });
+
+    // --- ФУНКЦІЇ ---
+
+    function checkAuth() {
+        if (!window.USER_IS_AUTHENTICATED) {
+            window.location.href = window.LOGIN_URL + "?next=" + window.location.pathname;
+            return false;
+        }
+        return true;
+    }
+
+    function handleFollow(button) {
+        if (!checkAuth()) return;
+
+        const username = button.dataset.username;
+        const originalHtml = button.innerHTML;
+        
+        button.disabled = true;
+        button.innerHTML = '<span class="spinner-border spinner-border-sm"></span>';
+
+        // Використовуємо глобальну змінну csrftoken з base.html
+        fetch(`/users/profile/${username}/follow/`, {
+            method: 'POST',
+            headers: { 'X-CSRFToken': csrftoken, 'Content-Type': 'application/json' }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.is_following) {
+                button.innerHTML = '<i class="bi bi-person-check-fill"></i> Відписатись';
+                button.classList.replace('btn-warning', 'btn-outline-light');
+            } else {
+                button.innerHTML = '<i class="bi bi-person-plus-fill"></i> Слідкувати';
+                button.classList.replace('btn-outline-light', 'btn-warning');
+            }
+            document.getElementById('followers-count').innerText = data.followers_count;
+        })
+        .catch(err => {
+            console.error(err);
+            button.innerHTML = originalHtml;
+        })
+        .finally(() => {
+            button.disabled = false;
+        });
+    }
+
+    function handleShare(button) {
+        const url = button.dataset.url;
+        if (navigator.share) {
+            navigator.share({ title: 'Цікавий пост', url: url }).catch(console.error);
+        } else {
+            navigator.clipboard.writeText(url).then(() => {
+                const originalHtml = button.innerHTML;
+                button.innerHTML = '<i class="bi bi-check2"></i> Скопійовано';
+                setTimeout(() => button.innerHTML = originalHtml, 2000);
+            });
+        }
+    }
+
+    function handleSave(button) {
+        if (!checkAuth()) return;
+        const slug = button.dataset.slug;
+        const icon = button.querySelector('i');
+
+        fetch(`/bookmark/${slug}/`, {
+            method: 'POST',
+            headers: { 'X-CSRFToken': csrftoken, 'Content-Type': 'application/json' }
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.bookmarked) {
+                button.classList.remove('btn-outline-light');
+                button.classList.add('btn-success');
+                icon.classList.remove('bi-bookmark');
+                icon.classList.add('bi-bookmark-fill');
+            } else {
+                button.classList.remove('btn-success');
+                button.classList.add('btn-outline-light');
+                icon.classList.remove('bi-bookmark-fill');
+                icon.classList.add('bi-bookmark');
+            }
+            // Видалити з DOM, якщо ми у вкладці закладок
+            if (button.closest('#bookmarks') && !data.bookmarked) {
+                button.closest('.card').remove(); 
+            }
+        });
+    }
+
+    function handleVote(button) {
+        if (!checkAuth()) return;
+        const slug = button.dataset.slug;
+        const direction = button.dataset.direction;
+
+        fetch(`/vote/${slug}/${direction}/`, {
+            method: 'POST',
+            headers: { 'X-CSRFToken': csrftoken, 'Content-Type': 'application/json' }
+        })
+        .then(res => res.json())
+        .then(data => {
+            const countSpan = document.getElementById(`vote-score-${slug}`);
+            if(countSpan) countSpan.textContent = data.vote_score;
+            
+            const parent = button.closest('.d-flex');
+            const upBtn = parent.querySelector('[data-direction="up"]');
+            const downBtn = parent.querySelector('[data-direction="down"]');
+            
+            // Скидання
+            upBtn.className = 'btn btn-sm btn-outline-success p-1 mb-1 post-vote-btn';
+            downBtn.className = 'btn btn-sm btn-outline-danger p-1 mt-1 post-vote-btn';
+
+            // Активація
+            if (data.user_vote === 1) upBtn.className = 'btn btn-sm btn-success p-1 mb-1 post-vote-btn';
+            if (data.user_vote === -1) downBtn.className = 'btn btn-sm btn-danger p-1 mt-1 post-vote-btn';
+        });
+    }
 });
 </script>
+
+<style>
+    /* Стилі для вкладок */
+    .nav-tabs .nav-link.active {
+        background-color: transparent;
+        border-bottom: 2px solid #ffc107 !important;
+        color: #ffc107 !important;
+    }
+    .nav-tabs .nav-link {
+        color: #adb5bd;
+    }
+    .nav-tabs .nav-link:hover {
+        color: #fff;
+        border-color: transparent;
+    }
+    .hover-bg-dark:hover {
+        background-color: rgba(255, 255, 255, 0.02);
+    }
+    .hover-text-white:hover {
+        color: #fff !important;
+    }
+</style>
 {% endblock %}

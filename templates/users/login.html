@@ -3,69 +3,149 @@
 {% block title %}Вхід - Мій Блог{% endblock %}
 
 {% block content %}
-<div class="row justify-content-center">
-    <div class="col-md-6">
-        <!-- Заголовок -->
-        <div class="card bg-black border-secondary mb-4">
-            <div class="card-body text-center">
-                <h4 class="text-light mb-0">
-                    <i class="bi bi-box-arrow-in-right text-warning"></i> Вхід до акаунту
-                </h4>
+<div class="row justify-content-center fade-in" style="min-height: 80vh; align-items: center;">
+    <div class="col-md-5 col-lg-4">
+        
+        <div class="text-center mb-4">
+            <div class="d-inline-flex align-items-center justify-content-center bg-warning text-dark rounded-circle mb-3" style="width: 64px; height: 64px;">
+                <i class="bi bi-person-fill fs-2"></i>
             </div>
+            <h3 class="text-light fw-bold">З поверненням!</h3>
+            <p class="text-muted">Введіть свої дані для входу</p>
         </div>
 
-        <!-- Форма входу -->
-        <div class="card bg-black border-secondary">
-            <div class="card-body">
+        <div class="card bg-black border-secondary shadow-lg">
+            <div class="card-body p-4">
+                
                 {% if form.errors %}
-                <div class="alert alert-dark border-warning mb-4">
-                    <i class="bi bi-exclamation-triangle text-warning"></i>
-                    Невірне ім'я користувача або пароль. Спробуйте ще раз.
+                <div class="alert alert-danger d-flex align-items-center p-2 mb-3" role="alert">
+                    <i class="bi bi-exclamation-triangle-fill me-2"></i>
+                    <small>Невірне ім'я користувача або пароль.</small>
                 </div>
                 {% endif %}
 
-                <form method="post">
+                <form method="post" id="loginForm" novalidate>
                     {% csrf_token %}
                     
-                    <!-- Ім'я користувача -->
-                    <div class="mb-4">
-                        <label class="form-label text-light">Ім'я користувача</label>
-                        <input type="text" name="username" class="form-control bg-dark border-secondary text-light" 
-                               placeholder="Введіть ваше ім'я користувача" required autofocus>
+                    <div class="mb-3 position-relative">
+                        <label class="form-label text-secondary small text-uppercase fw-bold">Ім'я користувача</label>
+                        <div class="input-group">
+                            <span class="input-group-text bg-dark border-secondary text-secondary"><i class="bi bi-person"></i></span>
+                            <input type="text" name="username" class="form-control bg-dark border-secondary text-light" 
+                                   placeholder="Введіть логін" required autofocus id="id_username">
+                        </div>
+                        <div class="invalid-feedback small">Будь ласка, введіть ім'я користувача.</div>
                     </div>
 
-                    <!-- Пароль -->
                     <div class="mb-4">
-                        <label class="form-label text-light">Пароль</label>
-                        <input type="password" name="password" class="form-control bg-dark border-secondary text-light" 
-                               placeholder="Введіть ваш пароль" required>
+                        <div class="d-flex justify-content-between">
+                            <label class="form-label text-secondary small text-uppercase fw-bold">Пароль</label>
+                            <a href="#" class="text-warning small text-decoration-none" tabindex="-1">Забули пароль?</a>
+                        </div>
+                        <div class="input-group">
+                            <span class="input-group-text bg-dark border-secondary text-secondary"><i class="bi bi-lock"></i></span>
+                            <input type="password" name="password" class="form-control bg-dark border-secondary text-light" 
+                                   placeholder="••••••••" required id="id_password">
+                            <button class="btn btn-outline-secondary border-secondary bg-dark text-secondary" type="button" id="togglePassword">
+                                <i class="bi bi-eye"></i>
+                            </button>
+                        </div>
+                        <div class="invalid-feedback small">Будь ласка, введіть пароль.</div>
                     </div>
 
-                    <!-- Запам'ятати мене -->
-                    <div class="form-check mb-4">
-                        <input class="form-check-input" type="checkbox" name="remember_me" id="remember_me">
-                        <label class="form-check-label text-light" for="remember_me">
-                            Запам'ятати мене
+                    <div class="mb-4 form-check form-switch">
+                        <input class="form-check-input bg-dark border-secondary" type="checkbox" name="remember_me" id="remember_me" style="cursor: pointer;">
+                        <label class="form-check-label text-light small" for="remember_me" style="cursor: pointer;">
+                            Запам'ятати мене на цьому пристрої
                         </label>
                     </div>
 
-                    <!-- Кнопка входу -->
-                    <div class="d-grid mb-4">
-                        <button type="submit" class="btn btn-warning btn-lg">
-                            <i class="bi bi-box-arrow-in-right"></i> Увійти
+                    <div class="d-grid mb-3">
+                        <button type="submit" class="btn btn-warning fw-bold py-2" id="submitBtn">
+                            <span class="btn-text">Увійти</span>
+                            <span class="spinner-border spinner-border-sm d-none" role="status" aria-hidden="true"></span>
                         </button>
                     </div>
 
-                    <!-- Додаткові посилання -->
-                    <div class="text-center">
-                        <p class="text-muted mb-2">Ще не маєте акаунту?</p>
-                        <a href="/register/" class="btn btn-outline-light btn-sm">
-                            <i class="bi bi-person-plus"></i> Зареєструватися
-                        </a>
+                    <div class="text-center text-muted small">
+                        Ще немає акаунту? <a href="{% url 'users:register' %}" class="text-warning text-decoration-none fw-bold">Зареєструватися</a>
                     </div>
                 </form>
             </div>
         </div>
+        
+        <div class="text-center mt-4">
+            <a href="/" class="text-secondary text-decoration-none small"><i class="bi bi-arrow-left"></i> На головну</a>
+        </div>
     </div>
 </div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* Анімація появи */
+    .fade-in { animation: fadeIn 0.5s ease-out; }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+
+    /* Покращений фокус для полів */
+    .form-control:focus, .form-check-input:focus {
+        background-color: #1a1a1b !important;
+        border-color: #ffc107 !important;
+        box-shadow: 0 0 0 0.25rem rgba(255, 193, 7, 0.15) !important;
+        color: #fff !important;
+    }
+    
+    /* Колір іконок в input-group при фокусі */
+    .form-control:focus + .input-group-text, .input-group-text:has(+ .form-control:focus) {
+        border-color: #ffc107 !important;
+        color: #ffc107 !important;
+    }
+
+    /* Валідація */
+    .was-validated .form-control:invalid {
+        border-color: #dc3545 !important;
+        background-image: none; /* Прибираємо стандартну іконку браузера */
+    }
+    .was-validated .form-control:invalid:focus {
+        box-shadow: 0 0 0 0.25rem rgba(220, 53, 69, 0.25) !important;
+    }
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const form = document.getElementById('loginForm');
+    const passwordInput = document.getElementById('id_password');
+    const toggleBtn = document.getElementById('togglePassword');
+    const submitBtn = document.getElementById('submitBtn');
+    const btnText = submitBtn.querySelector('.btn-text');
+    const spinner = submitBtn.querySelector('.spinner-border');
+
+    // 1. Показати / Приховати пароль
+    toggleBtn.addEventListener('click', function() {
+        const type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
+        passwordInput.setAttribute('type', type);
+        
+        // Зміна іконки
+        this.querySelector('i').classList.toggle('bi-eye');
+        this.querySelector('i').classList.toggle('bi-eye-slash');
+    });
+
+    // 2. Валідація та Анімація завантаження
+    form.addEventListener('submit', function(event) {
+        if (!form.checkValidity()) {
+            event.preventDefault();
+            event.stopPropagation();
+            // Додаємо клас Bootstrap для відображення помилок
+            form.classList.add('was-validated');
+        } else {
+            // Якщо форма валідна - показуємо спіннер
+            submitBtn.disabled = true;
+            btnText.textContent = 'Вхід...';
+            spinner.classList.remove('d-none');
+        }
+    });
+});
+</script>
 {% endblock %}

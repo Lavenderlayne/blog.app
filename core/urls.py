@@ -44,7 +44,7 @@ urlpatterns = [
     path('subscribe/', views.subscribe, name='subscribe'),
     
     path('vote/<str:slug>/<str:direction>/', views.post_vote, name='post_vote'),
-    path('bookmark/<str:slug>/', views.toggle_bookmark, name='toggle_bookmark'),
+    path('bookmark/<slug:slug>/', views.toggle_bookmark, name='toggle_bookmark'),
     
     path('user/<str:username>/posts/', views.UserPostListView.as_view(), name='user_posts'),
     path('api/posts/', views.api_posts, name='api_posts'),

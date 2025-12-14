@@ -1,118 +1,101 @@
 {% extends 'base.html' %}
+{% load static %}
 
-{% block title %}Редагування даних - Мій Блог{% endblock %}
+{% block title %}Редагування профілю{% endblock %}
 
 {% block content %}
-<div class="row justify-content-center">
-    <div class="col-md-8">
-        <!-- Заголовок -->
-        <div class="card bg-black border-secondary mb-4">
-            <div class="card-body">
-                <h4 class="text-light mb-0">
-                    <i class="bi bi-person text-warning"></i> Редагування даних користувача
-                </h4>
-            </div>
+<div class="row justify-content-center fade-in">
+    <div class="col-md-8 col-lg-6">
+        
+        <div class="d-flex align-items-center mb-4">
+            <a href="{% url 'users:profile_detail' username=user.username %}" class="btn btn-outline-secondary btn-sm me-3" title="Назад">
+                <i class="bi bi-arrow-left"></i>
+            </a>
+            <h4 class="text-light m-0">Редагування профілю</h4>
         </div>
 
-        <!-- Повідомлення про помилки -->
-        {% if form.errors %}
-        <div class="alert alert-dark border-warning mb-4">
-            <i class="bi bi-exclamation-triangle text-warning"></i>
-            Будь ласка, виправте помилки нижче.
-        </div>
-        {% endif %}
-
-        <!-- Форма -->
-        <div class="card bg-black border-secondary">
-            <div class="card-body">
-                <form method="post">
+        <div class="card bg-black border-secondary shadow-lg">
+            <div class="card-body p-4">
+                <form method="post" enctype="multipart/form-data" id="profileForm">
                     {% csrf_token %}
-                    
-                    <div class="row">
-                        <div class="col-md-6">
-                            <div class="mb-4">
-                                <label class="form-label text-light">Ім'я</label>
-                                <input type="text" name="first_name" class="form-control bg-dark border-secondary text-light" 
-                                       value="{{ form.first_name.value|default:'' }}" placeholder="Ваше ім'я">
-                                {% if form.first_name.errors %}
-                                    <div class="text-warning small mt-1">{{ form.first_name.errors }}</div>
-                                {% endif %}
-                            </div>
+
+                    <div class="text-center mb-4">
+                        <div class="position-relative d-inline-block">
+                            <img id="avatarPreview" 
+                                 src="{% if user.profile.avatar %}{{ user.profile.avatar.url }}{% else %}{% static 'images/default-avatar.png' %}{% endif %}" 
+                                 alt="Avatar" 
+                                 class="rounded-circle border border-secondary object-fit-cover"
+                                 width="120" height="120">
+                            
+                            <label for="id_avatar" class="position-absolute bottom-0 end-0 bg-warning text-dark rounded-circle p-2 cursor-pointer shadow-sm hover-scale" 
+                                   style="width: 36px; height: 36px; display: flex; align-items: center; justify-content: center;"
+                                   title="Змінити фото">
+                                <i class="bi bi-camera-fill"></i>
+                            </label>
+                            <input type="file" name="avatar" id="id_avatar" class="d-none" accept="image/*">
                         </div>
-                        <div class="col-md-6">
-                            <div class="mb-4">
-                                <label class="form-label text-light">Прізвище</label>
-                                <input type="text" name="last_name" class="form-control bg-dark border-secondary text-light" 
-                                       value="{{ form.last_name.value|default:'' }}" placeholder="Ваше прізвище">
-                                {% if form.last_name.errors %}
-                                    <div class="text-warning small mt-1">{{ form.last_name.errors }}</div>
-                                {% endif %}
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <div class="mb-4">
-                        <label class="form-label text-light">Email</label>
-                        <input type="email" name="email" class="form-control bg-dark border-secondary text-light" 
-                               value="{{ form.email.value|default:'' }}" placeholder="your@email.com">
-                        <div class="form-text text-muted">Ця адреса використовується для входу та сповіщень</div>
-                        {% if form.email.errors %}
-                            <div class="text-warning small mt-1">{{ form.email.errors }}</div>
-                        {% endif %}
+                        <div class="small text-muted mt-2">Натисніть на іконку камери, щоб змінити</div>
                     </div>
 
-                    <!-- Інформація про акаунт -->
-                    <div class="card bg-dark border-secondary mb-4">
-                        <div class="card-header bg-black border-secondary">
-                            <h6 class="mb-0 text-light">
-                                <i class="bi bi-info-circle text-warning"></i> Інформація про акаунт
-                            </h6>
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label text-secondary small text-uppercase fw-bold">Ім'я</label>
+                            <input type="text" name="first_name" class="form-control bg-dark border-secondary text-light" 
+                                   value="{{ form.first_name.value|default:'' }}" placeholder="Введіть ім'я">
                         </div>
-                        <div class="card-body">
-                            <div class="row text-light small">
-                                <div class="col-md-6 mb-2">
-                                    <strong>Ім'я користувача:</strong>
-                                    <br>
-                                    <span class="text-muted">{{ user.username }}</span>
-                                </div>
-                                <div class="col-md-6 mb-2">
-                                    <strong>Дата реєстрації:</strong>
-                                    <br>
-                                    <span class="text-muted">{{ user.date_joined|date:"d.m.Y" }}</span>
-                                </div>
-                                <div class="col-md-6 mb-2">
-                                    <strong>Роль:</strong>
-                                    <br>
-                                    <span class="badge bg-{% if user.role == 'admin' %}danger{% elif user.role == 'moderator' %}warning text-dark{% else %}primary{% endif %}">
-                                        {{ user.get_role_display }}
-                                    </span>
-                                </div>
-                                <div class="col-md-6 mb-2">
-                                    <strong>Статус:</strong>
-                                    <br>
-                                    {% if user.is_active %}
-                                        <span class="badge bg-success">Активний</span>
-                                    {% else %}
-                                        <span class="badge bg-danger">Заблокований</span>
-                                    {% endif %}
-                                </div>
+                        <div class="col-md-6">
+                            <label class="form-label text-secondary small text-uppercase fw-bold">Прізвище</label>
+                            <input type="text" name="last_name" class="form-control bg-dark border-secondary text-light" 
+                                   value="{{ form.last_name.value|default:'' }}" placeholder="Введіть прізвище">
+                        </div>
+
+                        <div class="col-12">
+                            <label class="form-label text-secondary small text-uppercase fw-bold">Email <span class="text-danger">*</span></label>
+                            <input type="email" name="email" class="form-control bg-dark border-secondary text-light" 
+                                   value="{{ form.email.value|default:'' }}" required>
+                            {% if form.email.errors %}
+                                <div class="text-danger small mt-1">{{ form.email.errors.0 }}</div>
+                            {% endif %}
+                        </div>
+
+                        <div class="col-12">
+                            <label class="form-label text-secondary small text-uppercase fw-bold d-flex justify-content-between">
+                                <span>Біографія</span>
+                                <span id="bioCounter" class="text-muted fw-normal">0/500</span>
+                            </label>
+                            <textarea name="bio" id="id_bio" rows="4" class="form-control bg-dark border-secondary text-light" 
+                                      placeholder="Розкажіть трохи про себе..." maxlength="500">{{ form.bio.value|default:'' }}</textarea>
+                        </div>
+
+                        <div class="col-12">
+                            <label class="form-label text-secondary small text-uppercase fw-bold"><i class="bi bi-geo-alt"></i> Локація</label>
+                            <input type="text" name="location" class="form-control bg-dark border-secondary text-light" 
+                                   value="{{ form.location.value|default:'' }}" placeholder="Київ, Україна">
+                        </div>
+
+                        <div class="col-12 mt-4">
+                            <h6 class="text-warning mb-3 border-bottom border-secondary pb-2">Соціальні мережі</h6>
+                            
+                            <div class="input-group mb-3">
+                                <span class="input-group-text bg-dark border-secondary text-secondary"><i class="bi bi-link-45deg"></i></span>
+                                <input type="url" name="website" class="form-control bg-dark border-secondary text-light" 
+                                       value="{{ form.website.value|default:'' }}" placeholder="Ваш вебсайт (https://...)">
+                            </div>
+
+                            <div class="input-group mb-3">
+                                <span class="input-group-text bg-dark border-secondary text-secondary"><i class="bi bi-twitter-x"></i></span>
+                                <input type="text" name="social_x" class="form-control bg-dark border-secondary text-light" 
+                                       value="{{ form.social_x.value|default:'' }}" placeholder="X (Twitter) профіль">
                             </div>
                         </div>
                     </div>
-                    
-                    <!-- Кнопки -->
-                    <div class="d-flex justify-content-between align-items-center pt-3 border-top border-secondary">
-                        <div>
-                            <button type="submit" class="btn btn-warning me-2">
-                                <i class="bi bi-check"></i> Зберегти зміни
-                            </button>
-                            <button type="reset" class="btn btn-outline-secondary">
-                                <i class="bi bi-arrow-clockwise"></i> Скинути
-                            </button>
-                        </div>
-                        <a href="{% url 'users:profile_detail' username=user.username %}" class="btn btn-outline-light">
-                            <i class="bi bi-x"></i> Скасувати
-                        </a>
+
+                    <div class="d-flex justify-content-end gap-2 mt-4 pt-3 border-top border-secondary">
+                        <a href="{% url 'users:profile_detail' username=user.username %}" class="btn btn-outline-light">Скасувати</a>
+                        <button type="submit" class="btn btn-warning fw-bold px-4" id="saveBtn">
+                            <span class="spinner-border spinner-border-sm d-none me-2" role="status" aria-hidden="true"></span>
+                            Зберегти
+                        </button>
                     </div>
                 </form>
             </div>
@@ -121,38 +104,92 @@
 </div>
 {% endblock %}
 
+{% block extra_css %}
+<style>
+    /* Анімації */
+    .fade-in { animation: fadeIn 0.4s ease-in-out; }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+    /* Ефекти для кнопки аватара */
+    .hover-scale { transition: transform 0.2s; cursor: pointer; }
+    .hover-scale:hover { transform: scale(1.1); }
+
+    /* Фокус на полях */
+    .form-control:focus, .form-select:focus {
+        background-color: #1a1a1b !important;
+        border-color: #ffc107 !important;
+        box-shadow: 0 0 0 0.25rem rgba(255, 193, 7, 0.15) !important;
+        color: #fff !important;
+    }
+    
+    /* Плейсхолдери */
+    ::placeholder { color: #6c757d !important; opacity: 0.7; }
+</style>
+{% endblock %}
+
 {% block extra_js %}
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    // Додавання темних класів для всіх полів вводу
-    const formControls = document.querySelectorAll('input, textarea, select');
-    formControls.forEach(control => {
-        if (!control.classList.contains('form-check-input')) {
-            control.classList.add('bg-dark', 'border-secondary', 'text-light');
+    const form = document.getElementById('profileForm');
+    const saveBtn = document.getElementById('saveBtn');
+    const avatarInput = document.getElementById('id_avatar');
+    const avatarPreview = document.getElementById('avatarPreview');
+    const bioInput = document.getElementById('id_bio');
+    const bioCounter = document.getElementById('bioCounter');
+    
+    let isFormDirty = false; // Чи були зміни
+
+    // 1. Попередній перегляд аватара
+    if (avatarInput) {
+        avatarInput.addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    avatarPreview.src = e.target.result;
+                }
+                reader.readAsDataURL(file);
+                isFormDirty = true;
+            }
+        });
+    }
+
+    // 2. Лічильник символів для біографії
+    if (bioInput && bioCounter) {
+        const updateCounter = () => {
+            const len = bioInput.value.length;
+            bioCounter.textContent = `${len}/500`;
+            if (len >= 500) bioCounter.classList.add('text-danger');
+            else bioCounter.classList.remove('text-danger');
+        };
+        
+        bioInput.addEventListener('input', () => {
+            updateCounter();
+            isFormDirty = true;
+        });
+        updateCounter(); // Ініціалізація
+    }
+
+    // 3. Відстеження змін у всіх інших полях
+    form.querySelectorAll('input').forEach(input => {
+        input.addEventListener('change', () => isFormDirty = true);
+    });
+
+    // 4. Попередження про незбережені зміни при спробі піти
+    window.addEventListener('beforeunload', function(e) {
+        if (isFormDirty) {
+            e.preventDefault();
+            e.returnValue = '';
         }
     });
 
-    // Підсвічування помилкових полів
-    const errorFields = document.querySelectorAll('.text-warning');
-    errorFields.forEach(error => {
-        const field = error.closest('.mb-4').querySelector('input, textarea, select');
-        if (field) {
-            field.classList.add('border-warning');
-        }
+    // 5. Анімація при збереженні (вимикаємо warning)
+    form.addEventListener('submit', function() {
+        isFormDirty = false; // Дозволяємо піти
+        saveBtn.disabled = true;
+        saveBtn.querySelector('.spinner-border').classList.remove('d-none');
+        saveBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span> Збереження...';
     });
 });
 </script>
-
-<style>
-.form-control:focus, .form-select:focus {
-    background-color: #1a1a1b !important;
-    border-color: #ff4500 !important;
-    box-shadow: 0 0 0 0.2rem rgba(255, 69, 0, 0.25) !important;
-    color: #ffffff !important;
-}
-
-.form-control.border-warning {
-    border-color: #ffc107 !important;
-}
-</style>
 {% endblock %}

@@ -4,15 +4,17 @@ from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.urls import reverse_lazy
-from django.db.models import Q, Count, Exists, OuterRef, Sum, Subquery, Value, IntegerField
-from django.http import JsonResponse, HttpResponseBadRequest
+from django.db.models import Q, Count, Exists, OuterRef, Sum, Subquery, Value, IntegerField, F
+from django.http import JsonResponse, HttpResponseBadRequest, Http404
 from django.core.paginator import Paginator
 from django.utils import timezone
-from .models import Post, Category, Tag, PostComment, PostVote, Subscription, CommentLike, Advertisement
-from .forms import PostForm, CommentForm, SubscriptionForm, TagForm
-from .models import generate_slug
+from django.views.decorators.http import require_POST
 from django.utils.text import slugify
 from django.contrib.auth import get_user_model
+from django.db import transaction  # <--- ВАЖЛИВИЙ ІМПОРТ
+
+from .models import Post, Category, Tag, PostComment, PostVote, Subscription, CommentLike, Advertisement, generate_slug
+from .forms import PostForm, CommentForm, SubscriptionForm, TagForm
 
 User = get_user_model()
 
@@ -127,9 +129,11 @@ class PostDetailView(DetailView):
         context = super().get_context_data(**kwargs)
         post = self.get_object()
         
+        # Можна винести в окремий метод або celery task, але для простоти тут
         if post.status == 'published':
-            post.increment_view_count()
-        
+            Post.objects.filter(pk=post.pk).update(view_count=F('view_count') + 1)
+            post.refresh_from_db()
+
         comments = post.comments.filter(is_active=True, parent=None).select_related('author')
         context['comments'] = comments
         context['comment_form'] = CommentForm()
@@ -392,30 +396,31 @@ class TagDeleteView(LoginRequiredMixin, DeleteView):
     template_name = 'core/tag_confirm_delete.html'
     success_url = reverse_lazy('core:tag_list')
     
-        
     def delete(self, request, *args, **kwargs):
         messages.success(request, 'Тег успішно видалено!')
         return super().delete(request, *args, **kwargs)
 
+# --- ВАЖЛИВА ЗМІНА: Атомарна транзакція для підписки ---
 @login_required
+@require_POST
 def toggle_category_follow(request, slug):
-    if request.method != 'POST' or request.headers.get('x-requested-with') != 'XMLHttpRequest':
-        return HttpResponseBadRequest("Invalid request")
-
     category = get_object_or_404(Category, slug=slug)
     user = request.user
     
-    is_following = False
-    if category.followers.filter(id=user.id).exists():
-        category.followers.remove(user)
-        is_following = False
-    else:
-        category.followers.add(user)
-        is_following = True
+    with transaction.atomic():
+        if category.followers.filter(id=user.id).exists():
+            category.followers.remove(user)
+            is_following = False
+        else:
+            category.followers.add(user)
+            is_following = True
+            
+        count = category.followers.count()
 
     return JsonResponse({
+        'status': 'ok',
         'is_following': is_following,
-        'followers_count': category.followers.count()
+        'followers_count': count
     })
 
 @login_required
@@ -442,77 +447,88 @@ def delete_comment(request, pk):
     return redirect('core:post_detail', slug=comment.post.slug)
 
 
+# --- ВАЖЛИВА ЗМІНА: Атомарна транзакція та select_for_update для голосування ---
 @login_required
+@require_POST
 def post_vote(request, slug, direction):
-    if request.method != 'POST' or request.headers.get('x-requested-with') != 'XMLHttpRequest':
-        return HttpResponseBadRequest("Invalid request")
-
     post = get_object_or_404(Post, slug=slug, status='published')
     user = request.user
-    
     new_vote_value = 1 if direction == 'up' else -1
     
-    try:
-        vote = PostVote.objects.get(post=post, user=user)
-        if vote.value == new_vote_value:
-            vote.delete()
-            user_vote_status = 0
-        else:
-            vote.value = new_vote_value
-            vote.save()
+    with transaction.atomic():
+        try:
+            # Блокуємо рядок голосу, якщо він існує, або створюємо новий
+            # Це запобігає стану гонитви (race condition)
+            vote = PostVote.objects.select_for_update().get(post=post, user=user)
+            if vote.value == new_vote_value:
+                vote.delete()
+                user_vote_status = 0
+            else:
+                vote.value = new_vote_value
+                vote.save()
+                user_vote_status = new_vote_value
+        except PostVote.DoesNotExist:
+            PostVote.objects.create(post=post, user=user, value=new_vote_value)
             user_vote_status = new_vote_value
-    except PostVote.DoesNotExist:
-        PostVote.objects.create(post=post, user=user, value=new_vote_value)
-        user_vote_status = new_vote_value
     
-    new_score_data = post.votes.aggregate(score=Sum('value'))
-    new_score = new_score_data.get('score') or 0
-    
-    post.vote_score = new_score
-    post.save(update_fields=['vote_score'])
+        # Оновлюємо загальний рахунок в тій же транзакції
+        new_score_data = post.votes.aggregate(score=Sum('value'))
+        new_score = new_score_data.get('score') or 0
+        
+        post.vote_score = new_score
+        post.save(update_fields=['vote_score'])
     
     return JsonResponse({
+        'status': 'ok',
         'vote_score': new_score,
         'user_vote': user_vote_status
     })
 
+# --- ВАЖЛИВА ЗМІНА: Атомарна транзакція для лайків коментарів ---
 @login_required
 def toggle_comment_like(request, pk):
-    comment = get_object_or_404(PostComment, pk=pk)
-    if request.method == 'POST' and request.headers.get('x-requested-with') == 'XMLHttpRequest':
-        like, created = CommentLike.objects.get_or_create(comment=comment, user=request.user)
-        
-        if not created:
-            like.delete()
-            liked = False
-            comment.like_count = max(0, comment.like_count - 1)
-        else:
-            liked = True
-            comment.like_count += 1
-        
-        comment.save(update_fields=['like_count'])
+    # Додаємо transaction.atomic, хоча для лайків це менш критично, ніж для грошей чи голосів,
+    # але це хороша практика для уникнення блокування SQLite
+    if request.method == 'POST':
+        with transaction.atomic():
+            comment = get_object_or_404(PostComment.objects.select_for_update(), pk=pk)
+            like, created = CommentLike.objects.get_or_create(comment=comment, user=request.user)
+            
+            if not created:
+                like.delete()
+                liked = False
+                comment.like_count = max(0, comment.like_count - 1)
+            else:
+                liked = True
+                comment.like_count += 1
+            
+            comment.save(update_fields=['like_count'])
         
         return JsonResponse({
+            'status': 'ok',
             'liked': liked,
             'like_count': comment.like_count
         })
+    # Якщо це не POST запит, редірект (fallback)
+    comment = get_object_or_404(PostComment, pk=pk)
     return redirect('core:post_detail', slug=comment.post.slug)
 
-
 @login_required
+@require_POST # <-- Додайте цей декоратор, щоб спростити код
 def toggle_bookmark(request, slug):
-    post = get_object_or_404(Post, slug=slug, status='published')
-    if request.method == 'POST' and request.headers.get('x-requested-with') == 'XMLHttpRequest':
-        user = request.user
-        bookmarked = False
-        if post.bookmarked_by.filter(id=user.id).exists():
-            post.bookmarked_by.remove(user)
-            bookmarked = False
-        else:
-            post.bookmarked_by.add(user)
-            bookmarked = True
-        return JsonResponse({'bookmarked': bookmarked})
-    return redirect('core:post_detail', slug=slug)
+    user = request.user
+    
+    try:
+        post = Post.objects.get(slug=slug)
+        
+    except Post.DoesNotExist:
+        # Повертаємо 404 (Not Found) у форматі JSON
+        return JsonResponse({'status': 'error', 'message': f'Post with slug "{slug}" not found.'}, status=404)
+    
+    except Exception as e:
+        # Обробка будь-яких інших внутрішніх помилок
+        print(f"Error in toggle_bookmark: {e}") 
+        return JsonResponse({'status': 'error', 'message': 'Internal Server Error.'}, status=500)
 
 
 def subscribe(request):
