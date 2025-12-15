@@ -514,22 +514,25 @@ def toggle_comment_like(request, pk):
     return redirect('core:post_detail', slug=comment.post.slug)
 
 @login_required
-@require_POST # <-- Додайте цей декоратор, щоб спростити код
+@require_POST
 def toggle_bookmark(request, slug):
     user = request.user
-    
     try:
         post = Post.objects.get(slug=slug)
         
+        if post.bookmarked_by.filter(id=user.id).exists():
+            post.bookmarked_by.remove(user)
+            bookmarked = False
+        else:
+            post.bookmarked_by.add(user)
+            bookmarked = True
+            
+        return JsonResponse({'status': 'ok', 'bookmarked': bookmarked})
+        
     except Post.DoesNotExist:
-        # Повертаємо 404 (Not Found) у форматі JSON
-        return JsonResponse({'status': 'error', 'message': f'Post with slug "{slug}" not found.'}, status=404)
-    
+        return JsonResponse({'status': 'error', 'message': 'Post not found'}, status=404)
     except Exception as e:
-        # Обробка будь-яких інших внутрішніх помилок
-        print(f"Error in toggle_bookmark: {e}") 
-        return JsonResponse({'status': 'error', 'message': 'Internal Server Error.'}, status=500)
-
+        return JsonResponse({'status': 'error', 'message': str(e)}, status=500)
 
 def subscribe(request):
     if request.method == 'POST':
