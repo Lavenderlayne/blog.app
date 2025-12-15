@@ -1,0 +1,58 @@
+<style>
+    /* Ефект для кнопок навігації */
+    .nav-item-custom {
+        transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+        border-left: 3px solid transparent; /* Невидима лінія зліва */
+    }
+    
+    .nav-item-custom:hover {
+        background-color: rgba(255, 255, 255, 0.05) !important;
+        color: #fff !important;
+        border-left-color: #ffc107; /* Жовта лінія при наведенні */
+        padding-left: 1.5rem; /* Легкий зсув вправо */
+    }
+    
+    .nav-item-custom:hover i {
+        color: #ffc107 !important; /* Іконка стає жовтою */
+        transform: scale(1.1); /* Легке збільшення іконки */
+    }
+
+    .nav-item-custom i {
+        transition: all 0.2s ease;
+    }
+</style>
+
+<div class="card bg-black border-secondary mb-4 shadow-sm">
+    <div class="card-header bg-dark border-secondary">
+        <h6 class="mb-0 text-light"><i class="bi bi-compass text-warning me-2"></i> Навігація</h6>
+    </div>
+    <div class="card-body p-0">
+        <div class="list-group list-group-flush">
+            <a href="{% url 'core:home' %}" class="list-group-item list-group-item-action bg-black text-light border-secondary d-flex align-items-center nav-item-custom py-3">
+                <i class="bi bi-house-door me-3 text-secondary fs-5"></i> Головна
+            </a>
+            <a href="{% url 'core:post_list' %}" class="list-group-item list-group-item-action bg-black text-light border-secondary d-flex align-items-center nav-item-custom py-3">
+                <i class="bi bi-card-text me-3 text-secondary fs-5"></i> Всі пости
+            </a>
+            <a href="{% url 'core:category_list' %}" class="list-group-item list-group-item-action bg-black text-light border-secondary d-flex align-items-center nav-item-custom py-3">
+                <i class="bi bi-reddit me-3 text-secondary fs-5"></i> Спільноти
+            </a>
+            <a href="{% url 'core:tag_list' %}" class="list-group-item list-group-item-action bg-black text-light border-secondary d-flex align-items-center nav-item-custom py-3">
+                <i class="bi bi-tags me-3 text-secondary fs-5"></i> Теги
+            </a>
+        </div>
+    </div>
+</div>
+
+<div class="card bg-black border-secondary mb-4 shadow-sm">
+    <div class="card-header bg-dark border-secondary">
+        <h6 class="mb-0 text-light"><i class="bi bi-collection text-warning me-2"></i> Спільноти</h6>
+    </div>
+    <div class="card-body p-0">
+        <div class="p-3">
+            <a href="{% url 'core:category_list' %}" class="btn btn-outline-warning w-100 fw-bold rounded-pill">
+                <i class="bi bi-eye me-2"></i> Переглянути всі
+            </a>
+        </div>
+    </div>
+</div>

@@ -3,134 +3,287 @@
 {% block title %}Реєстрація - Мій Блог{% endblock %}
 
 {% block content %}
-<form method="post">
-    {% csrf_token %}
-    <div class="row g-4">
-        
-        <div class="col-lg-8">
-            <div class="card bg-black border-secondary">
-                <div class="card-header bg-dark border-secondary">
-                    <h4 class="text-light mb-0">
-                        <i class="bi bi-person-plus text-warning"></i> Створення акаунту
-                    </h4>
-                </div>
-                <div class="card-body p-4">
-                    {% if form.non_field_errors %}
-                    <div class="alert alert-dark border-warning mb-4">
-                        <i class="bi bi-exclamation-triangle text-warning"></i>
-                        {{ form.non_field_errors }}
-                    </div>
-                    {% endif %}
-
-                    <div class="mb-4">
-                        <label for="{{ form.username.id_for_label }}" class="form-label text-light fs-5">Ім'я користувача *</label>
-                        {{ form.username }}
-                        {% if form.username.errors %}
-                            <div class="text-warning small mt-1">{{ form.username.errors }}</div>
-                        {% else %}
-                            <div class="form-text text-muted">Оберіть унікальне ім'я (логін)</div>
-                        {% endif %}
-                    </div>
-
-                    <div class="mb-4">
-                        <label for="{{ form.email.id_for_label }}" class="form-label text-light fs-5">Email *</label>
-                        {{ form.email }}
-                        {% if form.email.errors %}
-                            <div class="text-warning small mt-1">{{ form.email.errors }}</div>
-                        {% else %}
-                             <div class="form-text text-muted">Введіть дійсну email адресу</div>
-                        {% endif %}
-                    </div>
-
-                    <hr class="border-secondary my-4">
-
-                    <div class="mb-4">
-                        <label for="{{ form.password1.id_for_label }}" class="form-label text-light fs-5">Пароль *</label>
-                        {{ form.password1 }}
-                        {% if form.password1.errors %}
-                            <div class="text-warning small mt-1">{{ form.password1.errors }}</div>
-                        {% else %}
-                            <div class="form-text text-muted">
-                                Пароль має містити щонайменше 8 символів і не бути надто простим.
+<div class="row justify-content-center fade-in">
+    <div class="col-lg-10">
+        <form method="post" id="registerForm" novalidate>
+            {% csrf_token %}
+            
+            <div class="row g-4">
+                <div class="col-lg-7">
+                    <div class="card bg-black border-secondary shadow-lg h-100">
+                        <div class="card-header bg-dark border-secondary py-3">
+                            <h4 class="text-light mb-0">
+                                <i class="bi bi-person-plus-fill text-warning me-2"></i> Створення акаунту
+                            </h4>
+                        </div>
+                        <div class="card-body p-4">
+                            
+                            {% if form.non_field_errors %}
+                            <div class="alert alert-danger d-flex align-items-center mb-4" role="alert">
+                                <i class="bi bi-exclamation-triangle-fill me-2"></i>
+                                <div>{{ form.non_field_errors|join:", " }}</div>
                             </div>
-                        {% endif %}
-                    </div>
+                            {% endif %}
 
-                    <div class="mb-4">
-                        <label for="{{ form.password2.id_for_label }}" class="form-label text-light fs-5">Підтвердження пароля *</label>
-                        {{ form.password2 }}
-                        {% if form.password2.errors %}
-                            <div class="text-warning small mt-1">{{ form.password2.errors }}</div>
-                        {% else %}
-                            <div class="form-text text-muted">Введіть той самий пароль ще раз</div>
-                        {% endif %}
-                    </div>
-                </div>
-            </div>
-        </div>
+                            <div class="mb-4">
+                                <label for="{{ form.username.id_for_label }}" class="form-label text-secondary small text-uppercase fw-bold">Ім'я користувача</label>
+                                <div class="input-group">
+                                    <span class="input-group-text bg-dark border-secondary text-secondary"><i class="bi bi-person"></i></span>
+                                    {{ form.username }}
+                                </div>
+                                {% if form.username.errors %}
+                                    <div class="text-danger small mt-1">{{ form.username.errors.0 }}</div>
+                                {% else %}
+                                    <div class="form-text text-muted small">Тільки букви, цифри та символи @/./+/-/_</div>
+                                {% endif %}
+                            </div>
 
-        <div class="col-lg-4">
-            <div style="position: sticky; top: 1.5rem;">
-                
-                <div class="card bg-black border-secondary mb-4">
-                    <div class="card-header bg-dark border-secondary">
-                        <h5 class="mb-0 text-light">
-                            <i class="bi bi-check-circle text-warning"></i> Приєднатись
-                        </h5>
-                    </div>
-                    <div class="card-body">
-                        <p class="text-muted small">
-                            Реєструючись, ви погоджуєтесь з нашими правилами та умовами.
-                        </p>
-                        <div class="d-grid gap-2">
-                            <button type="submit" class="btn btn-warning btn-lg">
-                                <i class="bi bi-person-plus"></i> Зареєструватися
-                            </button>
+                            <div class="mb-4">
+                                <label for="{{ form.email.id_for_label }}" class="form-label text-secondary small text-uppercase fw-bold">Email</label>
+                                <div class="input-group">
+                                    <span class="input-group-text bg-dark border-secondary text-secondary"><i class="bi bi-envelope"></i></span>
+                                    {{ form.email }}
+                                </div>
+                                {% if form.email.errors %}
+                                    <div class="text-danger small mt-1">{{ form.email.errors.0 }}</div>
+                                {% endif %}
+                            </div>
+
+                            <hr class="border-secondary opacity-25 my-4">
+
+                            <div class="mb-3">
+                                <label for="{{ form.password1.id_for_label }}" class="form-label text-secondary small text-uppercase fw-bold">Пароль</label>
+                                <div class="input-group">
+                                    <span class="input-group-text bg-dark border-secondary text-secondary"><i class="bi bi-lock"></i></span>
+                                    {{ form.password1 }}
+                                    <button class="btn btn-outline-secondary bg-dark border-secondary text-secondary toggle-password" type="button">
+                                        <i class="bi bi-eye"></i>
+                                    </button>
+                                </div>
+                                <div class="progress mt-2" style="height: 4px;">
+                                    <div class="progress-bar bg-danger" id="passwordStrength" role="progressbar" style="width: 0%"></div>
+                                </div>
+                                {% if form.password1.errors %}
+                                    <div class="text-danger small mt-1">{{ form.password1.errors.0 }}</div>
+                                {% else %}
+                                    <div class="form-text text-muted small">Мінімум 8 символів</div>
+                                {% endif %}
+                            </div>
+
+                            <div class="mb-4">
+                                <label for="{{ form.password2.id_for_label }}" class="form-label text-secondary small text-uppercase fw-bold">Підтвердження</label>
+                                <div class="input-group">
+                                    <span class="input-group-text bg-dark border-secondary text-secondary"><i class="bi bi-check2-square"></i></span>
+                                    {{ form.password2 }}
+                                    <button class="btn btn-outline-secondary bg-dark border-secondary text-secondary toggle-password" type="button">
+                                        <i class="bi bi-eye"></i>
+                                    </button>
+                                </div>
+                                <div id="passwordMatchMessage" class="small mt-1 d-none"></div>
+                                {% if form.password2.errors %}
+                                    <div class="text-danger small mt-1">{{ form.password2.errors.0 }}</div>
+                                {% endif %}
+                            </div>
+
                         </div>
                     </div>
                 </div>
-                
-                <div class="card bg-black border-secondary">
-                    <div class="card-body text-center">
-                        <p class="text-light mb-2">Вже маєте акаунт?</p>
-                        <a href="{% url 'users:login' %}" class="btn btn-outline-light">
-                            <i class="bi bi-box-arrow-in-right"></i> Увійти
-                        </a>
+
+                <div class="col-lg-5">
+                    <div style="position: sticky; top: 1.5rem;">
+                        
+                        <div class="card bg-warning text-dark border-0 mb-4 shadow">
+                            <div class="card-body p-4">
+                                <h5 class="fw-bold mb-3"><i class="bi bi-stars"></i> Приєднуйтесь до спільноти!</h5>
+                                <p class="small mb-0">
+                                    Створивши акаунт, ви зможете писати пости, коментувати обговорення, ставити оцінки та налаштувати власну стрічку новин.
+                                </p>
+                            </div>
+                        </div>
+                        
+                        <div class="card bg-black border-secondary">
+                            <div class="card-body p-4">
+                                <div class="form-check mb-3">
+                                    <input class="form-check-input bg-dark border-secondary" type="checkbox" id="termsCheck" required>
+                                    <label class="form-check-label text-muted small" for="termsCheck">
+                                        Я погоджуюсь з <a href="#" class="text-warning text-decoration-none">Правилами спільноти</a> та <a href="#" class="text-warning text-decoration-none">Політикою конфіденційності</a>.
+                                    </label>
+                                </div>
+
+                                <div class="d-grid gap-2 mb-3">
+                                    <button type="submit" class="btn btn-light fw-bold py-2" id="submitBtn">
+                                        <span class="spinner-border spinner-border-sm d-none me-2" role="status" aria-hidden="true"></span>
+                                        <span class="btn-text">Зареєструватися</span>
+                                    </button>
+                                </div>
+
+                                <div class="text-center border-top border-secondary pt-3">
+                                    <p class="text-muted small mb-2">Вже є акаунт?</p>
+                                    <a href="{% url 'users:login' %}" class="btn btn-outline-secondary btn-sm w-100 text-light">
+                                        <i class="bi bi-box-arrow-in-right"></i> Увійти
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+
                     </div>
                 </div>
-
             </div>
-        </div>
+        </form>
     </div>
-</form>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* Анімація появи */
+    .fade-in { animation: fadeIn 0.5s ease-out; }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+    /* Стилізація полів (override standard styles) */
+    .form-control, .input-group-text {
+        background-color: #1a1a1b !important;
+        border-color: #343a40 !important;
+        color: #fff !important;
+    }
+    
+    .form-control:focus {
+        border-color: #ffc107 !important;
+        box-shadow: 0 0 0 0.25rem rgba(255, 193, 7, 0.15) !important;
+    }
+
+    /* Фокус для групи полів */
+    .input-group:focus-within .input-group-text {
+        border-color: #ffc107 !important;
+        color: #ffc107 !important;
+    }
+
+    /* Чекбокс */
+    .form-check-input:checked {
+        background-color: #ffc107;
+        border-color: #ffc107;
+    }
+    .form-check-input:focus {
+        box-shadow: 0 0 0 0.25rem rgba(255, 193, 7, 0.25);
+    }
+</style>
 {% endblock %}
 
 {% block extra_js %}
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    // Додавання темних класів для всіх полів вводу
-    const formControls = document.querySelectorAll('input');
-    formControls.forEach(control => {
-        control.classList.add('bg-dark', 'border-secondary', 'text-light', 'form-control-lg');
+    
+    // 1. ДОДАВАННЯ КЛАСІВ DJANGO ПОЛЯМ
+    // Оскільки ми рендеримо поля через {{ form.field }}, треба додати їм класи Bootstrap через JS
+    const formFields = document.querySelectorAll('input:not([type="checkbox"]):not([type="hidden"])');
+    formFields.forEach(field => {
+        field.classList.add('form-control', 'bg-dark', 'text-light', 'border-secondary');
+        // Якщо є помилка, додаємо червону рамку
+        if(field.nextElementSibling && field.nextElementSibling.classList.contains('text-danger')) {
+            field.classList.add('is-invalid');
+        }
+    });
+
+
+    // 2. ПОКАЗАТИ / ПРИХОВАТИ ПАРОЛЬ
+    document.querySelectorAll('.toggle-password').forEach(btn => {
+        btn.addEventListener('click', function() {
+            // Знаходимо input в тій самій групі
+            const input = this.previousElementSibling;
+            const icon = this.querySelector('i');
+            
+            if (input.type === 'password') {
+                input.type = 'text';
+                icon.classList.replace('bi-eye', 'bi-eye-slash');
+            } else {
+                input.type = 'password';
+                icon.classList.replace('bi-eye-slash', 'bi-eye');
+            }
+        });
+    });
+
+
+    // 3. ПЕРЕВІРКА ПАРОЛІВ ТА СИЛА ПАРОЛЯ
+    const pass1 = document.querySelector('input[name="password1"]');
+    const pass2 = document.querySelector('input[name="password2"]');
+    const strengthBar = document.getElementById('passwordStrength');
+    const matchMsg = document.getElementById('passwordMatchMessage');
+
+    if (pass1) {
+        pass1.addEventListener('input', function() {
+            const val = this.value;
+            let strength = 0;
+            
+            // Проста логіка сили пароля
+            if (val.length > 5) strength += 25;
+            if (val.length > 8) strength += 25;
+            if (/[A-Z]/.test(val)) strength += 25;
+            if (/[0-9]/.test(val)) strength += 25;
+
+            strengthBar.style.width = strength + '%';
+            
+            if (strength < 50) {
+                strengthBar.className = 'progress-bar bg-danger';
+            } else if (strength < 75) {
+                strengthBar.className = 'progress-bar bg-warning';
+            } else {
+                strengthBar.className = 'progress-bar bg-success';
+            }
+            
+            checkMatch();
+        });
+    }
+
+    if (pass2) {
+        pass2.addEventListener('input', checkMatch);
+    }
+
+    function checkMatch() {
+        if (!pass1 || !pass2 || pass2.value === '') {
+            matchMsg.classList.add('d-none');
+            return;
+        }
+
+        matchMsg.classList.remove('d-none');
+        if (pass1.value === pass2.value) {
+            matchMsg.textContent = 'Паролі співпадають';
+            matchMsg.className = 'small mt-1 text-success';
+            pass2.classList.remove('is-invalid');
+            pass2.classList.add('is-valid');
+        } else {
+            matchMsg.textContent = 'Паролі не співпадають';
+            matchMsg.className = 'small mt-1 text-danger';
+            pass2.classList.remove('is-valid');
+            pass2.classList.add('is-invalid');
+        }
+    }
+
+
+    // 4. ОБРОБКА САБМІТУ (Валідація + Анімація)
+    const form = document.getElementById('registerForm');
+    const submitBtn = document.getElementById('submitBtn');
+    const termsCheck = document.getElementById('termsCheck');
+
+    form.addEventListener('submit', function(event) {
+        // Перевірка чекбокса умов
+        if (!termsCheck.checked) {
+            event.preventDefault();
+            alert('Будь ласка, погодьтесь з умовами.');
+            return;
+        }
+
+        // Перевірка збігу паролів перед відправкою
+        if (pass1 && pass2 && pass1.value !== pass2.value) {
+            event.preventDefault();
+            pass2.focus();
+            return;
+        }
+
+        // Анімація кнопки
+        submitBtn.disabled = true;
+        submitBtn.querySelector('.spinner-border').classList.remove('d-none');
+        submitBtn.querySelector('.btn-text').textContent = 'Реєстрація...';
     });
 });
 </script>
-
-<style>
-.form-control-lg {
-    font-size: 1.1rem;
-    padding: 0.75rem 1rem;
-}
-
-.form-control:focus {
-    background-color: #1a1a1b !important;
-    border-color: #ffc107 !important;
-    box-shadow: 0 0 0 0.2rem rgba(255, 193, 7, 0.25) !important;
-    color: #ffffff !important;
-}
-
-.form-control.border-warning {
-    border-color: #ffc107 !important;
-}
-</style>
 {% endblock %}

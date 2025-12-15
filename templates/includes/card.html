@@ -1,0 +1,159 @@
+<style>
+    /* --- Стилі для списку спільнот --- */
+    .community-link {
+        transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+        border-left: 3px solid transparent;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .community-link:hover {
+        background-color: rgba(255, 255, 255, 0.08) !important;
+        border-left-color: #ffc107;
+        padding-left: 1.5rem !important;
+        color: #fff !important;
+    }
+
+    .community-link:hover i {
+        transform: scale(1.2) rotate(15deg);
+        color: #ffc107 !important;
+    }
+
+    .community-link i {
+        transition: transform 0.3s ease, color 0.3s ease;
+    }
+
+    /* --- Стилі для кнопок швидких дій --- */
+    .action-card-btn {
+        transition: transform 0.2s, box-shadow 0.2s;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .action-card-btn:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 5px 15px rgba(255, 193, 7, 0.2);
+    }
+
+    /* --- Кастомний бейдж (спільноти) --- */
+    .badge-premium {
+        background: rgba(255, 255, 255, 0.1);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        color: #adb5bd;
+        font-weight: 500;
+        transition: all 0.2s;
+    }
+
+    .community-link:hover .badge-premium {
+        background: #ffc107;
+        color: #000;
+        border-color: #ffc107;
+    }
+
+    /* --- НОВІ: Стилі для тегів --- */
+    .tag-link {
+        background-color: rgba(255, 255, 255, 0.05);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        color: #e0e0e0;
+        transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+        font-size: 0.85rem;
+        display: inline-flex;
+        align-items: center;
+        text-decoration: none;
+    }
+
+    .tag-link:hover {
+        background-color: #ffc107;
+        color: #000;
+        border-color: #ffc107;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 8px rgba(255, 193, 7, 0.15);
+    }
+
+    .tag-count {
+        background-color: rgba(255, 255, 255, 0.15);
+        color: #fff;
+        font-size: 0.7rem;
+        transition: all 0.2s;
+    }
+
+    .tag-link:hover .tag-count {
+        background-color: rgba(0, 0, 0, 0.2);
+        color: #000;
+    }
+</style>
+
+<div class="card bg-black border-secondary mb-4 shadow-sm">
+    <div class="card-header bg-dark border-secondary d-flex align-items-center justify-content-between py-3">
+        <h6 class="text-light mb-0 fw-bold">
+            <i class="bi bi-fire text-warning me-2"></i> Популярні Спільноти
+        </h6>
+        <span class="badge bg-black border border-secondary text-secondary" style="font-size: 0.65rem;">ТОП 5</span>
+    </div>
+
+    <div class="card-body p-0">
+        <div class="list-group list-group-flush">
+            {% for category in categories|slice:":5" %}
+            <a href="{% url 'core:category_detail' category.slug %}"
+                class="list-group-item list-group-item-action bg-black text-light border-secondary d-flex justify-content-between align-items-center community-link py-3"
+                data-bs-toggle="tooltip" data-bs-placement="left" title="Перейти до {{ category.name }}">
+
+                <div class="d-flex align-items-center">
+                    <i class="bi bi-hash text-secondary me-3 fs-5"></i>
+                    <span class="fw-medium">{{ category.name }}</span>
+                </div>
+
+                <span class="badge rounded-pill badge-premium">
+                    {{ category.post_count }}
+                </span>
+            </a>
+            {% empty %}
+            <div class="p-4 text-center text-muted">
+                <i class="bi bi-inbox fs-4 d-block mb-2 opacity-50"></i>
+                <small>Немає спільнот</small>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <div class="card-footer bg-black border-secondary p-2 text-center">
+        <a href="{% url 'core:category_list' %}" class="text-decoration-none text-muted small hover-warning">
+            Переглянути всі <i class="bi bi-arrow-right ms-1"></i>
+        </a>
+    </div>
+</div>
+
+<div class="card bg-black border-secondary mb-4 shadow-sm sticky-top" style="top: 20px; z-index: 1;">
+    <div class="card-header bg-dark border-secondary py-3">
+        <h6 class="text-light mb-0 fw-bold">
+            <i class="bi bi-lightning-charge-fill text-warning me-2"></i>Швидкі Дії
+        </h6>
+    </div>
+    <div class="card-body p-3">
+        <div class="d-grid gap-3">
+            {% if user.is_authenticated %}
+            <a href="{% url 'core:post_create' %}" class="btn btn-warning fw-bold text-dark action-card-btn py-2">
+                <i class="bi bi-plus-lg me-2"></i> Створити пост
+            </a>
+            {% else %}
+            <a href="{% url 'users:login' %}" class="btn btn-outline-warning fw-bold action-card-btn py-2">
+                <i class="bi bi-box-arrow-in-right me-2"></i> Увійти
+            </a>
+            {% endif %}
+
+            <a href="{% url 'core:search' %}" class="btn btn-dark border-secondary text-light action-card-btn py-2">
+                <i class="bi bi-search me-2 text-secondary"></i> Пошук
+            </a>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        // Ініціалізація Bootstrap Tooltips
+        var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
+        var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+            return new bootstrap.Tooltip(tooltipTriggerEl)
+        });
+    });
+</script>

@@ -1,173 +1,271 @@
 {% extends 'base.html' %}
+{% load static %}
 
 {% block title %}Пошук користувачів{% endblock %}
 
-{% block content %}
-<div class="row">
-
-    <div class="col-md-3">
-        <div class="card bg-black border-secondary mb-4">
-            <div class="card-header bg-dark border-secondary">
-                <h6 class="mb-0 text-light"><i class="bi bi-compass text-warning"></i> Навігація</h6>
-            </div>
-            <div class="card-body p-0">
-                <ul class="list-group list-group-flush">
-                    <li class="list-group-item bg-black text-light border-secondary">
-                        <a class="nav-link text-light" href="{% url 'core:home' %}"><i class="bi bi-house-door"></i> Головна</a>
-                    </li>
-                    <li class="list-group-item bg-black text-light border-secondary">
-                        <a class="nav-link text-light" href="{% url 'core:post_list' %}"><i class="bi bi-card-text"></i> Всі пости</a>
-                    </li>
-                    <li class="list-group-item bg-black text-light border-secondary">
-                        <a class="nav-link text-light" href="{% url 'core:category_list' %}"><i class="bi bi-reddit"></i> Спільноти</a>
-                    </li>
-                    <li class="list-group-item bg-black text-light border-secondary">
-                        <a class="nav-link text-light" href="{% url 'core:tag_list' %}"><i class="bi bi-tags"></i> Теги</a>
-                    </li>
-                </ul>
-            </div>
-        </div>
-        
-        {% if user.is_moderator or user.is_admin %}
-        <div class="card bg-black border-secondary mb-4">
-            <div class="card-header bg-dark border-secondary">
-                <h6 class="mb-0 text-light"><i class="bi bi-shield-lock text-warning"></i> Адмін. панель</h6>
-            </div>
-            <div class="card-body p-0">
-                <ul class="list-group list-group-flush">
-                    <li class="list-group-item bg-black text-light border-secondary">
-                        <a class="nav-link text-light" href="{% url 'users:user_list' %}"><i class="bi bi-people"></i> Всі користувачі</a>
-                    </li>
-                    <li class="list-group-item bg-black text-light border-secondary">
-                        <a class="nav-link text-light" href="{% url 'users:user_search' %}"><i class="bi bi-search"></i> Пошук</a>
-                    </li>
-                    {% if user.is_admin %}
-                    <li class="list-group-item bg-black text-light border-secondary">
-                        <a class="nav-link text-light" href="{% url 'users:user_statistics' %}"><i class="bi bi-graph-up"></i> Статистика</a>
-                    </li>
-                    {% endif %}
-                </ul>
-            </div>
-        </div>
-        {% endif %}
-    </div>
-
-    <div class="col-md-6">
-        <div class="card bg-black border-secondary mb-4">
-            <div class="card-body">
-                <h4 class="text-light mb-0">
-                    <i class="bi bi-search text-warning"></i> Пошук користувачів
-                </h4>
-            </div>
-        </div>
-
-        <div class="card bg-black border-secondary">
-            <div class="card-body">
-                <form method="get" class="mb-4">
-                    <div class="input-group input-group-lg">
-                        <input type="text" name="q" class="form-control bg-dark border-secondary text-light" 
-                               placeholder="Введіть ім'я, email, прізвище..." value="{{ query }}" autofocus>
-                        <button type="submit" class="btn btn-warning">
-                            <i class="bi bi-search"></i> Пошук
-                        </button>
-                    </div>
-                </form>
-                
-                {% if query %}
-                    <div class="card bg-dark border-secondary mb-4">
-                        <div class="card-body">
-                            <div class="d-flex justify-content-between align-items-center">
-                                <h5 class="text-light mb-0">Результати пошуку для "{{ query }}"</h5>
-                                <span class="badge bg-warning text-dark">{{ users|length }} результатів</span>
-                            </div>
-                        </div>
-                    </div>
-
-                    {% if users %}
-                        <div class="table-responsive">
-                            <table class="table table-dark table-striped">
-                                <thead>
-                                    <tr>
-                                        <th class="text-light">Користувач</th>
-                                        <th class="text-light">Email</th>
-                                        <th class="text-light">Роль</th>
-                                        <th class="text-light">Статус</th>
-                                        <th class="text-light">Дії</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    {% for user_obj in users %}
-                                    <tr>
-                                        <td>
-                                            <div class="d-flex align-items-center">
-                                                {% if user_obj.profile.avatar %}
-                                                    <img src="{{ user_obj.profile.avatar.url }}" alt="Аватар" class="rounded-circle me-2" width="32" height="32">
-                                                {% else %}
-                                                    <div class="bg-secondary rounded-circle d-flex align-items-center justify-content-center me-2" style="width: 32px; height: 32px;">
-                                                        <i class="bi bi-person text-light"></i>
-                                                    </div>
-                                                {% endif %}
-                                                <a href="{% url 'users:profile_detail' username=user_obj.username %}" class="text-light text-decoration-none">
-                                                    {{ user_obj.username }}
-                                                </a>
-                                            </div>
-                                        </td>
-                                        <td class="text-light">{{ user_obj.email }}</td>
-                                        <td>
-                                            <span class="badge bg-{% if user_obj.role == 'admin' %}danger{% elif user_obj.role == 'moderator' %}warning text-dark{% else %}primary{% endif %}">
-                                                {{ user_obj.get_role_display }}
-                                            </span>
-                                        </td>
-                                        <td>
-                                            {% if user_obj.is_active %}
-                                                <span class="badge bg-success">Активний</span>
-                                            {% else %}
-                                                <span class="badge bg-danger">Заблокований</span>
-                                            {% endif %}
-                                        </td>
-                                        <td>
-                                            <div class="btn-group btn-group-sm">
-                                                <a href="{% url 'users:profile_detail' username=user_obj.username %}" class="btn btn-outline-light">
-                                                    <i class="bi bi-eye"></i>
-                                                </a>
-                                            </div>
-                                        </td>
-                                    </tr>
-                                    {% endfor %}
-                                </tbody>
-                            </table>
-                        </div>
-                    {% else %}
-                        <div class="card bg-black border-warning">
-                            <div class="card-body text-center py-5">
-                                <i class="bi bi-search display-4 text-warning mb-3"></i>
-                                <h4 class="text-light">Користувачів не знайдено</h4>
-                                <p class="text-muted mb-4">Спробуйте змінити запит.</p>
-                            </div>
-                        </div>
-                    {% endif %}
-                {% else %}
-                    <div class="text-center py-5">
-                        <i class="bi bi-search display-4 text-muted mb-3"></i>
-                        <h4 class="text-light">Знайдіть користувачів</h4>
-                        <p class="text-muted">Введіть запит у поле вище</p>
-                    </div>
-                {% endif %}
-            </div>
-        </div>
-    </div>
+{% block extra_css %}
+<style>
+    /* Стилі для преміум-елементів */
+    .custom-select-wrapper { position: relative; display: inline-block; }
     
-    <div class="col-md-3">
-        <div class="card bg-dark border-secondary mt-4">
-            <div class="card-body">
-                <h6 class="text-light mb-3">
-                    <i class="bi bi-lightbulb text-warning"></i> Поради
-                </h6>
-                <p class="text-muted small">
-                    Пошук здійснюється за іменем користувача, email, іменем та прізвищем.
-                </p>
+    .modern-select {
+        appearance: none; -webkit-appearance: none; -moz-appearance: none;
+        background-color: #212529; border: 1px solid #495057; border-radius: 50px;
+        padding: 0.35rem 2.5rem 0.35rem 1rem; color: #e0e0e0; font-size: 0.85rem; font-weight: 500;
+        cursor: pointer; transition: all 0.3s ease;
+        background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3e%3cpath fill='none' stroke='%23ffc107' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M2 5l6 6 6-6'/%3e%3c/svg%3e");
+        background-repeat: no-repeat; background-position: right 0.75rem center; background-size: 10px 10px;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+    }
+    .modern-select:hover, .modern-select:focus { border-color: #ffc107; outline: none; background-color: #2c3034; }
+
+    /* Кнопки */
+    .btn-icon-modern {
+        border-radius: 10px; width: 34px; height: 34px; display: inline-flex;
+        align-items: center; justify-content: center; transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+        border: none; margin-left: 6px; font-size: 1rem;
+    }
+    .btn-icon-modern:hover { transform: translateY(-2px) scale(1.1); }
+    .btn-ban { background: rgba(220, 53, 69, 0.15); color: #ff6b6b; }
+    .btn-ban:hover { background: #dc3545; color: white; box-shadow: 0 4px 10px rgba(220, 53, 69, 0.4); }
+    .btn-unban { background: rgba(25, 135, 84, 0.15); color: #20c997; }
+    .btn-unban:hover { background: #198754; color: white; box-shadow: 0 4px 10px rgba(25, 135, 84, 0.4); }
+    .btn-view { background: rgba(13, 202, 240, 0.15); color: #0dcaf0; }
+    .btn-view:hover { background: #0dcaf0; color: black; box-shadow: 0 4px 10px rgba(13, 202, 240, 0.4); }
+
+    /* Статуси */
+    .status-badge { display: inline-flex; align-items: center; padding: 0.35rem 0.75rem; border-radius: 50px; font-size: 0.75rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; }
+    .status-dot { height: 6px; width: 6px; border-radius: 50%; margin-right: 8px; box-shadow: 0 0 5px currentColor; }
+    .status-active { background: rgba(25, 135, 84, 0.1); color: #20c997; border: 1px solid rgba(25, 135, 84, 0.2); }
+    .status-inactive { background: rgba(220, 53, 69, 0.1); color: #ff6b6b; border: 1px solid rgba(220, 53, 69, 0.2); }
+
+    /* Анімації */
+    .fade-in { animation: fadeIn 0.5s ease-in; }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+    .user-row { transition: background-color 0.2s; }
+    .user-row:hover { background-color: rgba(255, 255, 255, 0.03) !important; }
+    .copy-trigger:hover span { text-decoration: underline; text-decoration-color: #ffc107; }
+    .copy-trigger:active { opacity: 0.7; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div id="pageLoader" class="position-fixed top-0 start-0 w-100 h-100 d-none justify-content-center align-items-center" 
+     style="background: rgba(0,0,0,0.6); z-index: 9999; backdrop-filter: blur(3px);">
+    <div class="text-center">
+        <div class="spinner-border text-warning" role="status" style="width: 3rem; height: 3rem;"></div>
+    </div>
+</div>
+
+<div class="toast-container position-fixed bottom-0 end-0 p-3" style="z-index: 1100;">
+    <div id="liveToast" class="toast align-items-center text-white bg-dark border-secondary" role="alert" aria-live="assertive" aria-atomic="true">
+        <div class="d-flex">
+            <div class="toast-body d-flex align-items-center">
+                <i class="bi bi-check2-circle text-success fs-5 me-2"></i> 
+                <span id="toastMessage">Дію виконано</span>
             </div>
+            <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
         </div>
     </div>
 </div>
+
+<div class="row g-4 fade-in">
+
+    <div class="col-md-3 d-none d-lg-block"> 
+        {% include 'includes/admin.html' %}
+
+        <div class="card bg-dark border-secondary mt-4 d-none d-lg-block">
+            <div class="card-body">
+                <h6 class="text-light mb-2"><i class="bi bi-lightbulb text-warning"></i> Порада</h6>
+                <p class="text-muted small mb-0">Пошук працює за логіном, поштою та прізвищем.</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-9">
+        
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2 class="text-light"><i class="bi bi-search text-warning"></i> Пошук користувачів</h2>
+        </div>
+
+        <div class="card bg-black border-secondary mb-4 shadow-lg">
+            <div class="card-body p-4">
+                <form method="get" onsubmit="showLoader()">
+                    <div class="input-group input-group-lg">
+                        <span class="input-group-text bg-dark border-secondary text-secondary"><i class="bi bi-search"></i></span>
+                        <input type="text" name="q" class="form-control bg-dark border-secondary text-light shadow-none" 
+                               placeholder="Введіть ім'я, email..." value="{{ query }}" autofocus autocomplete="off">
+                        <button type="submit" class="btn btn-warning fw-bold px-4">
+                            Знайти
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        {% if query %}
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h5 class="text-light mb-0">Результати для "<span class="text-warning">{{ query }}</span>"</h5>
+                <span class="badge bg-dark border border-secondary text-light">{{ users|length }} знайдено</span>
+            </div>
+
+            {% if users %}
+            <div class="card bg-black border-secondary shadow-lg overflow-hidden">
+                <div class="table-responsive">
+                    <table class="table table-dark table-hover mb-0 align-middle">
+                        <thead class="bg-dark text-secondary text-uppercase" style="font-size: 0.75rem; letter-spacing: 1px;">
+                            <tr>
+                                <th class="ps-4 py-3">Користувач</th>
+                                <th class="py-3">Роль</th>
+                                <th class="py-3">Статус</th>
+                                <th class="text-end pe-4 py-3">Дії</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for user_obj in users %}
+                            <tr class="user-row">
+                                <td class="ps-4">
+                                    <div class="d-flex align-items-center">
+                                        {% if user_obj.profile.avatar %}
+                                            <img src="{{ user_obj.profile.avatar.url }}" class="rounded-circle me-3 border border-secondary" width="42" height="42" style="object-fit: cover;">
+                                        {% else %}
+                                            <div class="bg-dark border border-secondary rounded-circle d-flex align-items-center justify-content-center me-3" style="width: 42px; height: 42px;">
+                                                <span class="text-warning fw-bold">{{ user_obj.username|first|upper }}</span>
+                                            </div>
+                                        {% endif %}
+                                        <div>
+                                            <div class="fw-bold text-light">{{ user_obj.username }}</div>
+                                            <div class="small text-muted copy-trigger d-inline-flex align-items-center" 
+                                                 style="cursor: pointer;" 
+                                                 data-copy="{{ user_obj.email }}"
+                                                 data-bs-toggle="tooltip" title="Копіювати">
+                                                <span>{{ user_obj.email }}</span> 
+                                                <i class="bi bi-copy ms-2 opacity-25"></i>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </td>
+
+                                <td>
+                                    {% if request.user.is_admin and user_obj != request.user %}
+                                    <form method="post" action="{% url 'users:change_user_role' user_obj.id %}">
+                                        {% csrf_token %}
+                                        <div class="custom-select-wrapper">
+                                            <select name="role" class="modern-select role-selector" onchange="showLoader(); this.form.submit()">
+                                                <option value="user" {% if user_obj.role == 'user' %}selected{% endif %}>User</option>
+                                                <option value="moderator" {% if user_obj.role == 'moderator' %}selected{% endif %}>Mod</option>
+                                                <option value="admin" {% if user_obj.role == 'admin' %}selected{% endif %}>Admin</option>
+                                            </select>
+                                        </div>
+                                    </form>
+                                    {% else %}
+                                    <span class="badge bg-dark border border-secondary text-light px-3 py-2 rounded-pill">
+                                        {{ user_obj.get_role_display }}
+                                    </span>
+                                    {% endif %}
+                                </td>
+
+                                <td>
+                                    {% if user_obj.is_active %}
+                                        <span class="status-badge status-active">
+                                            <span class="status-dot" style="background-color: #20c997;"></span> Активний
+                                        </span>
+                                    {% else %}
+                                        <span class="status-badge status-inactive">
+                                            <span class="status-dot" style="background-color: #ff6b6b;"></span> Бан
+                                        </span>
+                                    {% endif %}
+                                </td>
+
+                                <td class="text-end pe-4">
+                                    <div class="d-flex justify-content-end align-items-center">
+                                        {% if request.user.is_moderator or request.user.is_admin %}
+                                            {% if user_obj != request.user %}
+                                            <form method="post" action="{% url 'users:toggle_user_status' user_obj.id %}" class="me-2">
+                                                {% csrf_token %}
+                                                {% if user_obj.is_active %}
+                                                    <button type="submit" class="btn-icon-modern btn-ban" 
+                                                            title="Заблокувати" 
+                                                            onclick="return confirm('Заблокувати {{ user_obj.username }}?'); showLoader();">
+                                                        <i class="bi bi-lock-fill"></i>
+                                                    </button>
+                                                {% else %}
+                                                    <button type="submit" class="btn-icon-modern btn-unban" 
+                                                            title="Розблокувати" 
+                                                            onclick="return confirm('Розблокувати {{ user_obj.username }}?'); showLoader();">
+                                                        <i class="bi bi-unlock-fill"></i>
+                                                    </button>
+                                                {% endif %}
+                                            </form>
+                                            {% endif %}
+                                        {% endif %}
+                                        
+                                        <a href="{% url 'users:profile_detail' username=user_obj.username %}" 
+                                           class="btn-icon-modern btn-view" title="Профіль">
+                                            <i class="bi bi-eye-fill"></i>
+                                        </a>
+                                    </div>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            {% else %}
+            <div class="card bg-black border-secondary border-dashed">
+                <div class="card-body text-center py-5">
+                    <i class="bi bi-emoji-frown display-4 text-muted mb-3 d-block"></i>
+                    <h4 class="text-light">Нічого не знайдено</h4>
+                    <p class="text-muted">Спробуйте змінити пошуковий запит.</p>
+                </div>
+            </div>
+            {% endif %}
+        
+        {% else %}
+        <div class="text-center py-5">
+            <i class="bi bi-search display-1 text-dark opacity-25 mb-3"></i>
+            <h4 class="text-light">Розпочніть пошук</h4>
+            <p class="text-muted">Введіть дані користувача у поле вище, щоб побачити результати.</p>
+        </div>
+        {% endif %}
+    </div> </div> {% endblock %}
+
+{% block extra_js %}
+<script>
+    // Показати лоадер
+    function showLoader() {
+        document.getElementById('pageLoader').classList.remove('d-none');
+        document.getElementById('pageLoader').classList.add('d-flex');
+    }
+
+    // Приховати лоадер (fix для кнопки "назад" у браузері)
+    window.addEventListener('pageshow', function(event) {
+        document.getElementById('pageLoader').classList.add('d-none');
+        document.getElementById('pageLoader').classList.remove('d-flex');
+    });
+
+    document.addEventListener('DOMContentLoaded', function () {
+        // Tooltips
+        var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"], [title]'))
+        var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+            return new bootstrap.Tooltip(tooltipTriggerEl)
+        });
+
+        // Copy Email Logic
+        const toastEl = document.getElementById('liveToast');
+        const toastBody = document.getElementById('toastMessage');
+        const bsToast = new bootstrap.Toast(toastEl);
+
+        document.querySelectorAll('.copy-trigger').forEach(el => {
+            el.addEventListener('click', function() {
+                const email = this.dataset.copy;
+                navigator.clipboard.writeText(email).then(() => {
+                    toastBody.textContent = 'Email скопійовано: ' + email;
+                    bsToast.show();
+                });
+            });
+        });
+    });
+</script>
 {% endblock %}

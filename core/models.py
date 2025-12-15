@@ -3,9 +3,14 @@ from django.conf import settings
 from django.urls import reverse
 from django.utils import timezone
 from django.utils.text import slugify
+from django.utils.html import strip_tags
+from django.db.models import F, Sum
+from django.db.models.signals import post_save, post_delete
+from django.dispatch import receiver
 from django_ckeditor_5.fields import CKEditor5Field
 import uuid
-import re
+
+# --- Утиліти для транслітерації ---
 
 CYRILLIC_TO_LATIN = {
     'а': 'a', 'б': 'b', 'в': 'v', 'г': 'h', 'ґ': 'g', 'д': 'd', 'е': 'e', 'є': 'ye',
@@ -20,7 +25,6 @@ CYRILLIC_TO_LATIN = {
     'Я': 'Ya', 'Ы': 'Y', 'Э': 'E', 'Ё': 'Yo',
 }
 
-
 def transliterate(text):
     """Транслітерація кириличних символів в латинські"""
     result = []
@@ -28,17 +32,15 @@ def transliterate(text):
         result.append(CYRILLIC_TO_LATIN.get(char, char))
     return ''.join(result)
 
-
-def generate_slug(text):
+def generate_slug(text, allow_unicode=False):
     """Генерація slug з підтримкою кириличних символів"""
-    # Спочатку транслітеруємо кирилицю
     text = transliterate(text)
-    # Потім застосовуємо стандартний slugify
-    slug = slugify(text)
-    # Якщо результат порожній, генеруємо унікальний slug
+    slug = slugify(text, allow_unicode=allow_unicode)
     if not slug:
         slug = str(uuid.uuid4())[:8]
     return slug
+
+# --- Моделі ---
 
 class Category(models.Model):
     """Модель категорії для постів/статей"""
@@ -62,6 +64,11 @@ class Category(models.Model):
     def __str__(self):
         return self.name
 
+    def save(self, *args, **kwargs):
+        if not self.slug:
+            self.slug = generate_slug(self.name, allow_unicode=True)
+        super().save(*args, **kwargs)
+
 
 class Tag(models.Model):
     """Модель тегу для постів"""
@@ -83,6 +90,7 @@ class Tag(models.Model):
     
     def get_absolute_url(self):
         return reverse('core:tag_detail', kwargs={'slug': self.slug})
+
 
 class Post(models.Model):
     """Модель посту"""
@@ -144,9 +152,7 @@ class Post(models.Model):
     )
     
     view_count = models.PositiveIntegerField(default=0, verbose_name="Перегляди")
-    
     vote_score = models.IntegerField(default=0, verbose_name="Рахунок голосів")
-    
     share_count = models.PositiveIntegerField(default=0, verbose_name="Поділіться")
     
     is_featured = models.BooleanField(default=False, verbose_name="В обраному")
@@ -190,8 +196,12 @@ class Post(models.Model):
         
         if not self.meta_title:
             self.meta_title = self.title
+        
+        # Обрізаємо мета-опис до розумних меж (SEO)
         if not self.meta_description and self.excerpt:
-            self.meta_description = self.excerpt[:300]
+            self.meta_description = self.excerpt[:160]
+        elif not self.meta_description and self.content:
+             self.meta_description = strip_tags(self.content)[:160]
         
         if self.status == 'published' and not self.published_at:
             self.published_at = timezone.now()
@@ -205,22 +215,24 @@ class Post(models.Model):
         return self.meta_title or self.title
     
     def get_meta_description(self):
-        return self.meta_description or self.excerpt or self.content[:300]
+        return self.meta_description or self.excerpt
     
     def increment_view_count(self):
-        self.view_count += 1
-        self.save(update_fields=['view_count'])
+        # Атомарне оновлення для запобігання race conditions
+        Post.objects.filter(pk=self.pk).update(view_count=F('view_count') + 1)
+        self.refresh_from_db(fields=['view_count'])
     
     def increment_share_count(self):
-        self.share_count += 1
-        self.save(update_fields=['share_count'])
+        Post.objects.filter(pk=self.pk).update(share_count=F('share_count') + 1)
+        self.refresh_from_db(fields=['share_count'])
     
     @property
     def reading_time(self):
         words_per_minute = 200
-        # Проста перевірка на наявність контенту
         if self.content:
-            word_count = len(self.content.split())
+            # Очищаємо від HTML тегів перед підрахунком
+            plain_text = strip_tags(self.content)
+            word_count = len(plain_text.split())
             return max(1, round(word_count / words_per_minute))
         return 1
     
@@ -291,7 +303,7 @@ class PostVote(models.Model):
         on_delete=models.CASCADE,
         verbose_name="Користувач"
     )
-    value = models.SmallIntegerField(verbose_name="Значення")
+    value = models.SmallIntegerField(verbose_name="Значення") # +1 або -1
     created_at = models.DateTimeField(auto_now_add=True, verbose_name="Створено")
     
     class Meta:
@@ -375,3 +387,20 @@ class Advertisement(models.Model):
     
     def is_valid(self):
         return self.is_active and timezone.now() < self.expires_at
+
+# --- Сигнали для оновлення рейтингу ---
+
+@receiver(post_save, sender=PostVote)
+@receiver(post_delete, sender=PostVote)
+def update_post_score(sender, instance, **kwargs):
+    """
+    Автоматично оновлює vote_score у моделі Post 
+    при додаванні або видаленні голосу.
+    """
+    post = instance.post
+    # Обчислюємо нову суму голосів
+    result = PostVote.objects.filter(post=post).aggregate(Sum('value'))
+    new_score = result['value__sum'] or 0
+    
+    # Оновлюємо поле в БД (швидше, ніж повний save)
+    Post.objects.filter(pk=post.pk).update(vote_score=new_score)

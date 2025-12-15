@@ -3,42 +3,48 @@
 {% block title %}{% if form.instance.pk %}Редагування тегу{% else %}Створення тегу{% endif %}{% endblock %}
 
 {% block content %}
-<div class="row justify-content-center">
+<div class="row justify-content-center fade-in">
     <div class="col-md-6">
-        <div class="card bg-black border-secondary">
+        <div class="card bg-black border-secondary shadow-lg">
             <div class="card-header bg-dark border-secondary">
                 <h4 class="text-light mb-0">
-                    <i class="bi bi-{% if form.instance.pk %}pencil{% else %}plus-circle{% endif %} text-warning"></i>
+                    <i class="bi bi-{% if form.instance.pk %}pencil{% else %}plus-circle{% endif %} text-warning me-2"></i>
                     {% if form.instance.pk %}Редагування тегу{% else %}Створення нового тегу{% endif %}
                 </h4>
             </div>
-            <div class="card-body">
+            <div class="card-body p-4">
                 <form method="post">
                     {% csrf_token %}
                     
                     <div class="mb-4">
-                        <label for="{{ form.name.id_for_label }}" class="form-label text-light">Назва тегу *</label>
+                        <label for="{{ form.name.id_for_label }}" class="form-label text-light text-uppercase small fw-bold">Назва тегу *</label>
                         {{ form.name }}
                         {% if form.name.errors %}
-                            <div class="text-warning small mt-1">{{ form.name.errors }}</div>
+                            <div class="text-danger small mt-1">{{ form.name.errors.0 }}</div>
                         {% endif %}
                     </div>
                     
                     <div class="mb-4">
-                        <label for="{{ form.slug.id_for_label }}" class="form-label text-light">URL (Слаг)</label>
-                        {{ form.slug }}
-                        <div class="form-text text-body-secondary">Залиште порожнім, щоб згенерувати автоматично.</div>
+                        <label for="{{ form.slug.id_for_label }}" class="form-label text-light text-uppercase small fw-bold">URL (Slug)</label>
+                        <div class="input-group">
+                            <span class="input-group-text bg-dark border-secondary text-secondary">/tags/</span>
+                            {{ form.slug }}
+                            <button class="btn btn-outline-secondary" type="button" id="generateSlugBtn" title="Згенерувати заново">
+                                <i class="bi bi-arrow-repeat"></i>
+                            </button>
+                        </div>
+                        <div class="form-text text-muted small">URL-адреса буде згенерована автоматично з назви (латиницею).</div>
                         {% if form.slug.errors %}
-                            <div class="text-warning small mt-1">{{ form.slug.errors }}</div>
+                            <div class="text-danger small mt-1">{{ form.slug.errors.0 }}</div>
                         {% endif %}
                     </div>
 
                     <div class="d-flex justify-content-between align-items-center pt-3 border-top border-secondary">
-                        <button type="submit" class="btn btn-warning">
-                            <i class="bi bi-check"></i> Зберегти
+                        <button type="submit" class="btn btn-warning fw-bold px-4">
+                            <i class="bi bi-check-lg"></i> Зберегти
                         </button>
-                        <a href="{% url 'core:tag_list' %}" class="btn btn-outline-secondary">
-                            <i class="bi bi-x"></i> Скасувати
+                        <a href="{% url 'core:tag_list' %}" class="btn btn-outline-light">
+                            Скасувати
                         </a>
                     </div>
                 </form>
@@ -46,4 +52,47 @@
         </div>
     </div>
 </div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const nameInput = document.getElementById('{{ form.name.id_for_label }}');
+    const slugInput = document.getElementById('{{ form.slug.id_for_label }}');
+    const generateBtn = document.getElementById('generateSlugBtn');
+
+    // Проста функція транслітерації та слагіфікації
+    function slugify(text) {
+        const map = {
+            'а': 'a', 'б': 'b', 'в': 'v', 'г': 'h', 'ґ': 'g', 'д': 'd', 'е': 'e', 'є': 'ie', 'ж': 'zh', 'з': 'z', 'и': 'y', 'і': 'i', 'ї': 'i', 'й': 'i', 'к': 'k', 'л': 'l', 'м': 'm', 'н': 'n', 'о': 'o', 'п': 'p', 'р': 'r', 'с': 's', 'т': 't', 'у': 'u', 'ф': 'f', 'х': 'kh', 'ц': 'ts', 'ч': 'ch', 'ш': 'sh', 'щ': 'shch', 'ю': 'iu', 'я': 'ia', 'ь': '', '’': ''
+        };
+
+        return text.toString().toLowerCase()
+            .split('').map((char) => map[char] || char).join('') // Транслітерація
+            .replace(/\s+/g, '-')           // Заміна пробілів на -
+            .replace(/[^\w\-]+/g, '')       // Видалення не-слів (крім -)
+            .replace(/\-\-+/g, '-')         // Заміна декількох - на одне
+            .replace(/^-+/, '')             // Обрізка - з початку
+            .replace(/-+$/, '');            // Обрізка - з кінця
+    }
+
+    // Автогенерація при вводі імені, якщо поле слаг пусте або користувач не редагував його вручну
+    nameInput.addEventListener('input', function() {
+        if (!slugInput.value || slugInput.dataset.manual !== "true") {
+            slugInput.value = slugify(this.value);
+        }
+    });
+
+    // Якщо користувач почав писати в слаг, перестаємо автооновлювати
+    slugInput.addEventListener('input', function() {
+        slugInput.dataset.manual = "true";
+    });
+
+    // Кнопка примусової генерації
+    generateBtn.addEventListener('click', function() {
+        slugInput.value = slugify(nameInput.value);
+        slugInput.dataset.manual = "false";
+    });
+});
+</script>
 {% endblock %}

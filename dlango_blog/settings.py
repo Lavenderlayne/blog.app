@@ -158,6 +158,9 @@ DATABASES = {
     'default': dj_database_url.config(
         default='sqlite:///db.sqlite3',
         conn_max_age=600
+        'OPTIONS': {
+            'timeout': 20,
+        }
     )
 }
 
@@ -226,6 +229,9 @@ CKEDITOR_5_CONFIGS = {
         'toolbar': ['heading', '|', 'bold', 'italic', 'link',
                     'bulletedList', 'numberedList', 'blockQuote', 'imageUpload'],
         'language': 'uk',
+        'image': {
+            'toolbar': []
+        }
     },
     'extends': {
         'toolbar': ['heading', '|', 'bold', 'italic', 'link', 'underline', 'strikethrough',
@@ -234,9 +240,13 @@ CKEDITOR_5_CONFIGS = {
                     '|', 'undo', 'redo', '|', 'sourceEditing'],
         'language': 'uk',
         'image': {
-            'toolbar': ['imageTextAlternative', 'imageStyle:alignLeft', 
-                       'imageStyle:alignRight', 'imageStyle:alignCenter', 
-                       'imageStyle:side'],
+            'toolbar': [
+                'imageTextAlternative', 
+                '|', 
+                'imageStyle:inline', 
+                'imageStyle:block', 
+                'imageStyle:side'
+            ],
         },
         'table': {
             'contentToolbar': ['tableColumn', 'tableRow', 'mergeTableCells'],
