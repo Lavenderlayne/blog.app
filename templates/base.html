@@ -240,6 +240,7 @@ document.addEventListener('DOMContentLoaded', function() {
         const voteButton = event.target.closest('.post-vote-btn');
         if (voteButton) {
             event.preventDefault();
+            event.stopPropagation(); // <--- ДОДАНО: зупиняє пробивання кліку наскрізь
             const slug = voteButton.dataset.slug;
             const direction = voteButton.dataset.direction; 
             handlePostVote(slug, direction, voteButton);
@@ -250,6 +251,7 @@ document.addEventListener('DOMContentLoaded', function() {
         const saveButton = event.target.closest('.post-save-btn');
         if (saveButton) {
             event.preventDefault();
+            event.stopPropagation(); // <--- ДОДАНО
             const slug = saveButton.dataset.slug;
             savePost(slug, saveButton);
             return;
@@ -259,6 +261,7 @@ document.addEventListener('DOMContentLoaded', function() {
         const shareButton = event.target.closest('.post-share-btn');
         if (shareButton) {
             event.preventDefault();
+            event.stopPropagation(); // <--- ДОДАНО
             const slug = shareButton.dataset.slug;
             sharePost(slug);
             return;
@@ -268,6 +271,7 @@ document.addEventListener('DOMContentLoaded', function() {
         const followButton = event.target.closest('.profile-follow-btn');
         if (followButton) {
             event.preventDefault();
+            event.stopPropagation(); // <--- ДОДАНО
             const username = followButton.dataset.username;
             handleProfileFollow(username, followButton);
             return;
@@ -277,6 +281,7 @@ document.addEventListener('DOMContentLoaded', function() {
         const categoryFollowButton = event.target.closest('.category-follow-btn');
         if (categoryFollowButton) {
             event.preventDefault();
+            event.stopPropagation(); // <--- ДОДАНО
             const slug = categoryFollowButton.dataset.slug;
             handleCategoryFollow(slug, categoryFollowButton);
             return;
