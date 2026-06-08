@@ -164,6 +164,7 @@ DATABASES = {
 
 # Додаємо опції тільки якщо це SQLite
 if DATABASES['default']['ENGINE'] == 'django.db.backends.sqlite3':
+    DATABASES['default']['CONN_MAX_AGE'] = 0
     DATABASES['default'].setdefault('OPTIONS', {})['timeout'] = 20
     
 # Password validation
