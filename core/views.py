@@ -14,9 +14,9 @@ from django.contrib.auth import get_user_model
 from django.db import transaction
 from .models import Post, Category, Tag, PostComment, PostVote, Subscription, CommentLike, Advertisement, generate_slug
 from .forms import PostForm, CommentForm, SubscriptionForm, TagForm
+from django.db.models import Count, Q
 
 User = get_user_model()
-
 
 def annotate_post_queryset(queryset, user):
     """Додає анотації is_bookmarked, user_vote та comment_count до queryset"""
@@ -336,7 +336,6 @@ class CategoryDeleteView(LoginRequiredMixin, UserPassesTestMixin, DeleteView):
         messages.success(request, 'Спільноту успішно видалено!')
         return super().delete(request, *args, **kwargs)
 
-
 class TagListView(ListView):
     model = Tag
     template_name = 'core/tag_list.html'
@@ -344,9 +343,9 @@ class TagListView(ListView):
     
     def get_queryset(self):
         return Tag.objects.annotate(
-            post_count=Count('post')
+            post_count=Count('post', filter=Q(post__status='published'))
         ).filter(
-            Q(name__isnull=False) & Q(name__gt='') & Q(slug__isnull=False) & Q(slug__gt='')
+            Q(name__isnull=False) & Q(name__gt='')
         ).order_by('name')
 
 class TagDetailView(DetailView):
@@ -368,7 +367,6 @@ class TagDetailView(DetailView):
         context['posts'] = page_obj
         context['post_count'] = posts_qs.count()
         
-        # ДОДАНО: Отримуємо популярні теги для правого сайдбару
         context['popular_tags'] = Tag.objects.annotate(
             post_count=Count('post', filter=Q(post__status='published'))
         ).filter(post_count__gt=0).exclude(id=tag.id).order_by('-post_count')[:5]
