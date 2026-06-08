@@ -4,80 +4,161 @@
 
 {% block content %}
 <div class="row g-4 fade-in">
+    
     <div class="col-md-3 d-none d-lg-block">
         {% include 'includes/sidebar.html' %}
-</div>
-    <div class="col-md-9">
+    </div>
+    
+    <div class="col-md-9 col-lg-6">
+        
         <div class="card bg-black border-secondary mb-4 shadow-sm">
-            <div class="card-body">
-                <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3">
-                    <div>
-                        <h2 class="text-light m-0"><i class="bi bi-tags text-warning"></i> Теги</h2>
-                        <p class="text-muted mb-0 small">Всього тегів: <span id="tagCount">{{ tags|length }}</span></p>
+            <div class="card-body p-4">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h4 class="text-light fw-bold m-0">
+                        <i class="bi bi-tags-fill text-warning me-2"></i> Теги
+                    </h4>
+                    {% if user.is_authenticated and user.is_admin %}
+                    <a href="{% url 'core:tag_create' %}" class="btn btn-warning btn-sm fw-bold px-3 rounded text-dark">
+                        <i class="bi bi-plus-lg"></i> Створити
+                    </a>
+                    {% endif %}
+                </div>
+                
+                <div class="d-flex gap-2">
+                    <div class="input-group">
+                        <span class="input-group-text bg-dark border-secondary text-secondary"><i class="bi bi-search"></i></span>
+                        <input type="text" id="tagSearchInput" class="form-control bg-dark border-secondary text-light" placeholder="Пошук тегів...">
                     </div>
-                    
-                    <div class="d-flex gap-2 w-100 w-md-auto">
-                        <div class="input-group">
-                            <span class="input-group-text bg-dark border-secondary text-secondary"><i class="bi bi-search"></i></span>
-                            <input type="text" id="tagSearchInput" class="form-control bg-dark border-secondary text-light" placeholder="Пошук...">
-                        </div>
-                        
-                        {% if user.is_authenticated %}
-                        <a href="{% url 'core:tag_create' %}" class="btn btn-warning text-nowrap">
-                            <i class="bi bi-plus-lg"></i> <span class="d-none d-sm-inline">Створити</span>
-                        </a>
-                        {% endif %}
-                    </div>
+                    <button class="btn btn-dark border-secondary text-light px-3" onclick="sortTags('name')" title="За алфавітом (А-Я)">
+                        <i class="bi bi-sort-alpha-down"></i>
+                    </button>
+                    <button class="btn btn-dark border-secondary text-light px-3" onclick="sortTags('count')" title="За популярністю">
+                        <i class="bi bi-graph-up-arrow"></i>
+                    </button>
                 </div>
             </div>
         </div>
 
-        <div class="row g-3" id="tagsContainer">
+        <div id="tagsContainer" class="d-flex flex-column gap-3">
             {% for tag in tags %}
-            <div class="col-md-6 col-lg-4 tag-item" data-name="{{ tag.name|lower }}">
-                <div class="card bg-black border-secondary h-100 hover-border-warning transition-all">
-                    <div class="card-body d-flex justify-content-between align-items-center">
-                        <div class="text-truncate">
-                            <a href="{% url 'core:tag_detail' tag.slug %}" class="text-light text-decoration-none fw-bold fs-5 stretched-link">
+            <div class="card bg-black border-secondary tag-item transition-all hover-card" 
+                 data-name="{{ tag.name|lower }}" 
+                 data-count="{{ tag.post_count }}">
+                <div class="card-body p-3 d-flex align-items-center justify-content-between">
+                    <div class="d-flex align-items-center">
+                        <div class="bg-dark text-warning rounded-circle d-flex justify-content-center align-items-center me-3 fw-bold fs-5 border border-secondary" style="width: 50px; height: 50px;">
+                            #
+                        </div>
+                        <div>
+                            <a href="{% url 'core:tag_detail' slug=tag.slug %}" class="text-light text-decoration-none fw-bold fs-5 stretched-link">
                                 #{{ tag.name }}
                             </a>
-                            <div class="text-muted small mt-1">{{ tag.post_count }} постів</div>
-                        </div>
-                        
-                        {% if user.is_authenticated and user.is_admin %}
-                        <div class="position-relative" style="z-index: 2;">
-                            <div class="btn-group">
-                                <a href="{% url 'core:tag_update' tag.slug %}" class="btn btn-sm btn-outline-secondary" title="Редагувати">
-                                    <i class="bi bi-pencil"></i>
-                                </a>
-                                <button type="button" 
-                                        class="btn btn-sm btn-outline-danger" 
-                                        title="Видалити"
-                                        data-bs-toggle="modal" 
-                                        data-bs-target="#deleteTagModal"
-                                        data-tag-name="{{ tag.name }}"
-                                        data-delete-url="{% url 'core:tag_delete' tag.slug %}">
-                                    <i class="bi bi-trash"></i>
-                                </button>
+                            <div class="d-flex align-items-center mt-1">
+                                <span class="badge bg-dark border border-secondary text-muted rounded px-2 py-1 fw-normal">
+                                    {{ tag.post_count }} постів
+                                </span>
                             </div>
                         </div>
-                        {% else %}
-                        <i class="bi bi-chevron-right text-secondary"></i>
-                        {% endif %}
                     </div>
+                    
+                    {% if user.is_authenticated and user.is_admin %}
+                    <div style="z-index: 2;" class="position-relative">
+                        <div class="btn-group">
+                            <a href="{% url 'core:tag_update' slug=tag.slug %}" class="btn btn-sm btn-outline-secondary" title="Редагувати">
+                                <i class="bi bi-pencil"></i>
+                            </a>
+                            <button type="button" class="btn btn-sm btn-outline-danger" title="Видалити"
+                                    data-bs-toggle="modal" data-bs-target="#deleteTagModal"
+                                    data-tag-name="{{ tag.name }}"
+                                    data-delete-url="{% url 'core:tag_delete' slug=tag.slug %}">
+                                <i class="bi bi-trash"></i>
+                            </button>
+                        </div>
+                    </div>
+                    {% else %}
+                    <i class="bi bi-chevron-right text-secondary"></i>
+                    {% endif %}
                 </div>
             </div>
             {% empty %}
-            <div class="col-12 text-center py-5">
+            <div class="text-center py-5">
                 <i class="bi bi-tags display-4 text-muted mb-3 d-block opacity-25"></i>
                 <h4 class="text-light">Тегів ще немає</h4>
             </div>
             {% endfor %}
         </div>
-        
+
         <div id="noTagsFound" class="text-center py-5 d-none">
             <i class="bi bi-search display-4 text-muted mb-3 d-block opacity-25"></i>
             <h4 class="text-light">Нічого не знайдено</h4>
+        </div>
+    </div>
+
+    <div class="col-lg-3 d-none d-lg-block">
+        <div class="sticky-top" style="top: 20px;">
+            
+            <div class="card bg-black border-secondary mb-3">
+                <div class="card-header bg-black border-secondary border-bottom-0 pt-3 pb-0">
+                    <h6 class="mb-0 text-light fw-bold"><i class="bi bi-graph-up text-warning me-2"></i> Статистика</h6>
+                </div>
+                <div class="card-body p-3">
+                    <div class="row g-2 text-center">
+                        <div class="col-6">
+                            <div class="p-2 border border-secondary rounded bg-dark h-100 d-flex flex-column justify-content-center">
+                                <h4 class="text-warning mb-0 fw-bold">{{ tags|length }}</h4>
+                                <span class="small text-muted" style="font-size: 0.75rem;">Тегів</span>
+                            </div>
+                        </div>
+                        <div class="col-6">
+                            <div class="p-2 border border-secondary rounded bg-dark h-100 d-flex flex-column justify-content-center">
+                                <h4 class="text-light mb-0 fw-bold">{{ total_posts }}</h4>
+                                <span class="small text-muted" style="font-size: 0.75rem;">Постів</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card bg-black border-secondary mb-3">
+                <div class="card-header bg-black border-secondary border-bottom-0 pt-3 pb-2 d-flex justify-content-between align-items-center">
+                    <h6 class="mb-0 text-light fw-bold"><i class="bi bi-fire text-warning me-2"></i> Популярні теги</h6>
+                    <span class="badge bg-dark border border-secondary text-muted fw-normal">ТОП 5</span>
+                </div>
+                <div class="card-body p-0">
+                    <div class="list-group list-group-flush">
+                        {% for tag in popular_tags|slice:":5" %}
+                        <a href="{% url 'core:tag_detail' slug=tag.slug %}" class="list-group-item list-group-item-action bg-black text-light border-secondary d-flex justify-content-between align-items-center py-3 sidebar-hover-item">
+                            <div><span class="text-muted me-2">#</span> <strong class="text-light">{{ tag.name }}</strong></div>
+                            <span class="badge bg-dark border border-secondary rounded-pill text-muted px-2 py-1">{{ tag.post_count }}</span>
+                        </a>
+                        {% empty %}
+                        <div class="text-center py-3 text-muted small">Тегів немає</div>
+                        {% endfor %}
+                    </div>
+                </div>
+                <div class="card-footer bg-black border-secondary text-center py-2">
+                    <a href="{% url 'core:tag_list' %}" class="text-muted text-decoration-none small d-inline-block view-all-link">
+                        Переглянути всі <i class="bi bi-arrow-right ms-1 transition-transform"></i>
+                    </a>
+                </div>
+            </div>
+
+            <div class="card bg-black border-secondary">
+                <div class="card-header bg-black border-secondary border-bottom-0 pt-3 pb-0">
+                    <h6 class="mb-0 text-light fw-bold"><i class="bi bi-lightning-fill text-warning me-2"></i> Швидкі Дії</h6>
+                </div>
+                <div class="card-body p-3">
+                    <div class="d-grid gap-2">
+                        <a href="{% url 'core:tag_create' %}" class="btn btn-warning fw-bold text-dark rounded py-2">
+                            <i class="bi bi-plus-lg me-1"></i> Створити тег
+                        </a>
+                        <button class="btn btn-dark border-secondary text-light rounded py-2" onclick="document.getElementById('tagSearchInput').focus();">
+                            <i class="bi bi-search me-1 text-muted"></i> Пошук
+                        </button>
+                    </div>
+                </div>
+            </div>
+
         </div>
     </div>
 </div>
@@ -86,85 +167,73 @@
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content bg-black border-danger shadow-lg">
             <div class="modal-header border-secondary bg-danger bg-opacity-10">
-                <h5 class="modal-title text-danger">
-                    <i class="bi bi-exclamation-triangle-fill me-2"></i> Видалення тегу
-                </h5>
+                <h5 class="modal-title text-danger"><i class="bi bi-exclamation-triangle-fill me-2"></i> Видалення тегу</h5>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body text-center py-4">
                 <p class="text-light mb-3">Ви впевнені, що хочете видалити тег?</p>
                 <h3 class="text-light fw-bold mb-4" id="modalTagName">#TagName</h3>
-                <p class="text-muted small">Ця дія незворотна. Тег буде видалено з усіх постів.</p>
             </div>
             <div class="modal-footer border-secondary justify-content-center">
                 <button type="button" class="btn btn-outline-light px-4" data-bs-dismiss="modal">Скасувати</button>
-                
                 <form id="deleteTagForm" method="post" action="">
                     {% csrf_token %}
-                    <button type="submit" class="btn btn-danger px-4 fw-bold">
-                        <i class="bi bi-trash-fill"></i> Видалити
-                    </button>
+                    <button type="submit" class="btn btn-danger px-4 fw-bold">Видалити</button>
                 </form>
             </div>
         </div>
     </div>
 </div>
-
 {% endblock %}
 
 {% block extra_css %}
 <style>
     .transition-all { transition: all 0.2s ease; }
-    .hover-border-warning:hover { border-color: #ffc107 !important; transform: translateY(-2px); }
+    .hover-card:hover { border-color: #ffc107 !important; background-color: #121212 !important; }
+    .sidebar-hover-item:hover { background-color: rgba(255, 255, 255, 0.05) !important; padding-left: 1.5rem !important; }
+    .view-all-link:hover { color: #ffc107 !important; }
+    .view-all-link:hover i { transform: translateX(4px); }
 </style>
 {% endblock %}
 
 {% block extra_js %}
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    
-    // 1. Живий пошук
     const searchInput = document.getElementById('tagSearchInput');
-    const items = document.querySelectorAll('.tag-item');
+    const container = document.getElementById('tagsContainer');
     const noResult = document.getElementById('noTagsFound');
+    let items = Array.from(container.querySelectorAll('.tag-item'));
 
     if (searchInput) {
-        searchInput.addEventListener('input', function() {
+        searchInput.addEventListener('input', function () {
             const query = this.value.toLowerCase().trim();
             let visibleCount = 0;
-
             items.forEach(item => {
                 const name = item.dataset.name;
-                if (name.includes(query)) {
-                    item.classList.remove('d-none');
-                    visibleCount++;
-                } else {
-                    item.classList.add('d-none');
-                }
+                if (name.includes(query)) { item.classList.remove('d-none'); visibleCount++; } 
+                else { item.classList.add('d-none'); }
             });
-
-            if (visibleCount === 0) noResult.classList.remove('d-none');
-            else noResult.classList.add('d-none');
+            noResult.classList.toggle('d-none', visibleCount > 0);
         });
     }
 
-    // 2. Логіка Модального Вікна
+    window.sortTags = function(criteria) {
+        const itemsArray = Array.from(document.querySelectorAll('.tag-item'));
+        itemsArray.sort((a, b) => {
+            if (criteria === 'name') return a.dataset.name.localeCompare(b.dataset.name);
+            return parseInt(b.dataset.count) - parseInt(a.dataset.count);
+        });
+        itemsArray.forEach(item => container.appendChild(item));
+    };
+
     const deleteModal = document.getElementById('deleteTagModal');
     if (deleteModal) {
         deleteModal.addEventListener('show.bs.modal', function (event) {
-            // Кнопка, що викликала модалку
             const button = event.relatedTarget;
-            
-            // Дані з кнопки
             const tagName = button.getAttribute('data-tag-name');
             const deleteUrl = button.getAttribute('data-delete-url');
-            
-            // Оновлення модалки
-            const modalTitle = deleteModal.querySelector('#modalTagName');
-            const deleteForm = deleteModal.querySelector('#deleteTagForm');
-            
-            modalTitle.textContent = '#' + tagName;
-            deleteForm.action = deleteUrl;
+            deleteModal.querySelector('#modalTagName').textContent = '#' + tagName;
+            deleteModal.querySelector('#deleteTagForm').action = deleteUrl;
         });
     }
 });

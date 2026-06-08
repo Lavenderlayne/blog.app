@@ -58,12 +58,13 @@
 </div>
 
 {% if comment.replies.exists %}
-<div class="ms-4 border-start border-secondary ps-3"> 
+<div class="ms-4"> 
     {% for reply in comment.replies.all %}
         {% include 'core/_comment.html' with comment=reply post=post %}
     {% endfor %}
 </div>
 {% endif %}
+
 {% block extra_js %}
 <script>
     // Функція для відкриття/закриття форми відповідей
