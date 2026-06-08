@@ -162,7 +162,7 @@ DATABASES = {
         'NAME': BASE_DIR / 'db.sqlite3',
         'OPTIONS': {
             'timeout': 20,
-        }
+        },
     }
 }
 
