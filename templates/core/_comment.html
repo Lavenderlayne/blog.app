@@ -31,7 +31,7 @@
                 <p class="text-light mb-2 comment-content">{{ comment.content }}</p>
 
                 {% if user.is_authenticated and post.allow_comments %}
-                <button class="btn btn-outline-secondary btn-sm reply-btn" data-comment-id="{{ comment.id }}">
+                <button type="button" class="btn btn-outline-secondary btn-sm" onclick="toggleReplyForm('{{ comment.id }}')">
                     <i class="bi bi-reply"></i> Відповісти
                 </button>
 
@@ -45,8 +45,7 @@
                         </div>
                         <div class="text-end">
                             <button type="submit" class="btn btn-warning btn-sm me-2">Відправити</button>
-                            <button type="button" class="btn btn-outline-secondary btn-sm"
-                                onclick="hideReplyForm({{ comment.id }})">
+                            <button type="button" class="btn btn-outline-secondary btn-sm" onclick="hideReplyForm('{{ comment.id }}')">
                                 Скасувати
                             </button>
                         </div>
@@ -65,44 +64,36 @@
     {% endfor %}
 </div>
 {% endif %}
-
 {% block extra_js %}
 <script>
-    document.addEventListener('DOMContentLoaded', function() {
-        // Обробник для всіх кнопок "Відповісти"
-        document.querySelectorAll('.reply-btn').forEach(button => {
-            button.addEventListener('click', function() {
-                const commentId = this.dataset.commentId;
-                const replyFormContainer = document.getElementById(`reply-form-container-${commentId}`);
-                
-                // Приховуємо всі інші відкриті форми відповідей
-                document.querySelectorAll('[id^="reply-form-container-"]').forEach(container => {
-                    if (container.id !== `reply-form-container-${commentId}`) {
-                        container.style.display = 'none';
-                    }
-                });
-                
-                // Перемикаємо відображення поточної форми
-                if (replyFormContainer.style.display === 'none' || !replyFormContainer.style.display) {
-                    replyFormContainer.style.display = 'block';
-                    // Фокусуємося на текстовій області для зручності
-                    replyFormContainer.querySelector('textarea').focus();
-                } else {
-                    replyFormContainer.style.display = 'none';
-                }
-            });
-        });
-    });
-
-    // Глобальна функція для кнопки "Скасувати"
-    function hideReplyForm(commentId) {
+    // Функція для відкриття/закриття форми відповідей
+    window.toggleReplyForm = function(commentId) {
         const replyFormContainer = document.getElementById(`reply-form-container-${commentId}`);
-        if (replyFormContainer) {
-            // Очищення вмісту (опціонально)
-            replyFormContainer.querySelector('textarea').value = '';
-            // Приховати контейнер
+        if (!replyFormContainer) return;
+        
+        // Спочатку приховуємо ВСІ відкриті форми
+        document.querySelectorAll('[id^="reply-form-container-"]').forEach(container => {
+            if (container.id !== `reply-form-container-${commentId}`) {
+                container.style.display = 'none';
+            }
+        });
+        
+        // Відкриваємо або закриваємо потрібну форму
+        if (replyFormContainer.style.display === 'none' || replyFormContainer.style.display === '') {
+            replyFormContainer.style.display = 'block';
+            replyFormContainer.querySelector('textarea').focus();
+        } else {
             replyFormContainer.style.display = 'none';
         }
-    }
+    };
+
+    // Функція для кнопки "Скасувати"
+    window.hideReplyForm = function(commentId) {
+        const replyFormContainer = document.getElementById(`reply-form-container-${commentId}`);
+        if (replyFormContainer) {
+            replyFormContainer.querySelector('textarea').value = '';
+            replyFormContainer.style.display = 'none';
+        }
+    };
 </script>
 {% endblock %}
