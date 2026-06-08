@@ -1,20 +1,20 @@
 <style>
-    /* Ефект для кнопок навігації */
+    /* Стилі для кастомних навігаційних елементів */
     .nav-item-custom {
         transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-        border-left: 3px solid transparent; /* Невидима лінія зліва */
+        border-left: 3px solid transparent;
     }
     
     .nav-item-custom:hover {
         background-color: rgba(255, 255, 255, 0.05) !important;
         color: #fff !important;
-        border-left-color: #ffc107; /* Жовта лінія при наведенні */
-        padding-left: 1.5rem; /* Легкий зсув вправо */
+        border-left-color: #ffc107;
+        padding-left: 1.5rem;
     }
     
     .nav-item-custom:hover i {
-        color: #ffc107 !important; /* Іконка стає жовтою */
-        transform: scale(1.1); /* Легке збільшення іконки */
+        color: #ffc107 !important;
+        transform: scale(1.1);
     }
 
     .nav-item-custom i {
@@ -48,11 +48,24 @@
     <div class="card-header bg-dark border-secondary">
         <h6 class="mb-0 text-light"><i class="bi bi-collection text-warning me-2"></i> Спільноти</h6>
     </div>
-    <div class="card-body p-0">
-        <div class="p-3">
-            <a href="{% url 'core:category_list' %}" class="btn btn-outline-warning w-100 fw-bold rounded-pill">
-                <i class="bi bi-eye me-2"></i> Переглянути всі
+    <div class="card-body">
+        <a href="{% url 'core:category_list' %}" class="btn btn-outline-warning w-100 fw-bold rounded-pill">
+            <i class="bi bi-eye me-2"></i> Переглянути всі
+        </a>
+    </div>
+</div>
+
+<div class="card bg-black border-secondary">
+    <div class="card-body">
+        <h5 class="text-light mb-3"><i class="bi bi-tags text-warning"></i> Популярні теги</h5>
+        <div class="d-flex flex-wrap">
+            {% for tag in popular_tags %}
+            <a href="{% url 'core:tag_detail' tag.slug %}" class="btn btn-sm btn-outline-light me-2 mb-2">
+                #{{ tag.name }} <span class="badge bg-secondary ms-1">{{ tag.post_count }}</span>
             </a>
+            {% empty %}
+            <p class="text-muted small">Тегів ще немає</p>
+            {% endfor %}
         </div>
     </div>
 </div>
