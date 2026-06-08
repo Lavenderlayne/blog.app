@@ -75,6 +75,13 @@ class Tag(models.Model):
     name = models.CharField(max_length=50, verbose_name="Назва тегу")
     slug = models.SlugField(max_length=50, unique=True, verbose_name="URL", allow_unicode=True)
     
+    subscribers = models.ManyToManyField(
+        settings.AUTH_USER_MODEL,
+        related_name='subscribed_tags',
+        blank=True,
+        verbose_name="Підписники"
+    )
+    
     class Meta:
         verbose_name = "Тег"
         verbose_name_plural = "Теги"

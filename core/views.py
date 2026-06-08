@@ -11,8 +11,7 @@ from django.utils import timezone
 from django.views.decorators.http import require_POST
 from django.utils.text import slugify
 from django.contrib.auth import get_user_model
-from django.db import transaction  # <--- ВАЖЛИВИЙ ІМПОРТ
-
+from django.db import transaction
 from .models import Post, Category, Tag, PostComment, PostVote, Subscription, CommentLike, Advertisement, generate_slug
 from .forms import PostForm, CommentForm, SubscriptionForm, TagForm
 
@@ -350,7 +349,6 @@ class TagListView(ListView):
             Q(name__isnull=False) & Q(name__gt='') & Q(slug__isnull=False) & Q(slug__gt='')
         ).order_by('name')
 
-
 class TagDetailView(DetailView):
     model = Tag
     template_name = 'core/tag_detail.html'
@@ -369,6 +367,12 @@ class TagDetailView(DetailView):
         
         context['posts'] = page_obj
         context['post_count'] = posts_qs.count()
+        
+        # ДОДАНО: Отримуємо популярні теги для правого сайдбару
+        context['popular_tags'] = Tag.objects.annotate(
+            post_count=Count('post', filter=Q(post__status='published'))
+        ).filter(post_count__gt=0).exclude(id=tag.id).order_by('-post_count')[:5]
+        
         return context
 
 class TagCreateView(LoginRequiredMixin, CreateView):
@@ -400,7 +404,6 @@ class TagDeleteView(LoginRequiredMixin, DeleteView):
         messages.success(request, 'Тег успішно видалено!')
         return super().delete(request, *args, **kwargs)
 
-# --- ВАЖЛИВА ЗМІНА: Атомарна транзакція для підписки ---
 @login_required
 @require_POST
 def toggle_category_follow(request, slug):
@@ -421,6 +424,28 @@ def toggle_category_follow(request, slug):
         'status': 'ok',
         'is_following': is_following,
         'followers_count': count
+    })
+
+@login_required
+@require_POST
+def toggle_tag_subscription(request, slug):
+    tag = get_object_or_404(Tag, slug=slug)
+    user = request.user
+    
+    with transaction.atomic():
+        if tag.subscribers.filter(id=user.id).exists():
+            tag.subscribers.remove(user)
+            is_subscribed = False
+        else:
+            tag.subscribers.add(user)
+            is_subscribed = True
+            
+        count = tag.subscribers.count()
+
+    return JsonResponse({
+        'status': 'ok',
+        'is_subscribed': is_subscribed,
+        'subscribers_count': count
     })
 
 @login_required

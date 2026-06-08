@@ -20,6 +20,12 @@
     .nav-item-custom i {
         transition: all 0.2s ease;
     }
+
+    /* Ховер для тегів у правому блоці */
+    .tag-item-custom:hover {
+        background-color: #212529 !important;
+        border-color: #ffc107 !important;
+    }
 </style>
 
 <div class="card bg-black border-secondary mb-4 shadow-sm">
@@ -56,15 +62,20 @@
 </div>
 
 <div class="card bg-black border-secondary">
-    <div class="card-body">
-        <h5 class="text-light mb-3"><i class="bi bi-tags text-warning"></i> Популярні теги</h5>
-        <div class="d-flex flex-wrap">
+    <div class="card-header bg-black border-secondary border-bottom-0 pt-3 pb-0">
+        <h5 class="mb-0 text-light fw-bold">
+            <i class="bi bi-tags text-warning me-2"></i> Популярні теги
+        </h5>
+    </div>
+    <div class="card-body pt-3">
+        <div class="d-flex flex-wrap gap-2">
             {% for tag in popular_tags %}
-            <a href="{% url 'core:tag_detail' tag.slug %}" class="btn btn-sm btn-outline-light me-2 mb-2">
-                #{{ tag.name }} <span class="badge bg-secondary ms-1">{{ tag.post_count }}</span>
+            <a href="{% url 'core:tag_detail' tag.slug %}" class="text-decoration-none border border-secondary text-light bg-black rounded px-3 py-1 d-inline-flex align-items-center tag-item-custom transition-all">
+                <span class="text-info fw-bold me-1">#</span>{{ tag.name }} 
+                <span class="badge bg-secondary ms-2 rounded text-light px-2">{{ tag.post_count }}</span>
             </a>
             {% empty %}
-            <p class="text-muted small">Тегів ще немає</p>
+            <p class="text-muted small w-100 text-center mt-2">Тегів ще немає</p>
             {% endfor %}
         </div>
     </div>

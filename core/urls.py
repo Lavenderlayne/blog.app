@@ -38,6 +38,9 @@ urlpatterns = [
     path('tags/<str:slug>/update/', views.TagUpdateView.as_view(), name='tag_update'),
     path('tags/<str:slug>/delete/', views.TagDeleteView.as_view(), name='tag_delete'),
     path('tags/<str:slug>/', views.TagDetailView.as_view(), name='tag_detail'),
+
+    # ДОДАЙТЕ ЦЕЙ РЯДОК ДЛЯ ПІДПИСКИ:
+    path('tags/<str:slug>/subscribe/', views.toggle_tag_subscription, name='tag_subscribe'),
     
     path('search/', views.search, name='search'),
     path('subscribe/', views.subscribe, name='subscribe'),
