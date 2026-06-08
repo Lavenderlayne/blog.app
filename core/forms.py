@@ -20,7 +20,7 @@ class PostForm(forms.ModelForm):
         required=False,
         widget=forms.TextInput(attrs={
             'class': 'form-control bg-dark border-secondary text-light',
-            'placeholder': 'Введіть теги через кому (напр. django, python)'
+            'placeholder': 'Створіть тег'
         }),
         label="Теги"
     )

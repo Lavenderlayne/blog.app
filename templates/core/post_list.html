@@ -110,18 +110,7 @@
         </div>
         {% endif %}
         
-        <div class="card bg-black border-secondary">
-            <div class="card-body">
-                <h5 class="text-light mb-3"><i class="bi bi-tags text-warning"></i> Популярні теги</h5>
-                <div class="d-flex flex-wrap">
-                    {% for tag in popular_tags %}
-                    <a href="{% url 'core:tag_detail' tag.slug %}" class="btn btn-sm btn-outline-light me-2 mb-2">
-                        #{{ tag.name }} <span class="badge bg-secondary ms-1">{{ tag.post_count }}</span>
-                    </a>
-                    {% empty %}
-                    <p class="text-muted small">Тегів ще немає</p>
-                    {% endfor %}
-                </div>
-            </div>
-        </div>
-    </div> </div> {% endblock %}
+        
+    </div> 
+</div>
+{% endblock %}
