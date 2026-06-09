@@ -319,6 +319,7 @@
 document.addEventListener('DOMContentLoaded', function () {
 
     // 1. ЛОГІКА МОДАЛЬНОГО ВІКНА ВИДАЛЕННЯ
+    // ... (тут залишається ваш код для модалки видалення без змін) ...
     const deleteModal = document.getElementById('deletePostModal');
     if (deleteModal) {
         let timerInterval;
@@ -353,8 +354,8 @@ document.addEventListener('DOMContentLoaded', function () {
             confirmBtn.disabled = true;
         });
     }
-
     // 2. Налаштування Toast
+    // ... (тут залишається ваш код для тостів) ...
     const toastEl = document.getElementById('liveToast');
     const toastBody = document.getElementById('toastMessage');
     const bsToast = new bootstrap.Toast(toastEl);
@@ -363,7 +364,6 @@ document.addEventListener('DOMContentLoaded', function () {
         toastBody.textContent = message;
         bsToast.show();
     }
-
     // 3. Отримання CSRF Token
     function getCookie(name) {
         let cookieValue = null;
@@ -380,13 +380,24 @@ document.addEventListener('DOMContentLoaded', function () {
         return cookieValue;
     }
     const csrftoken = getCookie('csrftoken');
+    // ... (тут залишається функція getCookie) ...
 
-    // 4. Логіка голосування
+
+    // 4. ЛОГІКА ГОЛОСУВАННЯ (ОСЬ СЮДИ ЗАМІСТЬ СТАРОГО ВАРІАНТУ)
     document.querySelectorAll('.post-vote-btn').forEach(btn => {
         btn.addEventListener('click', function() {
+            // Якщо кнопка вже заблокована (запит у процесі), нічого не робимо
+            if (this.disabled) return;
+
             const slug = this.dataset.slug;
             const direction = this.dataset.direction;
             const container = this.closest('.d-flex.flex-column');
+            
+            // Знаходимо обидві кнопки і блокуємо їх
+            const upBtn = container.querySelector('[data-direction="up"]');
+            const downBtn = container.querySelector('[data-direction="down"]');
+            upBtn.disabled = true;
+            downBtn.disabled = true;
             
             fetch(`/vote/${slug}/${direction}/`, { 
                 method: 'POST',
@@ -399,16 +410,20 @@ document.addEventListener('DOMContentLoaded', function () {
             .then(data => {
                 if (!data) return;
                 container.querySelector(`[id^="vote-score"]`).innerText = data.vote_score;
-                const upBtn = container.querySelector('[data-direction="up"]');
-                const downBtn = container.querySelector('[data-direction="down"]');
                 upBtn.className = 'btn btn-sm btn-outline-success p-1 mb-1 post-vote-btn';
                 downBtn.className = 'btn btn-sm btn-outline-danger p-1 mt-1 post-vote-btn';
                 if (data.user_vote === 1) upBtn.classList.replace('btn-outline-success', 'btn-success');
                 else if (data.user_vote === -1) downBtn.classList.replace('btn-outline-danger', 'btn-danger');
             })
-            .catch(console.error);
+            .catch(console.error)
+            .finally(() => {
+                // Розблоковуємо кнопки після завершення запиту (успішного або з помилкою)
+                upBtn.disabled = false;
+                downBtn.disabled = false;
+            });
         });
     });
+
 
     // 5. Логіка збереження
     document.querySelectorAll('.post-save-btn').forEach(btn => {
@@ -494,6 +509,8 @@ document.addEventListener('DOMContentLoaded', function () {
             .catch(console.error);
         }
     });
+    // ... (далі залишається вся інша логіка без змін для збереження, посилання та коментарів) ...
+
 });
 </script>
 {% endblock %}
