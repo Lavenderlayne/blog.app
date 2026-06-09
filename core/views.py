@@ -11,10 +11,9 @@ from django.utils import timezone
 from django.views.decorators.http import require_POST
 from django.utils.text import slugify
 from django.contrib.auth import get_user_model
-from django.db import transaction
+from django.db import transaction, IntegrityError
 from .models import Post, Category, Tag, PostComment, PostVote, Subscription, CommentLike, Advertisement, generate_slug
 from .forms import PostForm, CommentForm, SubscriptionForm, TagForm
-from django.db.models import Count, Q
 
 User = get_user_model()
 
@@ -469,37 +468,36 @@ def delete_comment(request, pk):
         messages.error(request, 'У вас немає прав для видалення цього коментаря!')
     return redirect('core:post_detail', slug=comment.post.slug)
 
-
-# --- ВАЖЛИВА ЗМІНА: Атомарна транзакція та select_for_update для голосування ---
 @login_required
 @require_POST
 def post_vote(request, slug, direction):
     post = get_object_or_404(Post, slug=slug, status='published')
     user = request.user
     new_vote_value = 1 if direction == 'up' else -1
+    user_vote_status = new_vote_value
     
-    with transaction.atomic():
+    try:
+        vote = PostVote.objects.get(post=post, user=user)
+        
+        if vote.value == new_vote_value:
+
+            vote.delete()
+            user_vote_status = 0
+        else:
+            vote.value = new_vote_value
+            vote.save(update_fields=['value'])
+            user_vote_status = new_vote_value
+            
+    except PostVote.DoesNotExist:
+
         try:
-            # Блокуємо рядок голосу, якщо він існує, або створюємо новий
-            # Це запобігає стану гонитви (race condition)
-            vote = PostVote.objects.select_for_update().get(post=post, user=user)
-            if vote.value == new_vote_value:
-                vote.delete()
-                user_vote_status = 0
-            else:
-                vote.value = new_vote_value
-                vote.save()
-                user_vote_status = new_vote_value
-        except PostVote.DoesNotExist:
             PostVote.objects.create(post=post, user=user, value=new_vote_value)
             user_vote_status = new_vote_value
-    
-        # Оновлюємо загальний рахунок в тій же транзакції
-        new_score_data = post.votes.aggregate(score=Sum('value'))
-        new_score = new_score_data.get('score') or 0
-        
-        post.vote_score = new_score
-        post.save(update_fields=['vote_score'])
+        except IntegrityError:
+
+            pass
+    new_score = post.votes.aggregate(score=Sum('value'))['score'] or 0
+    Post.objects.filter(pk=post.pk).update(vote_score=new_score)
     
     return JsonResponse({
         'status': 'ok',
@@ -507,11 +505,8 @@ def post_vote(request, slug, direction):
         'user_vote': user_vote_status
     })
 
-# --- ВАЖЛИВА ЗМІНА: Атомарна транзакція для лайків коментарів ---
 @login_required
 def toggle_comment_like(request, pk):
-    # Додаємо transaction.atomic, хоча для лайків це менш критично, ніж для грошей чи голосів,
-    # але це хороша практика для уникнення блокування SQLite
     if request.method == 'POST':
         with transaction.atomic():
             comment = get_object_or_404(PostComment.objects.select_for_update(), pk=pk)
@@ -520,19 +515,20 @@ def toggle_comment_like(request, pk):
             if not created:
                 like.delete()
                 liked = False
-                comment.like_count = max(0, comment.like_count - 1)
+                comment.like_count = F('like_count') - 1
             else:
                 liked = True
-                comment.like_count += 1
+                comment.like_count = F('like_count') + 1
             
             comment.save(update_fields=['like_count'])
+            comment.refresh_from_db()
         
         return JsonResponse({
             'status': 'ok',
             'liked': liked,
             'like_count': comment.like_count
         })
-    # Якщо це не POST запит, редірект (fallback)
+
     comment = get_object_or_404(PostComment, pk=pk)
     return redirect('core:post_detail', slug=comment.post.slug)
 
