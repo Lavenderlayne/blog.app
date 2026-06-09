@@ -347,6 +347,11 @@ class TagListView(ListView):
             Q(name__isnull=False) & Q(name__gt='')
         ).order_by('name')
 
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['total_posts'] = Post.objects.filter(status='published').count()
+        return context
+
 class TagDetailView(DetailView):
     model = Tag
     template_name = 'core/tag_detail.html'
