@@ -5,15 +5,15 @@
 {% block content %}
 <div class="row g-4 fade-in">
     
-    <div class="col-md-3 d-none d-lg-block">
+    <div class="col-lg-3 d-none d-lg-block">
         {% include 'includes/sidebar.html' %}
     </div>
     
-    <div class="col-md-9 col-lg-6">
+    <div class="col-lg-6 col-md-12">
         
         <div class="card bg-black border-secondary mb-4 shadow-sm">
             <div class="card-body p-4">
-                <div class="d-flex justify-content-between align-items-center mb-3">
+                <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-3">
                     <h4 class="text-light fw-bold m-0">
                         <i class="bi bi-tags-fill text-warning me-2"></i> Теги
                     </h4>
@@ -24,17 +24,19 @@
                     {% endif %}
                 </div>
                 
-                <div class="d-flex gap-2">
+                <div class="d-flex gap-2 flex-wrap flex-sm-nowrap">
                     <div class="input-group">
                         <span class="input-group-text bg-dark border-secondary text-secondary"><i class="bi bi-search"></i></span>
                         <input type="text" id="tagSearchInput" class="form-control bg-dark border-secondary text-light" placeholder="Пошук тегів...">
                     </div>
-                    <button class="btn btn-dark border-secondary text-light px-3" onclick="sortTags('name')" title="За алфавітом (А-Я)">
-                        <i class="bi bi-sort-alpha-down"></i>
-                    </button>
-                    <button class="btn btn-dark border-secondary text-light px-3" onclick="sortTags('count')" title="За популярністю">
-                        <i class="bi bi-graph-up-arrow"></i>
-                    </button>
+                    <div class="btn-group flex-shrink-0">
+                        <button class="btn btn-dark border-secondary text-light px-3" onclick="sortTags('name')" title="За алфавітом (А-Я)">
+                            <i class="bi bi-sort-alpha-down"></i>
+                        </button>
+                        <button class="btn btn-dark border-secondary text-light px-3" onclick="sortTags('count')" title="За популярністю">
+                            <i class="bi bi-graph-up-arrow"></i>
+                        </button>
+                    </div>
                 </div>
             </div>
         </div>
@@ -44,13 +46,13 @@
             <div class="card bg-black border-secondary tag-item transition-all hover-card" 
                  data-name="{{ tag.name|lower }}" 
                  data-count="{{ tag.post_count }}">
-                <div class="card-body p-3 d-flex align-items-center justify-content-between">
-                    <div class="d-flex align-items-center">
-                        <div class="bg-dark text-warning rounded-circle d-flex justify-content-center align-items-center me-3 fw-bold fs-5 border border-secondary" style="width: 50px; height: 50px;">
+                <div class="card-body p-3 d-flex align-items-center justify-content-between flex-wrap flex-sm-nowrap gap-3">
+                    <div class="d-flex align-items-center min-width-0 flex-grow-1">
+                        <div class="bg-dark text-warning rounded-circle d-flex justify-content-center align-items-center me-3 fw-bold fs-5 border border-secondary flex-shrink-0" style="width: 50px; height: 50px;">
                             #
                         </div>
-                        <div>
-                            <a href="{% url 'core:tag_detail' slug=tag.slug %}" class="text-light text-decoration-none fw-bold fs-5 stretched-link">
+                        <div class="min-width-0">
+                            <a href="{% url 'core:tag_detail' slug=tag.slug %}" class="text-light text-decoration-none fw-bold fs-5 stretched-link text-break">
                                 #{{ tag.name }}
                             </a>
                             <div class="d-flex align-items-center mt-1">
@@ -62,7 +64,7 @@
                     </div>
                     
                     {% if user.is_authenticated and user.is_admin %}
-                    <div style="z-index: 2;" class="position-relative">
+                    <div style="z-index: 2;" class="position-relative flex-shrink-0">
                         <div class="btn-group">
                             <a href="{% url 'core:tag_update' slug=tag.slug %}" class="btn btn-sm btn-outline-secondary" title="Редагувати">
                                 <i class="bi bi-pencil"></i>
@@ -76,7 +78,7 @@
                         </div>
                     </div>
                     {% else %}
-                    <i class="bi bi-chevron-right text-secondary"></i>
+                    <i class="bi bi-chevron-right text-secondary d-none d-sm-block flex-shrink-0"></i>
                     {% endif %}
                 </div>
             </div>
@@ -94,33 +96,33 @@
         </div>
     </div>
 
-    <div class="col-md-3 d-none d-lg-block">
-        <div class="sticky-top" style="top: 20px;">
-
-            <div class="card bg-black border-secondary mb-4 shadow-sm">
-                <div class="card-header bg-dark border-secondary">
-                    <h6 class="mb-0 text-light"><i class="bi bi-graph-up text-warning me-2"></i> Статистика</h6>
-                </div>
-                <div class="card-body">
-                    <div class="row text-center g-2">
-                        <div class="col-6">
-                            <div class="p-2 border border-secondary rounded bg-dark h-100 d-flex flex-column justify-content-center">
-                                <h4 class="text-warning mb-0 fw-bold">{{ tags|length }}</h4>
-                                <span class="small text-muted" style="font-size: 0.75rem;">Тегів</span>
-                            </div>
+    <div class="col-lg-3 col-md-12">
+        <div class="card bg-black border-secondary mb-4 shadow-sm">
+            <div class="card-header bg-dark border-secondary">
+                <h6 class="mb-0 text-light"><i class="bi bi-graph-up text-warning me-2"></i> Статистика</h6>
+            </div>
+            <div class="card-body">
+                <div class="row text-center g-2">
+                    <div class="col-6">
+                        <div class="p-2 border border-secondary rounded bg-dark">
+                            <h4 class="text-warning mb-0 fw-bold">{{ tags|length }}</h4>
+                            <span class="small text-muted" style="font-size: 0.75rem;">Тегів</span>
                         </div>
-                        <div class="col-6">
-                            <div class="p-2 bg-dark rounded border border-secondary">
-                                <h4 class="text-light mb-0 fw-bold">{{ total_posts|default:"0" }}</h4>
-                                <small class="text-muted">Постів</small>
-                            </div>
+                    </div>
+                    <div class="col-6">
+                        <div class="p-2 bg-dark rounded border border-secondary">
+                            <h4 class="text-light mb-0 fw-bold">{{ total_posts|default:"0" }}</h4>
+                            <small class="text-muted">Постів</small>
                         </div>
                     </div>
                 </div>
             </div>
-
-            {% include 'includes/card.html' %}
         </div>
+
+        {% include 'includes/card.html' %}
+    </div>
+
+</div>
 
 <div class="modal fade" id="deleteTagModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
